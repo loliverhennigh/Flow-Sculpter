@@ -65,7 +65,7 @@ typedef unsigned char byte;
 const T maxPhysT = 160.; // max. simulation time in s, SI unit
 
 // Convergence params
-const T interval = 2.0; // Time intervall in seconds for convergence check
+const T interval = 5.0; // Time intervall in seconds for convergence check
 const T epsilon = 1e-3; // Residuum for convergence check
 
 // Vox file params
@@ -285,7 +285,7 @@ void setBoundaryValues( SuperLattice3D<T, DESCRIPTOR>& sLattice,
   OstreamManager clout( std::cout,"setBoundaryValues" );
 
   // No of time steps for smooth start-up
-  int iTmaxStart = converter.numTimeSteps( 2.0 );
+  int iTmaxStart = converter.numTimeSteps( 20.0 );
   int iTupdate = 30;
 
   if ( iT%iTupdate == 0 && iT <= iTmaxStart ) {
@@ -404,6 +404,12 @@ void getResults( SuperLattice3D<T, DESCRIPTOR>& sLattice,
     // writes a png in one file for every timestep, if the file is open it can be used as a "liveplot"
     gplot.writePNG();
 
+    SuperEuklidNorm3D<T, DESCRIPTOR> normVel( velocity );
+    BlockLatticeReduction3D<T, DESCRIPTOR> planeReduction( normVel, 0, 0, -1 );
+    BlockGifWriter<T> gifWriter;
+    //gifWriter.write(planeReduction, 0, 0.7, iT, "vel"); //static scale
+    gifWriter.write( planeReduction, iT, "vel" ); // scaled
+
     // every (iT%vtkIter) write an png of the plot
     if ( (iT%( vtkIter ) == 0) || converged ) {
       // writes pngs: input={name of the files (optional), x range for the plot (optional)}
@@ -440,8 +446,8 @@ int main( int argc, char* argv[] ) {
   LBconverter<T> converter(
     ( int ) 3,                             // dim
     ( T )   1.28/simulation_size,          // latticeL_
-    ( T )   0.005,                         // latticeU_
-    ( T )   0.003,                          // charNu_
+    ( T )   0.02,                         // latticeU_
+    ( T )   0.004,                          // charNu_
     ( T )   0.1,                           // charL_ = 1
     ( T )   0.2                            // charU_ = 1
   );

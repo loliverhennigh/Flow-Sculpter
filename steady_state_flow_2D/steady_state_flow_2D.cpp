@@ -320,8 +320,8 @@ void getResults( SuperLattice2D<T, DESCRIPTOR>& sLattice,
   vtmWriter.addFunctor( velocity );
   vtmWriter.addFunctor( pressure );
 
-  const int vtkIter  = converter.numTimeSteps( 0.3 );
-  const int statIter = converter.numTimeSteps( 0.1 );
+  const int vtkIter  = converter.numTimeSteps( 1.0 );
+  const int statIter = converter.numTimeSteps( 1.0 );
 
   if ( iT == 0 ) {
     // Writes the geometry, cuboid no. and rank no. as vti file for visualization
@@ -380,12 +380,6 @@ void getResults( SuperLattice2D<T, DESCRIPTOR>& sLattice,
     // writes a png in one file for every timestep, if the file is open it can be used as a "liveplot"
     gplot.writePNG();
 
-    SuperEuklidNorm2D<T, DESCRIPTOR> normVel( velocity );
-    BlockLatticeReduction2D<T, DESCRIPTOR> planeReduction( normVel );
-    BlockGifWriter<T> gifWriter;
-    //gifWriter.write(planeReduction, 0, 0.7, iT, "vel"); //static scale
-    gifWriter.write( planeReduction, iT, "vel" ); // scaled
- 
     // every (iT%vtkIter) write an png of the plot
     if ( (iT%( vtkIter ) == 0) || converged ) {
       // writes pngs: input={name of the files (optional), x range for the plot (optional)}
@@ -424,7 +418,7 @@ int main( int argc, char* argv[] ) {
     ( int ) 2,                             // dim
     ( T )   0.64/simulation_size,          // latticeL_
     ( T )   0.02,                          // latticeU_
-    ( T )   0.002,                          // charNu_
+    ( T )   0.004,                          // charNu_
     ( T )   0.1,                           // charL_ = 1
     ( T )   0.2                            // charU_ = 1
   );

@@ -8,10 +8,10 @@ import lxml.etree as etree
 from termcolor import colored
 
 class Process:
-  def __init__(self, command, xml_filename, xml_finish_script):
+  def __init__(self, command, xml_filename, finish_script):
     self.cmd = command
     self.xml_file = xml_filename
-    self.update_xml = xml_finish_script
+    self.finish_scipt = finish_script
     # check if simulaiton is already ran
     tree = etree.parse(self.xml_file)
     root = tree.getroot()
@@ -30,8 +30,6 @@ class Process:
 
   def start(self):
     with open(os.devnull, 'w') as devnull:
-      print(self.cmd)
-      print(self.xml_file)
       self.process = ps.subprocess.Popen([self.cmd, self.xml_file], stdout=devnull, stderr=devnull)
     self.pid = self.process.pid
 
@@ -45,7 +43,7 @@ class Process:
         self.status = "Finished"
         if self.process.poll() == 0:
           self.return_status = "SUCCESS"
-          self.update_xml(self.xml_file)
+          self.finish_scritp(self.xml_file)
         else:
           self.return_status = "FAIL"
   def get_pid(self):

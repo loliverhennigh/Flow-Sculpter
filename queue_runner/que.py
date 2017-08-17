@@ -14,14 +14,15 @@ class Que:
     self.available_processes = num_processes
     self.start_time = 0
 
-  def enque_file(self, xml_filename, should_run, xml_update_script):
+  def enque_file(self, xml_filename, should_run, initialize_script, finish_script):
     # read runs from master xml file
     root = etree.parse(xml_filename)
     list_of_runs = root.findall("run") 
     for run in list_of_runs:
       xml_filename = run.find("xml_filename").text
       if should_run(xml_filename):
-        self.pl.append(process.Process(self.command, xml_filename, xml_update_script))
+        initialize_script(xml_filename)
+        self.pl.append(process.Process(self.command, xml_filename, finish_script))
 
   def start_next(self):
     for i in xrange(len(self.pl)):
