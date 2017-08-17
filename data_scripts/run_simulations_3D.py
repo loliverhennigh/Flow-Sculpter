@@ -15,7 +15,6 @@ def initialize_script(xml_file):
   root = tree.getroot()
   base_path = root.find("save_path_3d").text
   with open(os.devnull, 'w') as devnull:
-    print("rm -r " + base_path)
     try:
       subprocess.check_call(("rm -r " + base_path).split(' '), stdout=devnull, stderr=devnull)
     except:

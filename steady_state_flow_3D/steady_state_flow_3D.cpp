@@ -458,8 +458,8 @@ int main( int argc, char* argv[] ) {
   // === 2nd Step: Prepare Geometry ===
 
   // Instantiation chamber the object will rest in
-  Vector<T,3> origin (-3.84,-1.92,-1.92);
-  Vector<T,3> extend ( 3.84, 1.92, 1.92);
+  Vector<T,3> origin ( 0.0,  0.0,  0.0);
+  Vector<T,3> extend ( 3.84 - (2.5*converter.getLatticeL()), 1.92 - (2.5*converter.getLatticeL()), 1.92 - (2.5*converter.getLatticeL()));
   IndicatorCuboid3D<T> extendedDomain(extend, origin);
 
   // Instantiation of a cuboidGeometry with weights

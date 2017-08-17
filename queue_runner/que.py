@@ -4,6 +4,7 @@ import process
 import time
 from lxml import etree
 from termcolor import colored
+from tqdm import *
 
 class Que:
   def __init__(self, command, num_processes=1):
@@ -18,7 +19,8 @@ class Que:
     # read runs from master xml file
     root = etree.parse(xml_filename)
     list_of_runs = root.findall("run") 
-    for run in list_of_runs:
+    print("init que and running startup scripts...")
+    for run in tqdm(list_of_runs):
       xml_filename = run.find("xml_filename").text
       if should_run(xml_filename):
         initialize_script(xml_filename)

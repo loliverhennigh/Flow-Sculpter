@@ -11,7 +11,7 @@ class Process:
   def __init__(self, command, xml_filename, finish_script):
     self.cmd = command
     self.xml_file = xml_filename
-    self.finish_scipt = finish_script
+    self.finish_script = finish_script
     # check if simulaiton is already ran
     tree = etree.parse(self.xml_file)
     root = tree.getroot()
@@ -43,7 +43,7 @@ class Process:
         self.status = "Finished"
         if self.process.poll() == 0:
           self.return_status = "SUCCESS"
-          self.finish_scritp(self.xml_file)
+          self.finish_script(self.xml_file)
         else:
           self.return_status = "FAIL"
   def get_pid(self):

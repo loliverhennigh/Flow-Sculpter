@@ -13,9 +13,9 @@ np.random.seed(0)
 
 # params to run
 base_path = '../data/'
-num_flips_per_type = 4
-num_samples_per_type = 20
-sizes = [32, 48, 64, 96, 128, 256]
+num_flips_per_type = 1
+num_samples_per_type = 1
+sizes = [32, 64]
 #sizes = [32]
 
 # helper for voxelizing

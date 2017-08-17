@@ -426,10 +426,12 @@ int main( int argc, char* argv[] ) {
   writeLogFile( converter, "cylinder2d" );
 
 
+  cout << converter.getLatticeL() << endl; 
   // === 2rd Step: Prepare Geometry ===
-  Vector<T,2> origin (-5.12, -1.28);
-  Vector<T,2> extend ( 5.12,  1.28);
+  Vector<T,2> origin ( 0.0, 0.0);
+  Vector<T,2> extend ( 5.12 - (2.5*converter.getLatticeL()),  1.28 - (2.5*converter.getLatticeL()));
   IndicatorCuboid2D<T> cuboid( extend, origin );
+  //IndicatorCuboid2D<T> cuboid( 0.0, 0.0, converter.getLatticeL(), simulation_size*2, simulation_size*4 );
 
   // Instantiation of a cuboidGeometry with weights
 #ifdef PARALLEL_MODE_MPI
