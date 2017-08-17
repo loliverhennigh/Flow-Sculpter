@@ -12,11 +12,11 @@ import subprocess
 np.random.seed(0)
 
 # params to run
-base_path = '../data_2D/'
-num_flips_per_type = 1
-num_samples_per_type = 1
-#sizes = [8, 16, 32, 64, 128, 256, 512]
-sizes = [128]
+base_path = '../data/'
+num_flips_per_type = 4
+num_samples_per_type = 20
+sizes = [32, 48, 64, 96, 128, 256]
+#sizes = [32]
 
 # helper for voxelizing
 def voxelize_file(filename, size, flip_x, flip_z):
@@ -39,7 +39,8 @@ def save_xml(filename, class_id, obj_id, vox_filename, size, flip_x, filp_z):
   etree.SubElement(single_root, "class_id").text = ids
   etree.SubElement(single_root, "obj_id").text = obj_id
   etree.SubElement(single_root, "binvox_name").text = vox_filename
-  etree.SubElement(single_root, "save_path").text = base_path + "simulation_data/" + vox_filename.split('/')[-2] + "_" + vox_filename.split('/')[-1][:-7] + "/"
+  etree.SubElement(single_root, "save_path_2d").text = base_path + "simulation_data_2D/" + vox_filename.split('/')[-2] + "_" + vox_filename.split('/')[-1][:-7] + "/"
+  etree.SubElement(single_root, "save_path_3d").text = base_path + "simulation_data_3D/" + vox_filename.split('/')[-2] + "_" + vox_filename.split('/')[-1][:-7] + "/"
   etree.SubElement(single_root, "size").text = str(size)
   etree.SubElement(single_root, "flip_x").text = str(flip_x)
   etree.SubElement(single_root, "flip_z").text = str(flip_z)
