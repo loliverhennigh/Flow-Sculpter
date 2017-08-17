@@ -7,7 +7,9 @@ if [ ! -d olb-1.1r0 ]; then
 fi
 cd olb-1.1r0
 make
-cd ../steady_state_flow
+cd ../steady_state_flow_2D
+make
+cd ../steady_state_flow_3D
 make
 
 
