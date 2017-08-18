@@ -20,6 +20,9 @@ sizes = [16, 32, 64, 96]
 
 # helper for voxelizing
 def voxelize_file(filename, size, flip_x, flip_z):
+  new_filename = filename[:-4] + "_size_" + str(size) + "_rotation_" + save_str + ".binvox"
+  if os.path.isfile(new_filename)
+    return
   flip_str = " "
   save_str = str(flip_x) + str(flip_z)
   flip_str += flip_x*"-rotx "
@@ -28,7 +31,6 @@ def voxelize_file(filename, size, flip_x, flip_z):
   with open(os.devnull, 'w') as devnull:
     ret = subprocess.check_call(vox_cmd.split(' '), stdout=devnull, stderr=devnull)
   rename_cmd = "mv " + filename[:-4] + ".binvox"  + " " 
-  new_filename = filename[:-4] + "_size_" + str(size) + "_rotation_" + save_str + ".binvox"
   ret = subprocess.check_call((rename_cmd + new_filename).split(' '))
   return new_filename
 
