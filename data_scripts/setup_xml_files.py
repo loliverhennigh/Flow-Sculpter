@@ -12,11 +12,11 @@ import subprocess
 np.random.seed(0)
 
 # params to run
-base_path = '../data/'
-num_flips_per_type = 1
-num_samples_per_type = 1
-sizes = [32, 64]
-#sizes = [32]
+#base_path = os.path.abspath("../data/") + "/"
+base_path = os.path.abspath("../data/") + "/"
+num_flips_per_type = 4
+num_samples_per_type = 20
+sizes = [16, 32, 64, 96]
 
 # helper for voxelizing
 def voxelize_file(filename, size, flip_x, flip_z):
@@ -33,14 +33,17 @@ def voxelize_file(filename, size, flip_x, flip_z):
   return new_filename
 
 # helper for saving xml
-def save_xml(filename, class_id, obj_id, vox_filename, size, flip_x, filp_z):
+def save_xml(filename, class_id, obj_id, vox_filename, dim, size, flip_x, filp_z):
   single_root = etree.Element("Param")
   # save info
   etree.SubElement(single_root, "class_id").text = ids
   etree.SubElement(single_root, "obj_id").text = obj_id
   etree.SubElement(single_root, "binvox_name").text = vox_filename
-  etree.SubElement(single_root, "save_path_2d").text = base_path + "simulation_data_2D/" + vox_filename.split('/')[-2] + "_" + vox_filename.split('/')[-1][:-7] + "/"
-  etree.SubElement(single_root, "save_path_3d").text = base_path + "simulation_data_3D/" + vox_filename.split('/')[-2] + "_" + vox_filename.split('/')[-1][:-7] + "/"
+  save_path = (base_path + "simulation_data_" + str(dim) + "D/" 
+              + vox_filename.split('/')[-2] + "_" 
+              + vox_filename.split('/')[-1][:-7] + "/")
+  etree.SubElement(single_root, "save_path").text = save_path
+  etree.SubElement(single_root, "dim").text = str(dim)
   etree.SubElement(single_root, "size").text = str(size)
   etree.SubElement(single_root, "flip_x").text = str(flip_x)
   etree.SubElement(single_root, "flip_z").text = str(flip_z)
@@ -64,15 +67,15 @@ if __name__ == "__main__":
     pass
 
   # remove any previous xml files just to be safe
-  for rm_file in glob.glob(base_path + "xml_files/*.xml"):
-    os.remove(rm_file)
+  #for rm_file in glob.glob(base_path + "xml_files/*.xml"):
+  #  os.remove(rm_file)
 
   for ids in tqdm(class_ids):
     # get list of all objects in class
     objs_in_class = glob.glob(base_path + "train/" + ids + "/*.obj")
     objs_in_class.sort() # sort them for reproducability
-    for rm_file in glob.glob(base_path + "train/" + ids + "/*.binvox"):
-      os.remove(rm_file)
+    #for rm_file in glob.glob(base_path + "train/" + ids + "/*.binvox"):
+    #  os.remove(rm_file)
 
     for i in xrange(num_samples_per_type):
       # get obj id
@@ -84,22 +87,26 @@ if __name__ == "__main__":
         flip_z = np.random.randint(0, 4)
   
         for k in xrange(len(sizes)):
-          # xml filename
-          xml_filename = (base_path + "xml_files/" + ids + "_" + obj_id 
-                         + "_" + str(sizes[k]).zfill(4) + "_" + str(flip_x) 
-                         + str(flip_z) + ".xml")
+          for dim in [2, 3]:
+            # xml filename
+            xml_filename = (base_path + "xml_files/" + ids + "_" + obj_id 
+                           + "_" + str(dim) + "_" + str(sizes[k]).zfill(4) 
+                           + "_" + str(flip_x) + str(flip_z) + ".xml")
+
+            if not os.path.isfile(xml_filename):
+              # generate binvox element
+              vox_filename = voxelize_file(objs_in_class[i], sizes[k], flip_x, flip_z)
   
-          # generate binvox element
-          vox_filename = voxelize_file(objs_in_class[i], sizes[k], flip_x, flip_z)
+              # save xml file for specific vox
+              save_xml(xml_filename, ids, obj_id, vox_filename, dim, sizes[k], flip_x, flip_z)
   
-          # save xml file for specific vox
-          save_xml(xml_filename, ids, obj_id, vox_filename, sizes[k], flip_x, flip_z)
-  
-          # make xml element for main
-          main_run = etree.SubElement(main_root, "run")
-          etree.SubElement(main_run, "class_id").text = ids
-          etree.SubElement(main_run, "obj_id").text = obj_id
-          etree.SubElement(main_run, "xml_filename").text = xml_filename
+            # make xml element for main
+            main_run = etree.SubElement(main_root, "run")
+            etree.SubElement(main_run, "class_id").text = ids
+            etree.SubElement(main_run, "obj_id").text = obj_id
+            etree.SubElement(main_run, "dim").text = str(dim)
+            etree.SubElement(main_run, "size").text = str(sizes[k])
+            etree.SubElement(main_run, "xml_filename").text = xml_filename
   
   # save main xml file
   tree = etree.ElementTree(main_root)

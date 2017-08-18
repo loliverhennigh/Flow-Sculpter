@@ -22,7 +22,7 @@ class Que:
     print("init que and running startup scripts...")
     for run in tqdm(list_of_runs):
       xml_filename = run.find("xml_filename").text
-      if should_run(xml_filename):
+      if should_run(run):
         initialize_script(xml_filename)
         self.pl.append(process.Process(self.command, xml_filename, finish_script))
 

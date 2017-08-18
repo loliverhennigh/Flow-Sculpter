@@ -12,19 +12,8 @@ class Process:
     self.cmd = command
     self.xml_file = xml_filename
     self.finish_script = finish_script
-    # check if simulaiton is already ran
-    tree = etree.parse(self.xml_file)
-    root = tree.getroot()
-    availible = root.find("flow_data").find("availible").text
-    if availible == "False":
-      self.status = "Not Started"
-      self.return_status = "NONE"
-      availible = root.find("flow_data").find("availible").text
-      
-    else:
-      self.status = "Finished"
-      self.return_status = "SUCCESS"
-
+    self.status = "Not Started"
+    self.return_status = "NONE"
     self.process = None
     self.run_time = 0
 

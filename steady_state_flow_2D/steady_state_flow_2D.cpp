@@ -404,7 +404,7 @@ int main( int argc, char* argv[] ) {
   string save_path;
   simulation_size = config["size"].get<int>();
   binvox_filename = config["binvox_name"].get<string>();
-  save_path = config["save_path_2d"].get<string>();
+  save_path = config["save_path"].get<string>();
 
   olbInit( &argc, &argv );
   singleton::directories().setOutputDir( save_path);
