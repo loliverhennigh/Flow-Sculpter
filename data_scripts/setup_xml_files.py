@@ -16,7 +16,7 @@ np.random.seed(0)
 base_path = os.path.abspath("../data/") + "/"
 num_flips_per_type = 4
 num_samples_per_type = 20
-sizes = [16, 32, 64, 96]
+sizes = [16, 32, 64, 96, 128, 256]
 
 # helper for voxelizing
 def voxelize_file(filename, size, flip_x, flip_z):
@@ -27,7 +27,7 @@ def voxelize_file(filename, size, flip_x, flip_z):
     return new_filename
   flip_str += flip_x*"-rotx "
   flip_str += flip_z*"-rotz "
-  vox_cmd = "../vox_utils/binvox -d " + str(size) + " -cb" + flip_str + "-e " + filename
+  vox_cmd = "../vox_utils/binvox -d " + str(size) + " -cb" + flip_str + " -e " + filename
   with open(os.devnull, 'w') as devnull:
     ret = subprocess.check_call(vox_cmd.split(' '), stdout=devnull, stderr=devnull)
   rename_cmd = "mv " + filename[:-4] + ".binvox"  + " " 
