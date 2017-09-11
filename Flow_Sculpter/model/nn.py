@@ -17,9 +17,19 @@ def int_shape(x):
   return list(map(int, x.get_shape()))
 
 def concat_elu(x):
-    """ like concatenated ReLU (http://arxiv.org/abs/1603.05201), but then with ELU """
-    axis = len(x.get_shape())-1
-    return tf.nn.elu(tf.concat([x, -x], axis))
+  """ like concatenated ReLU (http://arxiv.org/abs/1603.05201), but then with ELU """
+  axis = len(x.get_shape())-1
+  return tf.nn.elu(tf.concat([x, -x], axis))
+
+def hard_sigmoid(x):
+  return tf.minimum(0.95, tf.maximum(0.05, 1.00 * x + 0.5))   
+
+def triangle_wave(x):
+  y = 0.0
+  for i in xrange(3):
+    y += (-1.0)**(i) * tf.sin(2.0*np.pi*(2.0*i+1.0)*x)/(2.0*i+1.0)**(2)
+  y = 0.5 * (8/(np.pi**2) * y) + .5
+  return y
 
 def set_nonlinearity(name):
   if name == 'concat_elu':
@@ -73,13 +83,22 @@ def mobius_pad(inputs):
 
 def conv_layer(inputs, kernel_size, stride, num_features, idx, nonlinearity=None):
   with tf.variable_scope('{0}_conv'.format(idx)) as scope:
-    input_channels = inputs.get_shape()[3]
+    input_channels = inputs.get_shape()[-1]
+ 
+    # determine dim
+    length_input = len(inputs.get_shape()) - 2
+    if length_input not in [2, 3]:
+      print("conv layer does not support non 2d or 3d inputs")
+      exit()
 
-    weights = _variable('weights', shape=[kernel_size,kernel_size,input_channels,num_features],initializer=tf.contrib.layers.xavier_initializer_conv2d())
+    weights = _variable('weights', shape=length_input*[kernel_size] + [input_channels,num_features],initializer=tf.contrib.layers.xavier_initializer_conv2d())
     biases = _variable('biases',[num_features],initializer=tf.contrib.layers.xavier_initializer_conv2d())
 
-    #inputs_mobius = mobius_pad(inputs)
-    conv = tf.nn.conv2d(inputs, weights, strides=[1, stride, stride, 1], padding='SAME')
+    if length_input == 2:
+      conv = tf.nn.conv2d(inputs, weights, strides=[1, stride, stride, 1], padding='SAME')
+    elif length_input == 3:
+      conv = tf.nn.conv3d(inputs, weights, strides=[1, stride, stride, stride, 1], padding='SAME')
+
     conv = tf.nn.bias_add(conv, biases)
     if nonlinearity is not None:
       conv = nonlinearity(conv)
@@ -87,20 +106,36 @@ def conv_layer(inputs, kernel_size, stride, num_features, idx, nonlinearity=None
 
 def transpose_conv_layer(inputs, kernel_size, stride, num_features, idx, nonlinearity=None):
   with tf.variable_scope('{0}_trans_conv'.format(idx)) as scope:
-    input_channels = inputs.get_shape()[3]
-    
-    weights = _variable('weights', shape=[kernel_size,kernel_size,num_features,input_channels],initializer=tf.contrib.layers.xavier_initializer_conv2d())
+    input_channels = inputs.get_shape()[-1]
+     
+    # determine dim
+    length_input = len(inputs.get_shape()) - 2
+    batch_size = tf.shape(inputs)[0]
+    if length_input not in [2, 3]:
+      print("transpose conv layer does not support non 2d or 3d inputs")
+      exit()
+
+    weights = _variable('weights', shape=length_input*[kernel_size] + [num_features,input_channels],initializer=tf.contrib.layers.xavier_initializer_conv2d())
     biases = _variable('biases',[num_features],initializer=tf.contrib.layers.xavier_initializer_conv2d())
     batch_size = tf.shape(inputs)[0]
-    #inputs = mobius_pad(inputs)
-    output_shape = tf.stack([tf.shape(inputs)[0], tf.shape(inputs)[1]*stride, tf.shape(inputs)[2]*stride, num_features]) 
-    conv = tf.nn.conv2d_transpose(inputs, weights, output_shape, strides=[1,stride,stride,1], padding='SAME')
-    #conv = conv[:,2:-2,2:-2]
+
+    if length_input == 2:
+      output_shape = tf.stack([tf.shape(inputs)[0], tf.shape(inputs)[1]*stride, tf.shape(inputs)[2]*stride, num_features]) 
+      conv = tf.nn.conv2d_transpose(inputs, weights, output_shape, strides=[1,stride,stride,1], padding='SAME')
+    elif length_input == 3:
+      output_shape = tf.stack([tf.shape(inputs)[0], tf.shape(inputs)[1]*stride, tf.shape(inputs)[2]*stride, tf.shape(inputs)[3]*stride, num_features]) 
+      conv = tf.nn.conv3d_transpose(inputs, weights, output_shape, strides=[1,stride,stride,stride,1], padding='SAME')
+
     conv = tf.nn.bias_add(conv, biases)
     if nonlinearity is not None:
       conv = nonlinearity(conv)
+
+    #reshape (transpose conv causes output to have ? size)
     shape = int_shape(inputs)
-    conv = tf.reshape(conv, [shape[0], shape[1]*stride, shape[2]*stride, int(conv.get_shape()[-1])])
+    if  length_input == 2:
+      conv = tf.reshape(conv, [shape[0], shape[1]*stride, shape[2]*stride, num_features])
+    if  length_input == 3:
+      conv = tf.reshape(conv, [shape[0], shape[1]*stride, shape[2]*stride, shape[3]*stride, num_features])
     return conv
 
 def fc_layer(inputs, hiddens, idx, nonlinearity=None, flat = False):
@@ -134,7 +169,10 @@ def upsampleing_resize(x, filter_size, name="upsample"):
   return x
 
 def res_block(x, a=None, filter_size=16, nonlinearity=concat_elu, keep_p=1.0, stride=1, gated=True, name="resnet", begin_nonlinearity=True, normalize=None):
-      
+            
+  # determine if 2d or 3d trans conv is needed
+  length_input = len(x.get_shape())
+
   orig_x = x
   if normalize == "batch_norm":
     x = tcl.batch_norm(x)
@@ -152,9 +190,14 @@ def res_block(x, a=None, filter_size=16, nonlinearity=concat_elu, keep_p=1.0, st
   if a is not None:
     shape_a = int_shape(a) 
     shape_x_1 = int_shape(x)
-    a = tf.pad(
-      a, [[0, 0], [0, shape_x_1[1]-shape_a[1]], [0, shape_x_1[2]-shape_a[2]],
-      [0, 0]])
+    if length_input == 4:
+      a = tf.pad(
+        a, [[0, 0], [0, shape_x_1[1]-shape_a[1]], [0, shape_x_1[2]-shape_a[2]],
+        [0, 0]])
+    elif length_input == 5:
+      a = tf.pad(
+        a, [[0, 0], [0, shape_x_1[1]-shape_a[1]], [0, shape_x_1[2]-shape_a[2]], [0, shape_x_1[3]-shape_a[3]],
+        [0, 0]])
     x += nin(nonlinearity(a), filter_size, name + '_nin')
   if normalize == "batch_norm":
     x = tcl.batch_norm(x)
@@ -171,16 +214,23 @@ def res_block(x, a=None, filter_size=16, nonlinearity=concat_elu, keep_p=1.0, st
     x = x_1 * tf.nn.sigmoid(x_2)
 
   if int(orig_x.get_shape()[2]) > int(x.get_shape()[2]):
-    assert(int(orig_x.get_shape()[2]) == 2*int(x.get_shape()[2]), "res net block only supports stirde 2")
-    orig_x = tf.nn.avg_pool(orig_x, [1,2,2,1], [1,2,2,1], padding='SAME')
+    if length_input == 4:
+      orig_x = tf.nn.avg_pool(orig_x, [1,2,2,1], [1,2,2,1], padding='SAME')
+    elif length_input == 5:
+      orig_x = tf.nn.avg_pool3d(orig_x, [1,2,2,2,1], [1,2,2,2,1], padding='SAME')
 
   # pad it
   out_filter = filter_size
   in_filter = int(orig_x.get_shape()[-1])
   if out_filter > in_filter:
-    orig_x = tf.pad(
-        orig_x, [[0, 0], [0, 0], [0, 0],
-        [(out_filter-in_filter), 0]])
+    if length_input == 4:
+      orig_x = tf.pad(
+          orig_x, [[0, 0], [0, 0], [0, 0],
+          [(out_filter-in_filter), 0]])
+    elif length_input == 5:
+      orig_x = tf.pad(
+          orig_x, [[0, 0], [0, 0], [0, 0], [0, 0],
+          [(out_filter-in_filter), 0]])
   elif out_filter < in_filter:
     orig_x = nin(orig_x, out_filter, name + '_nin_pad')
 

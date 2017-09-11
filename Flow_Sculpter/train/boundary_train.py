@@ -22,15 +22,20 @@ def train():
   with tf.Graph().as_default():
     # global step counter
     global_step = tf.get_variable('global_step', [], initializer=tf.constant_initializer(0), trainable=False)
+
     # make inputs
     input_dims = FLAGS.nr_boundary_params
     inputs_vector, true_boundary = flow_net.inputs_boundary(input_dims, FLAGS.batch_size, shape) 
+
     # create and unrap network
-    predicted_boundary = flow_net.inference_boundary_generator(FLAGS.batch_size, shape, inputs=inputs_vector) 
+    predicted_boundary = flow_net.inference_boundary(FLAGS.batch_size, shape, inputs_vector) 
+
     # calc error
     error = flow_net.loss_boundary(true_boundary, predicted_boundary)
+
     # train hopefuly 
     train_op = flow_net.train(error, FLAGS.lr, train_type="boundary_network", global_step=global_step)
+
     # List of all Variables
     variables = tf.global_variables()
 

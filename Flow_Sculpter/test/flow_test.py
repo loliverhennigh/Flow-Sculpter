@@ -27,11 +27,12 @@ FLAGS = tf.app.flags.FLAGS
 FLOW_DIR = make_checkpoint_path(FLAGS.base_dir_flow, FLAGS, network="flow")
 
 
-#shape = [256, 1024]
-shape = [128, 512]
+shape = [256, 256]
+#shape = [128, 512]
 dims = 2
-obj_size = 64
-nr_pyramids = 2
+#obj_size = 128
+obj_size = 128
+nr_pyramids = 0
 
 def tryint(s):
   try:
@@ -95,12 +96,12 @@ def evaluate():
     #for run in filenames:
     for i in xrange(10):
       # read in boundary
-      batch_boundary, batch_flow = dataset.minibatch(train=False, batch_size=1)
+      batch_boundary, batch_flow = dataset.minibatch(train=True, batch_size=1)
       #boundary_car = make_car_boundary(shape=shape, car_shape=(int(shape[1]/2.3), int(shape[0]/1.6)))
 
       # calc flow 
       p_flow = sess.run(pyramid_predicted_flow,feed_dict={boundary: batch_boundary})[-1]
-      dim=0
+      dim=2
       sflow_plot = np.concatenate([p_flow[...,dim], batch_flow[...,dim], np.abs(p_flow - batch_flow)[...,dim], batch_boundary[...,0]/20.0], axis=1)
       #sflow_plot = sflow_plot[0,:,:,0]
       sflow_plot = sflow_plot[0,:,:]

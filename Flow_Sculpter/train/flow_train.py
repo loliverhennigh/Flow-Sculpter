@@ -42,12 +42,12 @@ def train():
         # make inputs
         boundary, true_flow = flow_net.inputs_flow(FLAGS.batch_size, shape, FLAGS.dims) 
         # create and unrap network
-        pyramid_true_flow, pyramid_predicted_flow = flow_net.inference_flow(boundary, true_flow, FLAGS.keep_prob) 
+        predicted_flow = flow_net.inference_flow(boundary, FLAGS.keep_prob) 
         # if i is one then get variables to store all trainable params and 
         if i == 0:
           all_params = tf.trainable_variables()
         # calc error
-        error = flow_net.loss_flow(pyramid_true_flow, pyramid_predicted_flow)
+        error = flow_net.loss_flow(true_flow, predicted_flow)
         loss_gen.append(error)
         # store grads
         grads.append(tf.gradients(loss_gen[i], all_params))

@@ -18,24 +18,24 @@ def force_2d(boundary, pressure_field):
 
   # make weight for x divergence
   weight_np = np.zeros([3,3,1,2])
-  weight_np[0,0,0,1] =  1.0
+  #weight_np[0,0,0,1] =  1.0
   weight_np[0,1,0,1] =  1.0
-  weight_np[0,2,0,1] =  1.0
-  weight_np[2,0,0,1] = -1.0
+  #weight_np[0,2,0,1] =  1.0
+  #weight_np[2,0,0,1] = -1.0
   weight_np[2,1,0,1] = -1.0
-  weight_np[2,2,0,1] = -1.0
-  weight_np[0,0,0,0] =  1.0
+  #weight_np[2,2,0,1] = -1.0
+  #weight_np[0,0,0,0] =  1.0
   weight_np[1,0,0,0] =  1.0
-  weight_np[2,0,0,0] =  1.0
-  weight_np[0,2,0,0] = -1.0
+  #weight_np[2,0,0,0] =  1.0
+  #weight_np[0,2,0,0] = -1.0
   weight_np[1,2,0,0] = -1.0
-  weight_np[2,2,0,0] = -1.0
+  #weight_np[2,2,0,0] = -1.0
   weight = tf.constant(np.float32(weight_np))
 
   # calc gradientes
-  pressure_integral = _simple_conv_2d(boundary, weight)[:,2:-2,2:-2]
-  pressure_field = pressure_field[:,2:-2,2:-2]
-  force = ((1.0 - boundary[:,2:-2,2:-2]) * pressure_integral) * pressure_field
+  pressure_integral = _simple_conv_2d(boundary, weight)[:,3:-3,3:-3]
+  pressure_field = pressure_field[:,3:-3,3:-3]
+  force = ((1.0 - boundary[:,3:-3,3:-3]) * pressure_integral) * pressure_field
   return force
 
 def dynamic_pressure_2d(boundary, velocity_norm):
@@ -59,9 +59,9 @@ def dynamic_pressure_2d(boundary, velocity_norm):
   weight = tf.constant(np.float32(weight_np))
 
   # calc gradientes
-  pressure_integral = _simple_conv_2d(boundary, weight)[:,2:-2,2:-2]
-  pressure_field = pressure_field[:,2:-2,2:-2]
-  force = ((1.0 - boundary[:,2:-2,2:-2]) * pressure_integral) * pressure_field
+  pressure_integral = _simple_conv_2d(boundary, weight)[:,3:-3,3:-3]
+  pressure_field = pressure_field[:,3:-3,3:-3]
+  force = ((1.0 - boundary[:,3:-3,3:-3]) * pressure_integral) * pressure_field
   return force
 
 

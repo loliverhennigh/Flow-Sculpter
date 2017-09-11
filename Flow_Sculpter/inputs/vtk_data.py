@@ -33,7 +33,12 @@ class VTK_data:
     run_roots = root.findall("run")
 
     print("loading dataset")
+    reader = vtk.vtkXMLMultiBlockDataReader()
+    #stopper = 0
     for run_root in tqdm(run_roots):
+      #stopper += 1
+      #if stopper > 10000:
+      #  break
 
       # check if right size
       xml_size = int(run_root.find("size").text)
@@ -59,9 +64,8 @@ class VTK_data:
       geometry_file    = root.find("flow_data").find("geometry_file").text
       steady_flow_file = root.find("flow_data").find("flow_file").text
       drag_vector_file = root.find("flow_data").find("drag_file").text
-      
+
       # read file for geometry
-      reader = vtk.vtkXMLMultiBlockDataReader()
       reader.SetFileName(geometry_file)
       reader.Update()
       data = reader.GetOutput()
@@ -72,19 +76,23 @@ class VTK_data:
       array_data = point_data.GetArray(0)
       np_array = vtk_to_numpy(array_data)
       img_shape = img_data.GetWholeExtent()
-      np_shape = [img_shape[3] - img_shape[2] + 1, img_shape[1] - img_shape[0] + 1, 1]
+      if img_shape[-1] == 0:
+        np_shape = [img_shape[3] - img_shape[2] + 1, img_shape[1] - img_shape[0] + 1, 1]
+      else:
+        np_shape = [img_shape[5] - img_shape[4] + 1, img_shape[3] - img_shape[2] + 1, img_shape[1] - img_shape[0] + 1, 1]
       geometry_array = np_array.reshape(np_shape)
-      #geometry_array = np_array.reshape(np_shape)/5.0
+      geometry_array = geometry_array[...,0:np_shape[0],:]
       geometry_array = np.abs(geometry_array - 1.0)
       geometry_array = np.minimum(geometry_array, 1.0)
       geometry_array = np.abs(np.abs(geometry_array - 1.0) - 1.0)
-      geometry_array = 2.0*fill_gaps(geometry_array, [size/2,size/2], size) - 1.0
-      #geometry_array = geometry_array[size/2+1:3*size/2+1,size/2+1:3*size/2+1,:]
+      if img_shape[-1] == 0:
+        geometry_array = fill_gaps(geometry_array, [size/2,size/2], size)
+      geometry_array = 2.0*geometry_array - 1.0
       if np.isnan(geometry_array).any():
         continue
 
       # read file for steady state flow
-      reader = vtk.vtkXMLMultiBlockDataReader()
+      #reader = vtk.vtkXMLMultiBlockDataReader()
       reader.SetFileName(steady_flow_file)
       reader.Update()
       data = reader.GetOutput()
@@ -97,23 +105,31 @@ class VTK_data:
       velocity_np_array = vtk_to_numpy(velocity_array_data)
       pressure_np_array = vtk_to_numpy(pressure_array_data)
       img_shape = img_data.GetWholeExtent()
-      velocity_np_shape = [img_shape[3] - img_shape[2] + 1, img_shape[1] - img_shape[0] + 1, 2]
-      pressure_np_shape = [img_shape[3] - img_shape[2] + 1, img_shape[1] - img_shape[0] + 1, 1]
+      if img_shape[-1] == 0:
+        np_shape = [img_shape[3] - img_shape[2] + 1, img_shape[1] - img_shape[0] + 1]
+        velocity_np_shape = np_shape + [2]
+        pressure_np_shape = np_shape + [1]
+      else:
+        np_shape = [img_shape[5] - img_shape[4] + 1, img_shape[3] - img_shape[2] + 1, img_shape[1] - img_shape[0] + 1]
+        velocity_np_shape = np_shape + [3]
+        pressure_np_shape = np_shape + [1]
       velocity_np_array = velocity_np_array.reshape(velocity_np_shape)
       pressure_np_array = pressure_np_array.reshape(pressure_np_shape)
       steady_flow_array = np.concatenate([velocity_np_array, pressure_np_array], axis=2)
+      steady_flow_array = steady_flow_array[...,0:np_shape[0],:]
       if np.isnan(steady_flow_array).any():
         continue
 
       # read file for drag vector
-      reader = open(drag_vector_file, "r")
-      drag_values = reader.readlines()
+      csv_reader = open(drag_vector_file, "r")
+      drag_values = csv_reader.readlines()
       drag_array = np.zeros((len(drag_values)))
       for i in xrange(len(drag_values)):
         values = drag_values[i].split(' ')
         drag_array[i] = float(values[1])
       if np.isnan(drag_array).any():
         continue
+      csv_reader.close()
 
       # if no nans then store
       self.geometries.append(geometry_array)
@@ -138,6 +154,12 @@ class VTK_data:
     batch_boundary = np.stack(batch_boundary, axis=0)
     if batch_type == "flow":
       batch_data = np.stack(batch_data, axis=0)
+    """
+    flip = np.random.randint(0,2)
+    if flip == 1:
+      batch_data = np.flip(batch_data, axis=1)
+      batch_boundary = np.flip(batch_boundary, axis=1)
+    """
     return batch_boundary, batch_data
 
 def fill_gaps(matrix, pos, radius):
