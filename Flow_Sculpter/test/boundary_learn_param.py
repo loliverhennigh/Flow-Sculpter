@@ -31,7 +31,7 @@ FLAGS = tf.app.flags.FLAGS
 shape = [256, 256]
 dims = 2
 obj_size = 128
-nr_pyramids = 0
+batch_size=1
 
 fourcc = cv2.cv.CV_FOURCC('m', 'p', '4', 'v') 
 video = cv2.VideoWriter()
@@ -62,25 +62,29 @@ def evaluate():
     top_k_op: Top K op.
     summary_op: Summary op.
   """
-  # get a list of image filenames
-  filenames = glb('../data/computed_car_flow/*')
-  filenames.sort(key=alphanum_key)
-  filename_len = len(filenames)
-  batch_size=1
-  #set_angle = [0.035, 0.0, -0.035, -0.07]
-  #set_angle = [0.035, 0.0175, 0.0, -0.0175, -0.035, -0.07, -0.15]
-  #set_angle = np.array([5.0, 2.5, 0.0, -2.5, -5.0, -7.5, -10.0, -12.5, -15.0, -17.5]) * (3.14159/180.0)
-  #set_angle = np.array([1.0, 0.5, 0.0, -0.5, -1.0, -1.5, -2.0, -2.5, -3.0, -3.5]) * (3.14159/180.0)
-  set_angle = np.array([0.0]) * (3.14159/180.0)
-  #desired_lift = np.array([0.0, 0.25, 0.55, 0.81, 1.05, 1.275, 1.473, 1.65, 1.7, 1.7]) * 30.0
-  #desired_lift = np.array([0.0, 0.25, 0.55, 0.81, 1.05, 1.275, 1.473, 1.65, 1.7, 1.7]) * 30.0
+  set_params     = np.array(5*[FLAGS.nr_boundary_params*[0.0]])
+  set_params_pos = np.array(5*[FLAGS.nr_boundary_params*[0.0]]) + 1.0
+
+  set_params[0,0]      = -0.0 
+  set_params[1,0]      = -0.1 
+  set_params[2,0]      = -0.3 
+  set_params[3,0]      = -0.5 
+  set_params[4,0]      = -0.7 
+
+  set_params[:,1]      = 0.5
+  set_params[:,2]      = 1.0
+
+  set_params_pos[:,0]  = 0.0 # set angle to 0.0
+  set_params_pos[:,1]  = 0.0 # set n_1 to .5
+  set_params_pos[:,2]  = 0.0 # set n_2 to 1.0
+  set_params_pos[:,-1] = 0.0 # set tail hieght to 0.0
 
   with tf.Graph().as_default():
     # Make image placeholder
-    params_op, params_op_init, params_op_set, squeeze_loss = flow_net.inputs_boundary_learn(batch_size)
+    params_op, params_op_init, params_op_set, squeeze_loss = flow_net.inputs_boundary_learn(batch_size, set_params=set_params, set_params_pos=set_params_pos, noise_std=0.001)
 
     # Make boundary
-    boundary = flow_net.inference_boundary(1, [obj_size,obj_size], params_op, full_shape=shape)
+    boundary = flow_net.inference_boundary(batch_size*set_params.shape[0], [obj_size,obj_size], params_op, full_shape=shape)
     sharp_boundary = tf.round(boundary)
     boundary = (2.0 * boundary - 1.0)
     sharp_boundary = (2.0 * sharp_boundary - 1.0)
@@ -94,8 +98,8 @@ def evaluate():
     sharp_force = force_2d(sharp_boundary, predicted_sharp_flow[:,:,:,2:3])
     drag_x = tf.reduce_sum(force[:,:,:,0], axis=[0,1,2])/batch_size
     drag_y = tf.reduce_sum(force[:,:,:,1], axis=[0,1,2])/batch_size
-    sharp_drag_x = tf.reduce_sum(sharp_force[:,:,:,0], axis=[0,1,2])
-    sharp_drag_y = tf.reduce_sum(sharp_force[:,:,:,1], axis=[0,1,2])
+    sharp_drag_x = tf.reduce_sum(sharp_force[:,:,:,0], axis=[1,2])/batch_size
+    sharp_drag_y = tf.reduce_sum(sharp_force[:,:,:,1], axis=[1,2])/batch_size
     lift_coef = (drag_y/(-drag_x))
     sharp_lift_coef = (sharp_drag_y/(-sharp_drag_x))
 
@@ -128,7 +132,7 @@ def evaluate():
     
     graph_def = tf.get_default_graph().as_graph_def(add_shapes=True)
 
-    params_np = (np.random.rand(1,FLAGS.nr_boundary_params-1) - .5)*1.8
+    params_np = (np.random.rand(1,FLAGS.nr_boundary_params) - .5)
     #params_np = np.zeros((1,FLAGS.nr_boundary_params-1))
  
     sess.run(params_op_init, feed_dict={params_op_set: params_np})
@@ -142,12 +146,12 @@ def evaluate():
     # make store dir
     os.system("mkdir ./figs/boundary_learn_image_store")
     for i in tqdm(xrange(run_time)):
-      l, _, d_y, d_x, p_o = sess.run([sharp_lift_coef, train_step, drag_y, drag_x, params_op], feed_dict={})
-      print(p_o)
+      l, _, d_y, d_x, p_o = sess.run([sharp_lift_coef, train_step, sharp_drag_y, sharp_drag_x, params_op], feed_dict={})
+      print(d_y)
       if i > 0:
-        plot_error[i] = np.sum(l)
-        plot_drag_x[i] = np.sum(d_x)
-        plot_drag_y[i] = np.sum(d_y)
+        plot_error[i] = np.sum(l[0])
+        plot_drag_x[i] = np.sum(d_x[0])
+        plot_drag_y[i] = np.sum(d_y[0])
       if (i+1) % 20 == 0:
         # make video with opencv
         velocity_norm_g, boundary_g = sess.run([predicted_sharp_flow, sharp_boundary],feed_dict={})
@@ -163,25 +167,23 @@ def evaluate():
         boundary_g = boundary_g[0,:,:,0]
         fig = plt.figure()
         fig.set_size_inches(15.5, 7.5)
-        a = fig.add_subplot(1,4,1)
+        a = fig.add_subplot(1,5,1)
         plt.imshow(velocity_norm_g)
-        a = fig.add_subplot(1,4,2)
+        a = fig.add_subplot(1,5,2)
         plt.imshow(boundary_g)
-        a = fig.add_subplot(1,4,3)
+        a = fig.add_subplot(1,5,3)
         plt.plot(plot_error, label="lift/drag")
         plt.xlabel("step")
         plt.legend()
-        a = fig.add_subplot(1,4,4)
+        a = fig.add_subplot(1,5,4)
         plt.plot(plot_drag_x, label="drag_x")
         plt.plot(plot_drag_y, label="drag_y")
         plt.xlabel("step")
         plt.legend()
-        #a = fig.add_subplot(1,5,5)
-        #plt.plot(set_angle, desired_lift, 'ro', label="desired lift values")
-        #plt.plot(set_angle, l_c, 'bo', label="lift/drag")
-        #plt.xlabel("angle of attack")
-        #plt.xlim(min(set_angle)-0.03, max(set_angle)+0.03)
-        #plt.ylim(min(desired_lift)-5.0, max(desired_lift)+5.0)
+        a = fig.add_subplot(1,5,5)
+        plt.plot(set_params[:,0], l_c, 'bo', label="lift/drag")
+        plt.xlabel("angle of attack")
+        plt.xlim(min(set_params[:,0])-0.03, max(set_params[:,0])+0.03)
         #plt.legend()
         plt.suptitle("Using Gradient Decent")
         plt.savefig("./figs/boundary_learn_image_store/plot_" + str(i).zfill(5) + ".png")

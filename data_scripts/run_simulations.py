@@ -9,9 +9,9 @@ import glob
 import subprocess
 
 dim = 2
-size = 128
+size = 256
 #dim = 3
-#size = 64
+#size = 32
 
 def initialize_script(xml_file):
   tree = etree.parse(xml_file)
@@ -52,7 +52,7 @@ def should_run(root):
   else:
     return True
   
-q = que.Que("../steady_state_flow_2D/steady_state_flow_2D", 3)
+q = que.Que("../steady_state_flow_2D/steady_state_flow_2D", 2)
 q.enque_file("../data/experiment_runs_master.xml", should_run, initialize_script, finish_script)
 q.start_que_runner()
 

@@ -24,7 +24,8 @@ def res_u_network(inputs, keep_prob=1.0, filter_size=8, nr_downsamples=4, nr_res
     x_i = nn.res_block(x_i, a=a.pop(), filter_size=filter_size, keep_p=keep_prob, gated=gated, nonlinearity=nonlinearity, name="res_decode_" + str(i) + "_block_0")
     for j in xrange(nr_residual_blocks-1):
       x_i = nn.res_block(x_i, filter_size=filter_size, keep_p=keep_prob, gated=gated, nonlinearity=nonlinearity, name="res_decode_" + str(i) + "_block_" + str(j+1))
-  x_i = nn.conv_layer(x_i, 3, 1, 3, "final_conv")
+
+  x_i = nn.conv_layer(x_i, 3, 1, len(inputs.get_shape())-1, "final_conv")
   return x_i
 
 # res u net template
@@ -47,9 +48,7 @@ def res_generator_network(batch_size, shape, inputs=None, full_shape=None, hidde
   # decoding piece
   for i in xrange(nr_upsamples):
     filter_size = filter_size / 2
-    print(filter_size)
     x_i = nn.transpose_conv_layer(x_i, 4, 2, filter_size, "up_conv_" + str(i))
-    print(x_i.get_shape())
     for j in xrange(nr_residual_blocks):
       x_i = nn.res_block(x_i, filter_size=filter_size, gated=gated, nonlinearity=nonlinearity, name="res_decode_" + str(i) + "_block_" + str(j))
   x_i = nn.conv_layer(x_i, 3, 1, 1, "final_conv")

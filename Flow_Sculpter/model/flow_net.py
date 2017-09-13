@@ -90,8 +90,7 @@ def inputs_flow(batch_size, shape, dims):
   """
   boundary  = tf.placeholder(tf.float32, [batch_size] + shape + [1])
   true_flow = tf.placeholder(tf.float32, [batch_size] + shape + [dims+1])
-  with tf.device('/cpu:0'):
-    tf.summary.image('boundarys', boundary)
+  image_summary('boundarys', boundary)
   return boundary, true_flow
 
 def inputs_boundary(input_dims, batch_size, shape):
@@ -104,15 +103,15 @@ def inputs_boundary(input_dims, batch_size, shape):
   tf.summary.image('boundarys', boundary)
   return inputs, boundary
 
-def inputs_boundary_learn(batch_size=1, set_params=None, noise_std=None):
+def inputs_boundary_learn(batch_size=1, set_params=None, set_params_pos=None, noise_std=None):
   
   # make params
-  params_op_set = tf.placeholder(tf.float32, [1, FLAGS.nr_boundary_params])
-  params_op = tf.Variable(np.zeros((1, FLAGS.nr_boundary_params)).astype(dtype=np.float32), name="params")
+  params_op_set = tf.placeholder(tf.float32, [batch_size, FLAGS.nr_boundary_params])
+  params_op = tf.Variable(np.zeros((batch_size, FLAGS.nr_boundary_params)).astype(dtype=np.float32), name="params")
   params_op_init = tf.group(params_op.assign(params_op_set))
 
-  # make squeeze loss to keep params between -0.5 and 0.5
-  squeeze_loss = tf.abs(params_op) - .48
+  # make squeeze loss to keep params almost between -0.5 and 0.5
+  squeeze_loss = tf.abs(params_op) - .45
   squeeze_loss = tf.reduce_sum(tf.maximum(squeeze_loss, 0.0))
 
   # Now bound params between 0.0 and 1.0
@@ -132,8 +131,15 @@ def inputs_boundary_learn(batch_size=1, set_params=None, noise_std=None):
 
   # Now hard set values
   if set_params is not None:
-    zero = tf.constant(0, dtype=tf.float32)
-    set_params_pos = tf.to_float(tf.not_equal(set_params, zero))
+    params_op = tf.split(params_op, batch_size, axis=0)
+    params_op_store = []
+    for par in params_op:
+      for i in xrange(set_params.shape[0]):
+        params_op_store.append(par)
+    params_op = tf.concat(params_op_store, axis=0)
+    set_params     = np.concatenate(batch_size * [set_params], axis=0)
+    print(set_params.shape)
+    set_params_pos = np.concatenate(batch_size * [set_params_pos], axis=0)
     params_op = (set_params_pos * params_op) + set_params
 
   return params_op, params_op_init, params_op_set, squeeze_loss
@@ -194,15 +200,17 @@ def loss_flow(true_flow, predicted_flow):
 def loss_boundary(true_boundary, generated_boundary):
   intersection = tf.reduce_sum(generated_boundary * true_boundary)
   loss_dice = -(2. * intersection + 1.) / (tf.reduce_sum(true_boundary) + tf.reduce_sum(generated_boundary) + 1.)
-  loss_sharp = -tf.nn.l2_loss(.5 - generated_boundary)/(128*128.)
-  loss_total = 0.2*loss_sharp + loss_dice
+  boundary_shape = nn.int_shape(generated_boundary) 
+  loss_grad = loss.loss_gradient_difference(true_boundary, generated_boundary)/(np.prod(np.array(boundary_shape[1:-1])))
+  #loss_total = 0.5*loss_grad + loss_dice
+  loss_total = loss_dice
 
   # image summary
   image_summary('boundary_predicted', generated_boundary)
 
   # loss summary
   tf.summary.scalar('loss_dice', loss_dice)
-  tf.summary.scalar('loss_sharp', loss_sharp)
+  tf.summary.scalar('loss_grad', loss_grad)
   tf.summary.scalar('loss_total', loss_total)
   return loss_total
 
@@ -210,7 +218,7 @@ def train(total_loss, lr, train_type="flow_network", global_step=None, variables
    if train_type == "flow_network" or train_type == "boundary_network":
      train_op = tf.train.AdamOptimizer(lr).minimize(total_loss, global_step)
    elif train_type == "boundary_params":
-     #train_op = tf.train.MomentumOptimizer(lr).minimize(total_loss, var_list=variables)
-     train_op = tf.train.GradientDescentOptimizer(lr).minimize(total_loss, var_list=variables)
+     train_op = tf.train.MomentumOptimizer(lr, 0.9).minimize(total_loss, var_list=variables)
+     #train_op = tf.train.GradientDescentOptimizer(lr).minimize(total_loss, var_list=variables)
    return train_op
 

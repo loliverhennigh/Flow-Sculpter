@@ -18,18 +18,19 @@ def force_2d(boundary, pressure_field):
 
   # make weight for x divergence
   weight_np = np.zeros([3,3,1,2])
-  #weight_np[0,0,0,1] =  1.0
+  angle_norm = 1.0 / np.sqrt(2.0)
+  weight_np[0,0,0,1] =  angle_norm
   weight_np[0,1,0,1] =  1.0
-  #weight_np[0,2,0,1] =  1.0
-  #weight_np[2,0,0,1] = -1.0
+  weight_np[0,2,0,1] =  angle_norm
+  weight_np[2,0,0,1] = -angle_norm
   weight_np[2,1,0,1] = -1.0
-  #weight_np[2,2,0,1] = -1.0
-  #weight_np[0,0,0,0] =  1.0
+  weight_np[2,2,0,1] = -angle_norm
+  weight_np[0,0,0,0] =  angle_norm
   weight_np[1,0,0,0] =  1.0
-  #weight_np[2,0,0,0] =  1.0
-  #weight_np[0,2,0,0] = -1.0
+  weight_np[2,0,0,0] =  angle_norm
+  weight_np[0,2,0,0] = -angle_norm
   weight_np[1,2,0,0] = -1.0
-  #weight_np[2,2,0,0] = -1.0
+  weight_np[2,2,0,0] = -angle_norm
   weight = tf.constant(np.float32(weight_np))
 
   # calc gradientes

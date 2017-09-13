@@ -67,11 +67,17 @@ class VTK_data:
 
       # read file for geometry
       reader.SetFileName(geometry_file)
-      reader.Update()
+      try: 
+        reader.Update()
+      except:
+        continue 
       data = reader.GetOutput()
       data_iterator = data.NewIterator()
       img_data = data_iterator.GetCurrentDataObject() 
-      img_data.Update()
+      try: 
+        img_data.Update()
+      except:
+        continue 
       point_data = img_data.GetPointData()
       array_data = point_data.GetArray(0)
       np_array = vtk_to_numpy(array_data)
@@ -94,11 +100,17 @@ class VTK_data:
       # read file for steady state flow
       #reader = vtk.vtkXMLMultiBlockDataReader()
       reader.SetFileName(steady_flow_file)
-      reader.Update()
+      try: 
+        reader.Update()
+      except:
+        continue 
       data = reader.GetOutput()
       data_iterator = data.NewIterator()
       img_data = data_iterator.GetCurrentDataObject() 
-      img_data.Update()
+      try: 
+        img_data.Update()
+      except:
+        continue 
       point_data = img_data.GetPointData()
       velocity_array_data = point_data.GetArray(0)
       pressure_array_data = point_data.GetArray(1)
@@ -115,7 +127,7 @@ class VTK_data:
         pressure_np_shape = np_shape + [1]
       velocity_np_array = velocity_np_array.reshape(velocity_np_shape)
       pressure_np_array = pressure_np_array.reshape(pressure_np_shape)
-      steady_flow_array = np.concatenate([velocity_np_array, pressure_np_array], axis=2)
+      steady_flow_array = np.concatenate([velocity_np_array, pressure_np_array], axis=-1)
       steady_flow_array = steady_flow_array[...,0:np_shape[0],:]
       if np.isnan(steady_flow_array).any():
         continue

@@ -11,6 +11,8 @@ import model.flow_net as flow_net
 from inputs.vtk_data import VTK_data
 from utils.experiment_manager import make_checkpoint_path
 
+import matplotlib.pyplot as plt
+
 FLAGS = tf.app.flags.FLAGS
 
 TRAIN_DIR = make_checkpoint_path(FLAGS.base_dir_boundary, FLAGS, network="boundary")
@@ -83,7 +85,11 @@ def train():
       current_step = sess.run(global_step)
       t = time.time()
       input_batch, boundary_batch = flow_net.feed_dict_boundary(input_dims, FLAGS.batch_size, shape)
-      _ , loss_value = sess.run([train_op, error],feed_dict={inputs_vector: input_batch, true_boundary: boundary_batch})
+      #plt.imshow(boundary_batch[0,:,:,0])
+      #plt.show()
+      _ , loss_value, gen_boundary = sess.run([train_op, error, predicted_boundary],feed_dict={inputs_vector: input_batch, true_boundary: boundary_batch})
+      #plt.imshow(gen_boundary[0,:,:,0])
+      #plt.show()
       elapsed = time.time() - t
 
       assert not np.isnan(loss_value), 'Model diverged with loss = NaN'

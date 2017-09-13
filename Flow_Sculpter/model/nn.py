@@ -210,7 +210,7 @@ def res_block(x, a=None, filter_size=16, nonlinearity=concat_elu, keep_p=1.0, st
     x = conv_layer(x, 3, 1, filter_size, name + '_conv_2')
   else:
     x = conv_layer(x, 3, 1, filter_size*2, name + '_conv_2')
-    x_1, x_2 = tf.split(x,2,3)
+    x_1, x_2 = tf.split(x,2,length_input-1)
     x = x_1 * tf.nn.sigmoid(x_2)
 
   if int(orig_x.get_shape()[2]) > int(x.get_shape()[2]):

@@ -404,12 +404,6 @@ void getResults( SuperLattice3D<T, DESCRIPTOR>& sLattice,
     // writes a png in one file for every timestep, if the file is open it can be used as a "liveplot"
     gplot.writePNG();
 
-    SuperEuklidNorm3D<T, DESCRIPTOR> normVel( velocity );
-    BlockLatticeReduction3D<T, DESCRIPTOR> planeReduction( normVel, 0, 0, -1 );
-    BlockGifWriter<T> gifWriter;
-    //gifWriter.write(planeReduction, 0, 0.7, iT, "vel"); //static scale
-    gifWriter.write( planeReduction, iT, "vel" ); // scaled
-
     // every (iT%vtkIter) write an png of the plot
     if ( (iT%( vtkIter ) == 0) || converged ) {
       // writes pngs: input={name of the files (optional), x range for the plot (optional)}
