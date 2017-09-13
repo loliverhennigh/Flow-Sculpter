@@ -86,6 +86,8 @@ class VTK_data:
         np_shape = [img_shape[3] - img_shape[2] + 1, img_shape[1] - img_shape[0] + 1, 1]
       else:
         np_shape = [img_shape[5] - img_shape[4] + 1, img_shape[3] - img_shape[2] + 1, img_shape[1] - img_shape[0] + 1, 1]
+      if len(np_array.shape) == 2:
+        continue
       geometry_array = np_array.reshape(np_shape)
       geometry_array = geometry_array[...,0:np_shape[0],:]
       geometry_array = np.abs(geometry_array - 1.0)
