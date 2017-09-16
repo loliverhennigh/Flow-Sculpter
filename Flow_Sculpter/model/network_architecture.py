@@ -26,6 +26,29 @@ def res_u_network(inputs, keep_prob=1.0, filter_size=8, nr_downsamples=4, nr_res
       x_i = nn.res_block(x_i, filter_size=filter_size, keep_p=keep_prob, gated=gated, nonlinearity=nonlinearity, name="res_decode_" + str(i) + "_block_" + str(j+1))
 
   x_i = nn.conv_layer(x_i, 3, 1, len(inputs.get_shape())-1, "final_conv")
+  """
+  # store for as
+  a = []
+  # set nonlinearity
+  nonlinearity = nn.set_nonlinearity(nonlinearity)
+  # encoding piece
+  x_i = inputs
+  for i in xrange(nr_downsamples):
+    if i < nr_downsamples-1:
+      a.append(x_i)
+      filter_size = filter_size * 2
+      x_i = tf.nn.avg_pool(x_i, ksize=[1,2,2,1], strides=[1,2,2,1], padding="VALID")
+      #x_i = nn.res_block(x_i, filter_size=filter_size, keep_p=keep_prob, gated=gated, nonlinearity=nonlinearity, stride=2, name="res_encode_" + str(i) + "_block_" + str(nr_residual_blocks))
+  # decoding piece
+  for i in xrange(nr_downsamples-1):
+    filter_size = filter_size / 2
+    x_i = nn.transpose_conv_layer(x_i, 4, 2, filter_size, "up_conv_" + str(i))
+    x_i = nn.res_block(x_i, a=a.pop(), filter_size=filter_size, keep_p=keep_prob, gated=gated, nonlinearity=nonlinearity, name="res_decode_" + str(i) + "_block_0")
+    for j in xrange(nr_residual_blocks-1):
+      x_i = nn.res_block(x_i, filter_size=filter_size, keep_p=keep_prob, gated=gated, nonlinearity=nonlinearity, name="res_decode_" + str(i) + "_block_" + str(j+1))
+
+  x_i = nn.conv_layer(x_i, 3, 1, len(inputs.get_shape())-1, "final_conv")
+  """
   return x_i
 
 # res u net template

@@ -62,21 +62,31 @@ def evaluate():
     top_k_op: Top K op.
     summary_op: Summary op.
   """
-  set_params     = np.array(5*[FLAGS.nr_boundary_params*[0.0]])
-  set_params_pos = np.array(5*[FLAGS.nr_boundary_params*[0.0]]) + 1.0
+  set_params     = np.array(15*[FLAGS.nr_boundary_params*[0.0]])
+  set_params_pos = np.array(15*[FLAGS.nr_boundary_params*[0.0]]) + 1.0
 
   set_params[0,0]      = -0.0 
-  set_params[1,0]      = -0.1 
-  set_params[2,0]      = -0.3 
-  set_params[3,0]      = -0.5 
-  set_params[4,0]      = -0.7 
+  set_params[1,0]      = -0.025 
+  set_params[2,0]      = -0.05 
+  set_params[3,0]      = -0.075 
+  set_params[4,0]      = -0.1 
+  set_params[5,0]      = -0.125
+  set_params[6,0]      = -0.15 
+  set_params[7,0]      = -0.175 
+  set_params[8,0]      = -0.2 
+  set_params[9,0]      = -0.225 
+  set_params[10,0]      = -0.25 
+  set_params[11,0]      = -0.275
+  set_params[12,0]      = -0.3
+  set_params[13,0]      = -0.325
+  set_params[14,0]      = -0.35
 
-  set_params[:,1]      = 0.5
-  set_params[:,2]      = 1.0
+  #set_params[:,1]      = 0.5
+  #set_params[:,2]      = 1.0
 
   set_params_pos[:,0]  = 0.0 # set angle to 0.0
-  set_params_pos[:,1]  = 0.0 # set n_1 to .5
-  set_params_pos[:,2]  = 0.0 # set n_2 to 1.0
+  #set_params_pos[:,1]  = 0.0 # set n_1 to .5
+  #set_params_pos[:,2]  = 0.0 # set n_2 to 1.0
   set_params_pos[:,-1] = 0.0 # set tail hieght to 0.0
 
   with tf.Graph().as_default():
@@ -100,8 +110,23 @@ def evaluate():
     drag_y = tf.reduce_sum(force[:,:,:,1], axis=[0,1,2])/batch_size
     sharp_drag_x = tf.reduce_sum(sharp_force[:,:,:,0], axis=[1,2])/batch_size
     sharp_drag_y = tf.reduce_sum(sharp_force[:,:,:,1], axis=[1,2])/batch_size
-    lift_coef = (drag_y/(-drag_x))
-    sharp_lift_coef = (sharp_drag_y/(-sharp_drag_x))
+    vel_x = (tf.reduce_sum(predicted_flow[:,:,:,0:1]*(-.5*(boundary-1.0)), axis=[0,1,2])
+            /tf.reduce_sum(-.5*(boundary-1.0), axis=[0,1,2,3]))
+    vel_y = (tf.reduce_sum(predicted_flow[:,:,:,1:2]*(-.5*boundary-1.0), axis=[0,1,2])
+            /tf.reduce_sum(-.5*boundary-1.0, axis=[0,1,2,3]))
+    sharp_vel_x = (tf.reduce_sum(predicted_sharp_flow[:,:,:,0:1]*(-.5*(boundary-1.0)), axis=[1,2,3])
+                  /tf.reduce_sum(-.5*(boundary-1.0), axis=[1,2,3]))
+    sharp_vel_y = (tf.reduce_sum(predicted_sharp_flow[:,:,:,1:2]*(-.5*(boundary-1.0)), axis=[1,2,3])
+                  /tf.reduce_sum(-.5*(boundary-1.0), axis=[1,2,3]))
+    vel_norm = (vel_x*vel_x) + (vel_y*vel_y)
+    sharp_vel_norm = (sharp_vel_x*sharp_vel_x) + (sharp_vel_y*sharp_vel_y)
+    lift_coef_x = -drag_x/(0.5*vel_norm)
+    lift_coef_y =  drag_y/(0.5*vel_norm)
+    sharp_lift_coef_x = -sharp_drag_x/(0.5*sharp_vel_norm)
+    sharp_lift_coef_y =  sharp_drag_y/(0.5*sharp_vel_norm)
+    
+    #lift_coef_x = (drag_y/(-drag_x))
+    #sharp_lift_coef = (sharp_drag_y/(-sharp_drag_x))
 
     # loss
     loss = -tf.reduce_sum(drag_y/(-drag_x))
@@ -146,8 +171,8 @@ def evaluate():
     # make store dir
     os.system("mkdir ./figs/boundary_learn_image_store")
     for i in tqdm(xrange(run_time)):
-      l, _, d_y, d_x, p_o = sess.run([sharp_lift_coef, train_step, sharp_drag_y, sharp_drag_x, params_op], feed_dict={})
-      print(d_y)
+      l, _, d_y, d_x, p_o = sess.run([sharp_lift_coef_y, train_step, sharp_drag_y, sharp_drag_x, params_op], feed_dict={})
+      print(l)
       if i > 0:
         plot_error[i] = np.sum(l[0])
         plot_drag_x[i] = np.sum(d_x[0])
@@ -155,7 +180,7 @@ def evaluate():
       if (i+1) % 20 == 0:
         # make video with opencv
         velocity_norm_g, boundary_g = sess.run([predicted_sharp_flow, sharp_boundary],feed_dict={})
-        d_y, d_x, l_c, p_o = sess.run([sharp_drag_y, sharp_drag_x, sharp_lift_coef, params_op], feed_dict={})
+        d_y, d_x, l_c, p_o = sess.run([sharp_drag_y, sharp_drag_x, sharp_lift_coef_y, params_op], feed_dict={})
         #velocity_norm_g, boundary_g = sess.run([force, boundary],feed_dict={})
         #sflow_plot = np.concatenate([ 5.0*velocity_norm_g[0], boundary_g[0]], axis=1)
         #sflow_plot = np.uint8(grey_to_short_rainbow(sflow_plot))
@@ -163,8 +188,8 @@ def evaluate():
         #video.write(sflow_plot)
     
         # save plot image to make video
-        velocity_norm_g = velocity_norm_g[0,:,:,2]
-        boundary_g = boundary_g[0,:,:,0]
+        velocity_norm_g = velocity_norm_g[2,:,:,2]
+        boundary_g = boundary_g[2,:,:,0]
         fig = plt.figure()
         fig.set_size_inches(15.5, 7.5)
         a = fig.add_subplot(1,5,1)

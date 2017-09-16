@@ -7,12 +7,10 @@ from termcolor import colored
 from tqdm import *
 
 class Que:
-  def __init__(self, command, num_processes=1):
+  def __init__(self, command, availible_gpus=[0,1]):
     self.pl = []
     self.running_pl = []
-    self.num_processes = num_processes
-    self.command = command
-    self.available_processes = num_processes
+    self.avalible_gpus=avalible_gpus
     self.start_time = 0
 
   def enque_file(self, xml_filename, should_run, initialize_script, finish_script):
@@ -26,18 +24,19 @@ class Que:
         initialize_script(xml_filename)
         self.pl.append(process.Process(self.command, xml_filename, finish_script))
 
-  def start_next(self):
+  def start_next(self, gpu):
     for i in xrange(len(self.pl)):
       if self.pl[i].get_status() == "Not Started":
-        self.pl[i].start()
+        self.pl[i].start(gpu)
         break
 
-  def num_free_processes(self):
-    num_running_processes = 0
+  def find_free_gpu(self):
+    used_gpus = []
     for i in xrange(len(self.pl)):
       if self.pl[i].get_status() == "Running":
-        num_running_processes += 1 
-    return self.available_processes - num_running_processes
+        used_gpus.append(self.pl[i].get_gpu())
+    free_gpus = list(set(self.avalible_gpus) - set(used_gpus)) 
+    return free_gpus
 
   def num_finished_processes(self):
     proc = 0
@@ -114,10 +113,10 @@ class Que:
   def start_que_runner(self):
     self.start_time = time.time()
     while True:
-      time.sleep(0.2)
-      num_free = self.num_free_processes()
-      if num_free > 0:
-        self.start_next()
+      time.sleep(1)
+      free_gpus = self.find_free_gpu()
+      for gpu in free_gpus:
+        self.start_next(gpu)
       self.update_pl_status()
       self.print_que_status()
       

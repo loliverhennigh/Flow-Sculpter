@@ -13,13 +13,14 @@ class Process:
     self.xml_file = xml_filename
     self.finish_script = finish_script
     self.status = "Not Started"
-    self.return_status = "NONE"
+    self.gpu = -1
     self.process = None
+    self.return_status = "NONE"
     self.run_time = 0
 
-  def start(self):
+  def start(self, gpu=0):
     with open(os.devnull, 'w') as devnull:
-      self.process = ps.subprocess.Popen([self.cmd, self.xml_file], stdout=devnull, stderr=devnull)
+      self.process = ps.subprocess.Popen([self.cmd, self.xml_file], stdout=devnull, stderr=devnull, env=dict(os.environ, CUDA_VISIBLE_DEVICES=str(gpu)))
     self.pid = self.process.pid
 
     self.status = "Running"
@@ -40,6 +41,9 @@ class Process:
 
   def get_status(self):
     return self.status
+
+  def get_gpu(self):
+    return self.gpu
 
   def get_return_status(self):
     return self.return_status

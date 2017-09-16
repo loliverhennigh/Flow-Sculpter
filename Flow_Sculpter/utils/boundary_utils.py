@@ -189,9 +189,9 @@ def wing_boundary_batch(nr_params, batch_size, shape, dims):
   return input_batch, boundary_batch
 
 """
-_, boundary_batch = wing_boundary_batch(12, 32, [128,128,128], 3)
+_, boundary_batch = wing_boundary_batch(12, 32, [64,64,64], 3)
 for i in xrange(32):
-  plt.imshow(boundary_batch[i,:,:,64,0])
+  plt.imshow(boundary_batch[i,:,:,32,0])
   #plt.imshow(boundary_batch[i,:,:,0])
   plt.show()
 """

@@ -100,7 +100,7 @@ def inputs_boundary(input_dims, batch_size, shape):
   """
   inputs = tf.placeholder(tf.float32, [batch_size] + [input_dims])
   boundary = tf.placeholder(tf.float32, [batch_size] + shape + [1])
-  tf.summary.image('boundarys', boundary)
+  image_summary('boundarys', boundary)
   return inputs, boundary
 
 def inputs_boundary_learn(batch_size=1, set_params=None, set_params_pos=None, noise_std=None):

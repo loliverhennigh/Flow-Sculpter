@@ -17,7 +17,7 @@ FLAGS = tf.app.flags.FLAGS
 
 TRAIN_DIR = make_checkpoint_path(FLAGS.base_dir_boundary, FLAGS, network="boundary")
 
-shape = [FLAGS.obj_size, FLAGS.obj_size]
+shape = FLAGS.dims*[FLAGS.obj_size]
 
 def train():
   """Train ring_net for a number of steps."""
@@ -79,8 +79,7 @@ def train():
 
     # calc number of steps left to run
     run_steps = FLAGS.max_steps - int(sess.run(global_step))
-
-    run_steps = FLAGS.max_steps - int(sess.run(global_step))
+    print(sess.run(global_step))
     for step in xrange(run_steps):
       current_step = sess.run(global_step)
       t = time.time()
