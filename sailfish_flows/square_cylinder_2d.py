@@ -77,6 +77,8 @@ class BoxSimulation(LBFluidSim):
             'visc': 0.100})
 
     def __init__(self, *args, **kwargs):
+        print(args)
+        print(kwargs)
         super(BoxSimulation, self).__init__(*args, **kwargs)
 
         margin = 5
@@ -122,7 +124,7 @@ class BoxSimulation(LBFluidSim):
                     # been reached.
                     diff = np.abs(f - self.prev_f) / np.abs(f)
 
-                    if np.all(diff < 1e+5):
+                    if np.all(diff < 1e-5):
                         print(runner)
                         runner._quit_event.set()
                     self.prev_f = f

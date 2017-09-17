@@ -24,7 +24,7 @@ from sailfish.lb_base import ForceObject
 from sailfish.lb_single import LBFluidSim
 from sailfish.node_type import NTFullBBWall, NTHalfBBWall
 
-D = 128
+D = 32
 H = D + D/2 
 W = H 
 L = 2*D
@@ -34,6 +34,7 @@ class DuctSubdomain(Subdomain3D):
     wall_bc = NTHalfBBWall
 
     def boundary_conditions(self, hx, hy, hz):
+        print(self.config.vox_name)
         wall_map = (hx == 0) | (hx == self.gx - 1) | (hy == 0) | (hy == self.gy - 1)
         self.set_node(wall_map, self.wall_bc)
 
@@ -55,6 +56,7 @@ class DuctSubdomain(Subdomain3D):
 
     @classmethod
     def accel(cls, config):
+        print(config)
         # The maximum velocity is attained at the center of the channel,
         # i.e. x = y = 0.
         ii = np.arange(1, 100, 2)
@@ -85,6 +87,12 @@ class DuctSubdomain(Subdomain3D):
 
 class DuctSim(LBFluidSim, LBForcedSim):
     subdomain = DuctSubdomain
+
+    @classmethod
+    def add_options(cls, group, defaults):
+        group.add_argument('--vox_name',
+                help='name of vox file to run ',
+                type=str, default="test.vox")
 
     @classmethod
     def update_defaults(cls, defaults):
