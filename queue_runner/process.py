@@ -8,7 +8,9 @@ import lxml.etree as etree
 from termcolor import colored
 
 class Process:
-  def __init__(self, command, xml_filename, finish_script):
+  def __init__(self, xml_filename, finish_script):
+    root = etree.parse(xml_filename)
+    command = root.find("cmd").text
     self.cmd = command
     self.xml_file = xml_filename
     self.finish_script = finish_script
@@ -20,11 +22,12 @@ class Process:
 
   def start(self, gpu=0):
     with open(os.devnull, 'w') as devnull:
-      self.process = ps.subprocess.Popen([self.cmd, self.xml_file], stdout=devnull, stderr=devnull, env=dict(os.environ, CUDA_VISIBLE_DEVICES=str(gpu)))
+      self.process = ps.subprocess.Popen(self.cmd.split(' '), stdout=devnull, stderr=devnull, env=dict(os.environ, CUDA_VISIBLE_DEVICES=str(gpu)))
     self.pid = self.process.pid
 
     self.status = "Running"
     self.start_time = time.time()
+    self.gpu = gpu
 
   def update_status(self):
     if self.status == "Running":

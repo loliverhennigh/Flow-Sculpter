@@ -164,7 +164,8 @@ def nin(x, num_units, idx):
 
 def upsampleing_resize(x, filter_size, name="upsample"):
   x_shape = int_shape(x)
-  x = tf.image.resize_nearest_neighbor(x, [2*x_shape[1], 2*x_shape[2]])
+  x = tf.image.resize_images(x, [2*x_shape[1], 2*x_shape[2]])
+  #x = tf.image.resize_nearest_neighbor(x, [2*x_shape[1], 2*x_shape[2]])
   x = conv_layer(x, 3, 1, filter_size, name)
   return x
 

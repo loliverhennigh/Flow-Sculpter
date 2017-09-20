@@ -16,6 +16,7 @@ np.random.seed(0)
 base_path = os.path.abspath("../data/") + "/"
 num_flips_per_type = 4
 num_samples_per_type = 20
+#sizes = [16, 32, 64, 96, 128, 256]
 sizes = [16, 32, 64, 96, 128, 256]
 
 # helper for voxelizing
@@ -46,6 +47,10 @@ def save_xml(filename, class_id, obj_id, vox_filename, dim, size, flip_x, filp_z
               + vox_filename.split('/')[-1][:-7] + "/")
   etree.SubElement(single_root, "save_path").text = save_path
   etree.SubElement(single_root, "dim").text = str(dim)
+  etree.SubElement(single_root, "cmd").text = ("python ../sailfish_flows/steady_state_flow_" + str(dim) + "d.py " 
+                                              + "--vox_filename=" + vox_filename + " "
+                                              + "--vox_size="     + str(size) + " "
+                                              + "--output="       + str(save_path) + "steady_state_flow")
   etree.SubElement(single_root, "size").text = str(size)
   etree.SubElement(single_root, "flip_x").text = str(flip_x)
   etree.SubElement(single_root, "flip_z").text = str(flip_z)

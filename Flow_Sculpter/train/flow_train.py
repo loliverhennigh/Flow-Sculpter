@@ -10,7 +10,7 @@ import sys
 sys.path.append('../')
 
 import model.flow_net as flow_net
-from inputs.vtk_data import VTK_data
+from inputs.flow_data import Sailfish_data
 from utils.experiment_manager import make_checkpoint_path
 from model.optimizer import *
 
@@ -117,7 +117,7 @@ def train():
     run_steps = FLAGS.max_steps - int(sess.run(global_step))
 
     # make vtm dataset
-    dataset = VTK_data("../../data/")
+    dataset = Sailfish_data("../../data/")
     dataset.load_data(FLAGS.dims, FLAGS.obj_size)
       
     for step in xrange(run_steps):

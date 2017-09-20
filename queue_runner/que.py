@@ -7,10 +7,10 @@ from termcolor import colored
 from tqdm import *
 
 class Que:
-  def __init__(self, command, availible_gpus=[0,1]):
+  def __init__(self, availible_gpus=[0,1]):
     self.pl = []
     self.running_pl = []
-    self.avalible_gpus=avalible_gpus
+    self.availible_gpus=availible_gpus
     self.start_time = 0
 
   def enque_file(self, xml_filename, should_run, initialize_script, finish_script):
@@ -22,7 +22,7 @@ class Que:
       xml_filename = run.find("xml_filename").text
       if should_run(run):
         initialize_script(xml_filename)
-        self.pl.append(process.Process(self.command, xml_filename, finish_script))
+        self.pl.append(process.Process(xml_filename, finish_script))
 
   def start_next(self, gpu):
     for i in xrange(len(self.pl)):
@@ -35,7 +35,7 @@ class Que:
     for i in xrange(len(self.pl)):
       if self.pl[i].get_status() == "Running":
         used_gpus.append(self.pl[i].get_gpu())
-    free_gpus = list(set(self.avalible_gpus) - set(used_gpus)) 
+    free_gpus = list(set(self.availible_gpus) - set(used_gpus)) 
     return free_gpus
 
   def num_finished_processes(self):
@@ -113,7 +113,7 @@ class Que:
   def start_que_runner(self):
     self.start_time = time.time()
     while True:
-      time.sleep(1)
+      time.sleep(.1)
       free_gpus = self.find_free_gpu()
       for gpu in free_gpus:
         self.start_next(gpu)
