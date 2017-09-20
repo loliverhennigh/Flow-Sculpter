@@ -131,7 +131,7 @@ class DuctSim(LBFluidSim, LBForcedSim):
   @classmethod
   def update_defaults(cls, defaults):
     defaults.update({
-      'max_iters': 100000,
+      'max_iters': 600000,
       'output_format': 'npy',
       'output': 'test_flow',
       'every': 5000,
@@ -194,7 +194,7 @@ class DuctSim(LBFluidSim, LBForcedSim):
 
           # Terminate simulation when steady state has
           # been reached.
-          diff = np.abs(f - self.prev_f) / np.abs(f)
+          diff = np.abs(f - self.prev_f) / (np.abs(f) + 1.0e-2)
           print("diff")
           print(diff)
 

@@ -34,11 +34,11 @@ class Sailfish_data:
 
     print("loading dataset")
     reader = vtk.vtkXMLMultiBlockDataReader()
-    #stopper = 0
+    stopper = 0
     for run_root in tqdm(run_roots):
-      #stopper += 1
-      #if stopper > 10000:
-      #  break
+      stopper += 1
+      if stopper > 20000:
+        break
 
       # check if right size
       xml_size = int(run_root.find("size").text)
