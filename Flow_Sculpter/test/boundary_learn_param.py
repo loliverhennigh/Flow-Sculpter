@@ -96,8 +96,6 @@ def evaluate():
     # Make boundary
     boundary = flow_net.inference_boundary(batch_size*set_params.shape[0], [obj_size,obj_size], params_op, full_shape=shape)
     sharp_boundary = tf.round(boundary)
-    boundary = (2.0 * boundary - 1.0)
-    sharp_boundary = (2.0 * sharp_boundary - 1.0)
 
     # predict steady flow on boundary
     predicted_flow = flow_net.inference_flow(boundary, 1.0)

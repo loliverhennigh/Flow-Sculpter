@@ -75,7 +75,7 @@ def evaluate():
 
     # Build a Graph that computes the logits predictions from the
     # inference model.
-    pyramid_true_flow, pyramid_predicted_flow = flow_net.inference_flow(boundary, true_flow, 1.0, nr_pyramids=nr_pyramids)
+    predicted_flow = flow_net.inference_flow(boundary, 1.0)
 
     # Restore for eval
     init = tf.global_variables_initializer()
@@ -100,7 +100,7 @@ def evaluate():
       #boundary_car = make_car_boundary(shape=shape, car_shape=(int(shape[1]/2.3), int(shape[0]/1.6)))
 
       # calc flow 
-      p_flow = sess.run(pyramid_predicted_flow,feed_dict={boundary: batch_boundary})[-1]
+      p_flow = sess.run(predicted_flow,feed_dict={boundary: batch_boundary})[-1]
       dim=2
       sflow_plot = np.concatenate([p_flow[...,dim], batch_flow[...,dim], np.abs(p_flow - batch_flow)[...,dim], batch_boundary[...,0]/20.0], axis=1)
       #sflow_plot = sflow_plot[0,:,:,0]

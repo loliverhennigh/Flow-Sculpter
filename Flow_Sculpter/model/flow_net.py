@@ -188,7 +188,7 @@ def loss_flow(true_flow, predicted_flow):
     image_summary('flow_z_true',  true_flow[...,2:3])
     image_summary('flow_z_predicted', predicted_flow[...,2:3])
   image_summary('flow_p_true',  true_flow[...,-1:])
-  image_summary('flow_p_predicted', predicted_flow[:,:,:,-1:])
+  image_summary('flow_p_predicted', predicted_flow[...,-1:])
 
   # loss summary
   with tf.device('/cpu:0'):

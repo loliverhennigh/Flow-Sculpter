@@ -169,6 +169,14 @@ def upsampleing_resize(x, filter_size, name="upsample"):
   x = conv_layer(x, 3, 1, filter_size, name)
   return x
 
+def avg_pool(x):
+  length_input = len(x.get_shape()) - 2
+  if length_input == 2:
+    x = tf.nn.avg_pool(x, [1,2,2,1], [1,2,2,1], padding='SAME')
+  if length_input == 3:
+    x = tf.nn.avg_pool3d(x, [1,2,2,2,1], [1,2,2,2,1], padding='SAME')
+  return x
+
 def res_block(x, a=None, filter_size=16, nonlinearity=concat_elu, keep_p=1.0, stride=1, gated=True, name="resnet", begin_nonlinearity=True, normalize=None):
             
   # determine if 2d or 3d trans conv is needed

@@ -1,13 +1,12 @@
 
 import numpy as np
-import vtk
-from vtk.util.numpy_support import *
 import matplotlib.pyplot as plt
 from lxml import etree
 import glob
 from tqdm import *
 import sys
 import os.path
+import gc
 
 class Sailfish_data:
   def __init__(self, base_dir, train_test_split=.8):
@@ -33,12 +32,11 @@ class Sailfish_data:
     run_roots = root.findall("run")
 
     print("loading dataset")
-    reader = vtk.vtkXMLMultiBlockDataReader()
-    stopper = 0
+    #stopper = 0
     for run_root in tqdm(run_roots):
-      stopper += 1
-      if stopper > 20000:
-        break
+      #stopper += 1
+      #if stopper > 20000:
+      #  break
 
       # check if right size
       xml_size = int(run_root.find("size").text)
@@ -68,9 +66,12 @@ class Sailfish_data:
       if not os.path.isfile(geometry_file):
         continue
       geometry_array = np.load(geometry_file)
-      geometry_array = geometry_array.astype(np.int)
-      geometry_array = np.swapaxes(geometry_array, 0, -1)
-      geometry_array = geometry_array[size/2+1:5*size/2+1,1:-1]
+      geometry_array = geometry_array.astype(np.uint8)
+      if dim == 2:
+        geometry_array = np.swapaxes(geometry_array, 0, -1)
+        geometry_array = geometry_array[size/2+1:5*size/2+1,1:-1]
+      elif dim == 3:
+        geometry_array = geometry_array[size/2+1:4*size/2+1,1:-1,1:-1]
       geometry_array = np.expand_dims(geometry_array, axis=-1)
 
       # read file for steady state flow
@@ -83,15 +84,26 @@ class Sailfish_data:
       pressure_array[np.where(np.isnan(pressure_array))] = 1.0
       pressure_array = pressure_array - 1.0
       steady_flow_array = np.concatenate([velocity_array, pressure_array], axis=0)
-      steady_flow_array = np.swapaxes(steady_flow_array, 0, -1)
-      steady_flow_array = steady_flow_array[size/2:5*size/2]
+      if dim == 2:
+        steady_flow_array = np.swapaxes(steady_flow_array, 0, -1)
+        steady_flow_array = steady_flow_array[size/2:5*size/2]
+      elif dim == 3:
+        steady_flow_array = np.swapaxes(steady_flow_array, 0, 1)
+        steady_flow_array = np.swapaxes(steady_flow_array, 1, 2)
+        steady_flow_array = np.swapaxes(steady_flow_array, 2, 3)
+        steady_flow_array = steady_flow_array[size/2+1:4*size/2+1]
       np.nan_to_num(steady_flow_array, False)
+      steady_flow_array = steady_flow_array.astype(np.float32)
+      #plt.imshow(steady_flow_array[size/2,:,:,0])
+      #plt.show()
 
       # store
       self.geometries.append(geometry_array)
       self.steady_flows.append(steady_flow_array)
 
+    gc.collect()
     self.split_line = int(self.train_test_split * len(self.geometries))
+    print(len(self.geometries))
 
   def minibatch(self, train=True, batch_size=32, batch_type="flow"):
     batch_boundary = []
@@ -101,7 +113,7 @@ class Sailfish_data:
         sample = np.random.randint(0, self.split_line)
       else:
         sample = np.random.randint(self.split_line, len(self.geometries))
-      batch_boundary.append(self.geometries[sample])
+      batch_boundary.append(self.geometries[sample].astype(np.float32))
       if batch_type == "flow":
         batch_data.append(self.steady_flows[sample])
     batch_boundary = np.stack(batch_boundary, axis=0)
@@ -117,7 +129,7 @@ class Sailfish_data:
 
 """
 dataset = Sailfish_data("../../data/")
-dataset.load_data(dim=2, size=64)
+dataset.load_data(dim=2, size=128)
 batch_boundary, batch_data = dataset.minibatch(batch_type="flow")
 print(batch_boundary.shape)
 print(batch_data.shape)
@@ -127,4 +139,3 @@ for i in xrange(32):
   plt.imshow(batch_boundary[i,:,:,0])
   plt.show()
 """
-

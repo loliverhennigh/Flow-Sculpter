@@ -198,7 +198,7 @@ class DuctSim(LBFluidSim, LBForcedSim):
           print("diff")
           print(diff)
 
-          if (np.all(diff < 1e-4) or (self.config.max_iters < self.iteration + 501)) and (not ( 20000 > self.iteration)):
+          if (np.all(diff < 1e-4) or (self.config.max_iters < self.iteration + 501)) and (not ( 10000 > self.iteration)):
             clean_files(self.config.output)
             runner._quit_event.set()
           self.prev_f = f
