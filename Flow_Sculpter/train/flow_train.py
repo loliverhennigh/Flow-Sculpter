@@ -123,7 +123,7 @@ def train():
     for step in xrange(run_steps):
       current_step = sess.run(global_step)
       t = time.time()
-      batch_boundary, batch_flow = dataset.minibatch(batch_size=FLAGS.batch_size)
+      batch_boundary, batch_flow = dataset.minibatch(batch_size=FLAGS.batch_size, signed_distance_function=FLAGS.sdf)
       _ , loss_value = sess.run([train_op, error],feed_dict={boundary:batch_boundary, true_flow:batch_flow})
       elapsed = time.time() - t
 

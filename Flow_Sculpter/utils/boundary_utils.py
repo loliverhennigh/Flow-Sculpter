@@ -100,6 +100,7 @@ def wing_boundary_2d(angle, N_1, N_2, A_1, A_2, d_t, shape, boundary=None):
 
   boundary = rotateImage(boundary, angle)
   boundary = boundary.reshape(shape + [1])
+  boundary = np.rot90(boundary, 3)
 
   return boundary
 

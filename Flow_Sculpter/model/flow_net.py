@@ -37,11 +37,11 @@ tf.app.flags.DEFINE_float('keep_prob', 1.0,
                             """ keep probability for dropout """)
 tf.app.flags.DEFINE_float('lr', 1e-4,
                             """ r dropout """)
-tf.app.flags.DEFINE_string('shape', '256x256',
+tf.app.flags.DEFINE_string('shape', '128x128',
                             """ shape of flow """)
 tf.app.flags.DEFINE_integer('dims', 2,
                             """ dims of flow """)
-tf.app.flags.DEFINE_integer('obj_size', 128,
+tf.app.flags.DEFINE_integer('obj_size', 64,
                             """ max size of voxel object """)
 
 
@@ -60,6 +60,8 @@ tf.app.flags.DEFINE_bool('gated', True,
                            """ gated resnet or not """)
 tf.app.flags.DEFINE_string('nonlinearity', 'concat_elu',
                            """ nonlinearity used such as concat_elu, elu, concat_relu, relu """)
+tf.app.flags.DEFINE_bool('sdf', False,
+                           """ whether to use the signed distance function on inputs """)
 
 # model params boundary
 tf.app.flags.DEFINE_string('boundary_type', 'shapes',
@@ -156,13 +158,16 @@ def inference_flow(boundary, keep_prob=FLAGS.keep_prob):
     keep_prob: dropout layer
   """
   with tf.variable_scope("flow_network") as scope:
-    predicted_flow = network_architecture.res_u_template(boundary, 
-                                                         keep_prob=1.0,
-                                                         filter_size=FLAGS.filter_size,
-                                                         nr_downsamples=FLAGS.nr_downsamples,
-                                                         nr_residual_blocks=FLAGS.nr_residual_blocks,
-                                                         gated=FLAGS.gated, 
-                                                         nonlinearity=FLAGS.nonlinearity)
+    if FLAGS.flow_model == 'residual_network':
+      predicted_flow = network_architecture.res_u_template(boundary, 
+                                                           keep_prob=1.0,
+                                                           filter_size=FLAGS.filter_size,
+                                                           nr_downsamples=FLAGS.nr_downsamples,
+                                                           nr_residual_blocks=FLAGS.nr_residual_blocks,
+                                                           gated=FLAGS.gated, 
+                                                           nonlinearity=FLAGS.nonlinearity)
+    if FLAGS.flow_model == 'xiao_network':
+      predicted_flow = network_architecture.xiao_template(boundary)
   return predicted_flow
 
 def inference_boundary(batch_size, shape, inputs, full_shape=None):

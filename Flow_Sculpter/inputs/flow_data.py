@@ -7,6 +7,7 @@ from tqdm import *
 import sys
 import os.path
 import gc
+import skfmm
 
 class Sailfish_data:
   def __init__(self, base_dir, train_test_split=.8):
@@ -22,6 +23,9 @@ class Sailfish_data:
     # train vs test split (numbers under this value are in train, over in test)
     self.train_test_split = train_test_split
     self.split_line = 0
+
+    # place in test set
+    self.test_set_pos = 0
 
   def load_data(self, dim, size): 
     # reads in all xml data into lists
@@ -103,22 +107,27 @@ class Sailfish_data:
 
     gc.collect()
     self.split_line = int(self.train_test_split * len(self.geometries))
-    print(len(self.geometries))
+    self.test_set_pos = self.split_line
 
-  def minibatch(self, train=True, batch_size=32, batch_type="flow"):
+  def minibatch(self, train=True, batch_size=32, signed_distance_function=False):
     batch_boundary = []
     batch_data = []
     for i in xrange(batch_size): 
       if train:
         sample = np.random.randint(0, self.split_line)
       else:
-        sample = np.random.randint(self.split_line, len(self.geometries))
-      batch_boundary.append(self.geometries[sample].astype(np.float32))
-      if batch_type == "flow":
-        batch_data.append(self.steady_flows[sample])
+        sample = self.test_set_pos 
+        self.test_set_pos += 1
+      if signed_distance_function:
+        geometry_array = self.geometries[sample].astype(np.float32)
+        geometry_array = (-2.0*geometry_array) + 1.0
+        geometry_array = skfmm.distance(geometry_array, dx=1.0)
+        batch_boundary.append(geometry_array)
+      else:
+        batch_boundary.append(self.geometries[sample].astype(np.float32))
+      batch_data.append(self.steady_flows[sample])
     batch_boundary = np.stack(batch_boundary, axis=0)
-    if batch_type == "flow":
-      batch_data = np.stack(batch_data, axis=0)
+    batch_data = np.stack(batch_data, axis=0)
     """
     flip = np.random.randint(0,2)
     if flip == 1:
