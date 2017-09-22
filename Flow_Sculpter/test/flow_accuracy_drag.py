@@ -84,7 +84,7 @@ def evaluate():
     t_drag_y_data = []
  
     #for run in filenames:
-    for i in tqdm(xrange(10)):
+    for i in tqdm(xrange(1)):
       # read in boundary
       batch_boundary, batch_flow = dataset.minibatch(train=False, batch_size=batch_size, signed_distance_function=FLAGS.sdf)
       #boundary_car = make_car_boundary(shape=shape, car_shape=(int(shape[1]/2.3), int(shape[0]/1.6)))
@@ -101,7 +101,11 @@ def evaluate():
     t_drag_x_data = np.concatenate(t_drag_x_data, axis=0)
     p_drag_y_data = np.concatenate(p_drag_y_data, axis=0)
     t_drag_y_data = np.concatenate(t_drag_y_data, axis=0)
+    fig = plt.figure()
+    a = fig.add_subplot(1,2,1)
     plt.scatter(p_drag_x_data, t_drag_x_data)
+    a = fig.add_subplot(1,2,2)
+    plt.scatter(p_drag_y_data, t_drag_y_data)
     plt.show()
 
 def main(argv=None):  # pylint: disable=unused-argument

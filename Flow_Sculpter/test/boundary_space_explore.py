@@ -30,9 +30,9 @@ import matplotlib.pyplot as plt
 FLAGS = tf.app.flags.FLAGS
 
 # video init
-shape = [256, 256]
+shape = [128, 128]
 dims = 2
-obj_size = 128
+obj_size = 64
 nr_pyramids = 0
 batch_size=1
 
