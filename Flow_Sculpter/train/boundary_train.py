@@ -84,10 +84,10 @@ def train():
       current_step = sess.run(global_step)
       t = time.time()
       input_batch, boundary_batch = flow_net.feed_dict_boundary(input_dims, FLAGS.batch_size, shape)
-      #plt.imshow(boundary_batch[0,:,:,0])
+      #plt.imshow(boundary_batch[0,:,:,FLAGS.obj_size/2,0])
       #plt.show()
       _ , loss_value, gen_boundary = sess.run([train_op, error, predicted_boundary],feed_dict={inputs_vector: input_batch, true_boundary: boundary_batch})
-      #plt.imshow(gen_boundary[0,:,:,0])
+      #plt.imshow(gen_boundary[0,:,:,FLAGS.obj_size/2,0])
       #plt.show()
       elapsed = time.time() - t
 

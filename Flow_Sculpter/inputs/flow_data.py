@@ -39,7 +39,7 @@ class Sailfish_data:
     #stopper = 0
     for run_root in tqdm(run_roots):
       #stopper += 1
-      #if stopper > 20000:
+      #if stopper > 6000:
       #  break
 
       # check if right size
@@ -75,7 +75,7 @@ class Sailfish_data:
         geometry_array = np.swapaxes(geometry_array, 0, -1)
         geometry_array = geometry_array[size/2+1:5*size/2+1,1:-1]
       elif dim == 3:
-        geometry_array = geometry_array[size/2+1:4*size/2+1,1:-1,1:-1]
+        geometry_array = geometry_array[size/4+1:7*size/4+1,1:-1,1:-1]
       geometry_array = np.expand_dims(geometry_array, axis=-1)
 
       # read file for steady state flow
@@ -95,7 +95,7 @@ class Sailfish_data:
         steady_flow_array = np.swapaxes(steady_flow_array, 0, 1)
         steady_flow_array = np.swapaxes(steady_flow_array, 1, 2)
         steady_flow_array = np.swapaxes(steady_flow_array, 2, 3)
-        steady_flow_array = steady_flow_array[size/2+1:4*size/2+1]
+        steady_flow_array = steady_flow_array[size/4:7*size/4]
       np.nan_to_num(steady_flow_array, False)
       steady_flow_array = steady_flow_array.astype(np.float32)
       #plt.imshow(steady_flow_array[size/2,:,:,0])

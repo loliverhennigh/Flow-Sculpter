@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cmx
 from mpl_toolkits.mplot3d import Axes3D
 
+import time
+
 import math
 
 def binomial(top, bottom):
@@ -128,18 +130,23 @@ def wing_boundary_3d(angle_1, angle_2, N_1, N_2, sweep_slope, end_length, A_1, A
 
   z_1_store = 0.0
   z_2_store = 0.0
+  t = time.time()
   for i in xrange(len(A_1)):
     for j in xrange(len(B)):
       z_1_store += (B[j]*A_1[i]
                    *binomial(len(A_1), i)*binomial(len(B), j)
-                   *(phi_1**i)*((1.0-phi_1)**(len(A_1)-i))
-                   *(nue**j)*((1.0-nue)**(len(B)-j)))
-      z_2_store += (B[j]*A_2[i]*binomial(len(A_2), i)*binomial(len(B), j)
-                   *(phi_1**i)*((1.0-phi_1)**(len(A_2)-i))
-                   *(nue**j)*((1.0-nue)**(len(B)-j)))
+                   *np.power(phi_1,float(i))*np.power((1.0-phi_1),float(len(A_1)-i))
+                   *np.power(nue,float(j))*np.power((1.0-nue),float(len(B)-j))
+                   )
+      z_2_store += (B[j]*A_2[i]
+                   *binomial(len(A_2), i)*binomial(len(B), j)
+                   *np.power(phi_1,float(i))*np.power((1.0-phi_1),float(len(A_2)-i))
+                   *np.power(nue,float(j))*np.power((1.0-nue),float(len(B)-j))
+                   )
   z_1 = z_1*z_1_store + phi_1 * d_t
   z_2 = z_2*z_2_store - phi_2 * d_t
   z_2 = -z_2
+  elapsed = time.time() - t
 
   for i in xrange(shape[0]):
     for j in xrange(shape[1]/2):
@@ -190,7 +197,7 @@ def wing_boundary_batch(nr_params, batch_size, shape, dims):
   return input_batch, boundary_batch
 
 """
-_, boundary_batch = wing_boundary_batch(12, 32, [64,64,64], 3)
+_, boundary_batch = wing_boundary_batch(67, 32, [64,64,64], 3)
 for i in xrange(32):
   plt.imshow(boundary_batch[i,:,:,32,0])
   #plt.imshow(boundary_batch[i,:,:,0])

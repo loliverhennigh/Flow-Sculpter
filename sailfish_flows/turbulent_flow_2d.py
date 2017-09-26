@@ -172,7 +172,6 @@ class BoxSimulation(LBFluidSim):
             runner._quit_event.set()
           self.prev_f = f
 
-
 if __name__ == '__main__':
   ctrl = LBSimulationController(BoxSimulation)
   ctrl.run()

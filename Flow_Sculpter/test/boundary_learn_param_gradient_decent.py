@@ -19,39 +19,20 @@ import sys
 sys.path.append('../')
 
 import model.flow_net as flow_net 
-from model.pressure import force_2d
-#from utils.flow_reader import load_flow, load_boundary, load_state
+from model.pressure import calc_force
 from utils.experiment_manager import make_checkpoint_path
 
 import matplotlib.pyplot as plt
 
 FLAGS = tf.app.flags.FLAGS
 
-# video init
-shape = [256, 256]
-dims = 2
-obj_size = 128
-batch_size=1
-
-fourcc = cv2.cv.CV_FOURCC('m', 'p', '4', 'v') 
-video = cv2.VideoWriter()
-
-success = video.open('figs/' + FLAGS.boundary_learn_loss + '_video.mov', fourcc, 10, (2*shape[1], shape[0]), True)
-
 
 FLOW_DIR = make_checkpoint_path(FLAGS.base_dir_flow, FLAGS, network="flow")
 BOUNDARY_DIR = make_checkpoint_path(FLAGS.base_dir_boundary, FLAGS, network="boundary")
-print("flow dir is " + FLOW_DIR)
-print("boundary dir is " + BOUNDARY_DIR)
 
-def tryint(s):
-  try:
-    return int(s)
-  except:
-    return s
-
-def alphanum_key(s):
-  return [ tryint(c) for c in re.split('([0-9]+)', s) ]
+shape = FLAGS.shape.split('x')
+shape = map(int, shape)
+batch_size=1
 
 def evaluate():
   """Run Eval once.
@@ -62,31 +43,26 @@ def evaluate():
     top_k_op: Top K op.
     summary_op: Summary op.
   """
-  set_params     = np.array(15*[FLAGS.nr_boundary_params*[0.0]])
-  set_params_pos = np.array(15*[FLAGS.nr_boundary_params*[0.0]]) + 1.0
 
-  set_params[0,0]      = -0.0 
-  set_params[1,0]      = -0.025 
-  set_params[2,0]      = -0.05 
-  set_params[3,0]      = -0.075 
-  set_params[4,0]      = -0.1 
-  set_params[5,0]      = -0.125
-  set_params[6,0]      = -0.15 
-  set_params[7,0]      = -0.175 
-  set_params[8,0]      = -0.2 
-  set_params[9,0]      = -0.225 
-  set_params[10,0]      = -0.25 
-  set_params[11,0]      = -0.275
-  set_params[12,0]      = -0.3
-  set_params[13,0]      = -0.325
-  set_params[14,0]      = -0.35
+  num_angles = 32
+  max_angle =  0.2
+  min_angle = -0.1
+  set_params          = np.array(num_angles*[FLAGS.nr_boundary_params*[0.0]])
+  set_params[:,:]     = 0.0
+  set_params_pos      = np.array(num_angles*[FLAGS.nr_boundary_params*[0.0]])
+  set_params_pos[:,:] = 1.0
 
-  #set_params[:,1]      = 0.5
-  #set_params[:,2]      = 1.0
+  for i in xrange(num_angles):
+    set_params[i,0]      = -i 
+  set_params[:,0] = ((max_angle - min_angle) * (set_params[:,0]/num_angles)) - min_angle
+
+  set_params[:,1]      = 0.5
+  set_params[:,2]      = 1.0
+  set_params[:,-1]     = 0.0
 
   set_params_pos[:,0]  = 0.0 # set angle to 0.0
-  #set_params_pos[:,1]  = 0.0 # set n_1 to .5
-  #set_params_pos[:,2]  = 0.0 # set n_2 to 1.0
+  set_params_pos[:,1]  = 0.0 # set n_1 to .5
+  set_params_pos[:,2]  = 0.0 # set n_2 to 1.0
   set_params_pos[:,-1] = 0.0 # set tail hieght to 0.0
 
   with tf.Graph().as_default():
@@ -94,20 +70,21 @@ def evaluate():
     params_op, params_op_init, params_op_set, squeeze_loss = flow_net.inputs_boundary_learn(batch_size, set_params=set_params, set_params_pos=set_params_pos, noise_std=0.001)
 
     # Make boundary
-    boundary = flow_net.inference_boundary(batch_size*set_params.shape[0], [obj_size,obj_size], params_op, full_shape=shape)
+    boundary = flow_net.inference_boundary(batch_size*set_params.shape[0], FLAGS.dims*[FLAGS.obj_size], params_op, full_shape=shape)
     sharp_boundary = tf.round(boundary)
 
     # predict steady flow on boundary
     predicted_flow = flow_net.inference_flow(boundary, 1.0)
-    predicted_sharp_flow = flow_net.inference_flow(boundary, 1.0)
+    predicted_sharp_flow = flow_net.inference_flow(sharp_boundary, 1.0)
 
     # quantities to optimize
-    force = force_2d(boundary, predicted_flow[:,:,:,2:3])
-    sharp_force = force_2d(sharp_boundary, predicted_sharp_flow[:,:,:,2:3])
-    drag_x = tf.reduce_sum(force[:,:,:,0], axis=[0,1,2])/batch_size
-    drag_y = tf.reduce_sum(force[:,:,:,1], axis=[0,1,2])/batch_size
+    force = calc_force(boundary, predicted_flow[:,:,:,2:3])
+    sharp_force = calc_force(sharp_boundary, predicted_sharp_flow[:,:,:,2:3])
+    drag_x = tf.reduce_sum(force[:,:,:,0], axis=[1,2])/batch_size
+    drag_y = tf.reduce_sum(force[:,:,:,1], axis=[1,2])/batch_size
     sharp_drag_x = tf.reduce_sum(sharp_force[:,:,:,0], axis=[1,2])/batch_size
     sharp_drag_y = tf.reduce_sum(sharp_force[:,:,:,1], axis=[1,2])/batch_size
+    """
     vel_x = (tf.reduce_sum(predicted_flow[:,:,:,0:1]*(-.5*(boundary-1.0)), axis=[0,1,2])
             /tf.reduce_sum(-.5*(boundary-1.0), axis=[0,1,2,3]))
     vel_y = (tf.reduce_sum(predicted_flow[:,:,:,1:2]*(-.5*boundary-1.0), axis=[0,1,2])
@@ -122,12 +99,13 @@ def evaluate():
     lift_coef_y =  drag_y/(0.5*vel_norm)
     sharp_lift_coef_x = -sharp_drag_x/(0.5*sharp_vel_norm)
     sharp_lift_coef_y =  sharp_drag_y/(0.5*sharp_vel_norm)
+    """
     
-    #lift_coef_x = (drag_y/(-drag_x))
-    #sharp_lift_coef = (sharp_drag_y/(-sharp_drag_x))
+    drag_lift_ratio = (drag_x/drag_y)
+    sharp_drag_lift_ratio = (sharp_drag_x/sharp_drag_y)
 
     # loss
-    loss = -tf.reduce_sum(drag_y/(-drag_x))
+    loss = -tf.reduce_sum(drag_lift_ratio)
     loss += squeeze_loss
 
     # train_op
@@ -169,16 +147,17 @@ def evaluate():
     # make store dir
     os.system("mkdir ./figs/boundary_learn_image_store")
     for i in tqdm(xrange(run_time)):
-      l, _, d_y, d_x, p_o = sess.run([sharp_lift_coef_y, train_step, sharp_drag_y, sharp_drag_x, params_op], feed_dict={})
+      l, _, d_y, d_x, p_o = sess.run([loss, train_step, sharp_drag_y, sharp_drag_x, params_op], feed_dict={})
       print(l)
       if i > 0:
-        plot_error[i] = np.sum(l[0])
-        plot_drag_x[i] = np.sum(d_x[0])
-        plot_drag_y[i] = np.sum(d_y[0])
-      if (i+1) % 20 == 0:
+        plot_error[i] = np.sum(l)
+        #plot_error[i] = np.sum(l[2])
+        plot_drag_x[i] = np.sum(d_x[2])
+        plot_drag_y[i] = np.sum(d_y[2])
+      if (i+1) % 2 == 0:
         # make video with opencv
         velocity_norm_g, boundary_g = sess.run([predicted_sharp_flow, sharp_boundary],feed_dict={})
-        d_y, d_x, l_c, p_o = sess.run([sharp_drag_y, sharp_drag_x, sharp_lift_coef_y, params_op], feed_dict={})
+        d_y, d_x, l_c, s_l_c, p_o = sess.run([sharp_drag_y, sharp_drag_x, drag_lift_ratio, sharp_drag_lift_ratio, params_op], feed_dict={})
         #velocity_norm_g, boundary_g = sess.run([force, boundary],feed_dict={})
         #sflow_plot = np.concatenate([ 5.0*velocity_norm_g[0], boundary_g[0]], axis=1)
         #sflow_plot = np.uint8(grey_to_short_rainbow(sflow_plot))
@@ -205,6 +184,7 @@ def evaluate():
         plt.legend()
         a = fig.add_subplot(1,5,5)
         plt.plot(set_params[:,0], l_c, 'bo', label="lift/drag")
+        plt.plot(set_params[:,0], s_l_c, 'ro', label="lift/drag")
         plt.xlabel("angle of attack")
         plt.xlim(min(set_params[:,0])-0.03, max(set_params[:,0])+0.03)
         #plt.legend()
@@ -214,10 +194,6 @@ def evaluate():
           plt.savefig("./figs/" + FLAGS.boundary_learn_loss + "_plot.png")
           #plt.show()
         plt.close(fig)
-
-    # close cv video
-    video.release()
-    cv2.destroyAllWindows()
 
     # generate video of plots
     os.system("rm ./figs/" + FLAGS.boundary_learn_loss + "_plot_video.mp4")

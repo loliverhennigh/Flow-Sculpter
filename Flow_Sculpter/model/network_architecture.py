@@ -38,14 +38,10 @@ def xiao_network(inputs):
   nonlinearity = nn.set_nonlinearity("relu")
   x_i = nn.conv_layer(x_i, 8, 8, 128, "conv_1", nonlinearity)
   x_i = nn.conv_layer(x_i, 4, 4, 512, "conv_2", nonlinearity)
-  print(x_i.get_shape())
   x_i = nn.fc_layer(x_i, 1024, "fc", nonlinearity, flat=True)
-  print(x_i.get_shape())
   x_i = tf.expand_dims(x_i, axis=1)
   x_i = tf.expand_dims(x_i, axis=1)
-  print(x_i.get_shape())
   x_i = nn.transpose_conv_layer(x_i, 4, 4, 512, "trans_conv_1", nonlinearity)
-  print(x_i.get_shape())
   x_i = nn.transpose_conv_layer(x_i, 8, 8, 256, "trans_conv_2", nonlinearity)
   x_i = nn.transpose_conv_layer(x_i, 2, 2,  32, "trans_conv_3", nonlinearity)
   x_i = nn.transpose_conv_layer(x_i, 2, 2,   3, "trans_conv_4")
@@ -55,10 +51,10 @@ def xiao_network(inputs):
 # xiao template
 xiao_template = tf.make_template('xiao_template', xiao_network)
 
-def res_generator_network(batch_size, shape, inputs=None, full_shape=None, hidden_size=100, filter_size=8, nr_residual_blocks=1, gated=True, nonlinearity="concat_elu"):
+def res_generator_network(batch_size, shape, inputs=None, full_shape=None, hidden_size=100, filter_size=8, nr_residual_blocks=2, gated=True, nonlinearity="concat_elu"):
 
   # new shape
-  nr_upsamples = int(np.log2(shape[0]/8))
+  nr_upsamples = int(np.log2(shape[0]/2))
   filter_size = filter_size*pow(2,nr_upsamples)
 
   # set nonlinearity
@@ -66,8 +62,8 @@ def res_generator_network(batch_size, shape, inputs=None, full_shape=None, hidde
 
   # fc layer
   x_i = inputs
-  x_i = nn.fc_layer(x_i, pow(8,len(shape))*filter_size, "decode_layer", nn.set_nonlinearity("relu"))
-  x_i = tf.reshape(x_i, [batch_size] + len(shape)*[8] + [filter_size])
+  x_i = nn.fc_layer(x_i, pow(2,len(shape))*filter_size, "decode_layer", nn.set_nonlinearity("relu"))
+  x_i = tf.reshape(x_i, [batch_size] + len(shape)*[2] + [filter_size])
 
   # decoding piece
   for i in xrange(nr_upsamples):
@@ -76,17 +72,19 @@ def res_generator_network(batch_size, shape, inputs=None, full_shape=None, hidde
     for j in xrange(nr_residual_blocks):
       x_i = nn.res_block(x_i, filter_size=filter_size, gated=gated, nonlinearity=nonlinearity, name="res_decode_" + str(i) + "_block_" + str(j))
   x_i = nn.conv_layer(x_i, 3, 1, 1, "final_conv")
-  x_i = tf.sigmoid(x_i)
+  #x_i = tf.sigmoid(x_i)
 
   if full_shape is not None:
-    x_i = tf.pad(x_i,
-         [[0,0], [shape[0]/2-2,full_shape[0]-(3*shape[0]/2)-2],
-                 [shape[1]/2-2,full_shape[1]-(3*shape[1]/2)], [0,0]])
-    #x_i = x_i - 1.0
-    x_i = tf.pad(x_i,
-         [[0,0], [2,2], [2,0], [0,0]])
-    #x_i = x_i + 1.0
-
+    if len(x_i.get_shape()) == 4:
+      x_i = tf.pad(x_i,
+           [[0,0], [shape[0]/2,full_shape[0]-(3*shape[0]/2)],
+                   [shape[1]/2,full_shape[1]-(3*shape[1]/2)], [0,0]])
+    elif len(x_i.get_shape()) == 5:
+      x_i = tf.pad(x_i,
+           [[0,0], [shape[0]/4,full_shape[0]-(5*shape[0]/4)],
+                   [shape[1]/4,full_shape[1]-(5*shape[1]/4)],
+                   [shape[2]/4,full_shape[2]-(5*shape[2]/4)], [0,0]])
+ 
   return x_i
 
 res_generator_template = tf.make_template('res_generator_template', res_generator_network)

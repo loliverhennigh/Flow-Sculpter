@@ -140,7 +140,6 @@ def inputs_boundary_learn(batch_size=1, set_params=None, set_params_pos=None, no
         params_op_store.append(par)
     params_op = tf.concat(params_op_store, axis=0)
     set_params     = np.concatenate(batch_size * [set_params], axis=0)
-    print(set_params.shape)
     set_params_pos = np.concatenate(batch_size * [set_params_pos], axis=0)
     params_op = (set_params_pos * params_op) + set_params
 
@@ -203,19 +202,21 @@ def loss_flow(true_flow, predicted_flow):
   return loss_total
 
 def loss_boundary(true_boundary, generated_boundary):
-  intersection = tf.reduce_sum(generated_boundary * true_boundary)
-  loss_dice = -(2. * intersection + 1.) / (tf.reduce_sum(true_boundary) + tf.reduce_sum(generated_boundary) + 1.)
-  boundary_shape = nn.int_shape(generated_boundary) 
-  loss_grad = loss.loss_gradient_difference(true_boundary, generated_boundary)/(np.prod(np.array(boundary_shape[1:-1])))
+  #intersection = tf.reduce_sum(generated_boundary * true_boundary)
+  #loss_dice = -(2. * intersection + 1.) / (tf.reduce_sum(true_boundary) + tf.reduce_sum(generated_boundary) + 1.)
+  #boundary_shape = nn.int_shape(generated_boundary) 
+  #loss_grad = loss.loss_gradient_difference(true_boundary, generated_boundary)/(np.prod(np.array(boundary_shape[1:-1])))
   #loss_total = 0.5*loss_grad + loss_dice
-  loss_total = loss_dice
+  #loss_total = loss_dice
+  loss_total = tf.nn.l2_loss(true_boundary - generated_boundary)
 
   # image summary
   image_summary('boundary_predicted', generated_boundary)
+  image_summary('boundary_diff', tf.abs(true_boundary - generated_boundary))
 
   # loss summary
-  tf.summary.scalar('loss_dice', loss_dice)
-  tf.summary.scalar('loss_grad', loss_grad)
+  #tf.summary.scalar('loss_dice', loss_dice)
+  #tf.summary.scalar('loss_grad', loss_grad)
   tf.summary.scalar('loss_total', loss_total)
   return loss_total
 

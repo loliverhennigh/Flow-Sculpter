@@ -17,6 +17,7 @@ import sys
 sys.path.append('../')
 
 import model.flow_net as flow_net 
+from model.pressure import force_2d
 from inputs.flow_data import Sailfish_data
 from utils.experiment_manager import make_checkpoint_path
 
@@ -28,9 +29,7 @@ FLOW_DIR = make_checkpoint_path(FLAGS.base_dir_flow, FLAGS, network="flow")
 
 
 shape = [128,128]
-#shape = [128, 512]
 dims = 2
-#obj_size = 128
 obj_size = 64
 
 def tryint(s):
@@ -48,10 +47,12 @@ def evaluate():
   with tf.Session() as sess:
     # Make image placeholder
     boundary, true_flow = flow_net.inputs_flow(batch_size=1, shape=shape, dims=FLAGS.dims)
+    boundary_trainable = tf.Variable(np.zeros([1] + shape + [1]).astype(dtype=np.float32), name="boundary_trainable")
+    boundary_trainable_init = tf.group(boundary_trainable.assign(boundary))
 
     # Build a Graph that computes the logits predictions from the
     # inference model.
-    predicted_flow = flow_net.inference_flow(boundary, 1.0)
+    predicted_flow = flow_net.inference_flow(boundary_trainable, 1.0)
 
     # Restore for eval
     init = tf.global_variables_initializer()
@@ -62,7 +63,22 @@ def evaluate():
     ckpt = tf.train.get_checkpoint_state(FLOW_DIR)
     saver.restore(sess, ckpt.model_checkpoint_path)
     global_step = 1
-    
+
+    # quantities to optimize
+    force = force_2d(boundary_trainable, predicted_flow[:,:,:,2:3])
+    drag_x = tf.reduce_sum(force[:,:,:,0], axis=[0,1,2])
+    drag_y = tf.reduce_sum(force[:,:,:,1], axis=[0,1,2])
+    lift_drag_ratio = drag_x/drag_y
+    #lift_drag_ratio = -drag_y
+    #lift_drag_ratio = -tf.reduce_max(predicted_flow[:,:,:,0])
+
+    # get gradient
+    all_variables = tf.all_variables()
+    boundary_trainable_variable = [variable for i, variable in enumerate(all_variables) if "boundary_train" in variable.name[:variable.name.index(':')]][0]
+    grads = tf.gradients(lift_drag_ratio, boundary_trainable_variable)[0]
+    #grads = tf.minimum(grads * ((-boundary_trainable)+1.0), 0.0) + tf.maximum(grads * boundary_trainable, 0.0)
+    #grads = grads + boundary_trainable/10.0
+ 
     graph_def = tf.get_default_graph().as_graph_def(add_shapes=True)
 
     # make vtm dataset
@@ -73,16 +89,17 @@ def evaluate():
     for i in xrange(10):
       # read in boundary
       batch_boundary, batch_flow = dataset.minibatch(train=True, batch_size=1, signed_distance_function=FLAGS.sdf)
-      #boundary_car = make_car_boundary(shape=shape, car_shape=(int(shape[1]/2.3), int(shape[0]/1.6)))
 
       # calc flow 
-      p_flow = sess.run(predicted_flow,feed_dict={boundary: batch_boundary})
-      dim=0
-      sflow_plot = np.concatenate([p_flow[...,dim], batch_flow[...,dim], np.abs(p_flow - batch_flow)[...,dim], batch_boundary[...,0]/5.0], axis=2)
-      sflow_plot = sflow_plot[0,:,:]
+      sess.run(boundary_trainable_init,feed_dict={boundary: batch_boundary})
+      gradient_surface, pressure_field = sess.run([grads, predicted_flow])
+      gradient_surface = gradient_surface[0,:,:,0]/4.0
+      pressure_field = pressure_field[0,:,:,2]
+      img = np.concatenate([gradient_surface, pressure_field], axis=0)
+      #img = gradient_surface[0,:,:,0]
 
       # display it
-      plt.imshow(sflow_plot)
+      plt.imshow(img)
       plt.colorbar()
       plt.show()
 
