@@ -94,7 +94,7 @@ def evaluate():
     t_max_vel_y_data = []
  
     #for run in filenames:
-    for i in tqdm(xrange(3)):
+    for i in tqdm(xrange(25)):
       # read in boundary
       batch_boundary, batch_flow = dataset.minibatch(train=False, batch_size=batch_size, signed_distance_function=FLAGS.sdf)
 

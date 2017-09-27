@@ -32,8 +32,9 @@ BOUNDARY_DIR = make_checkpoint_path(FLAGS.base_dir_boundary, FLAGS, network="bou
 shape = FLAGS.shape.split('x')
 shape = map(int, shape)
 batch_size=1
-num_runs = 10
+num_runs = 5
 std = 0.05
+temps=[.08, .02]
 
 # 2d or not
 def calc_mean_and_std(values):
@@ -151,26 +152,32 @@ def evaluate():
         plot_error_gradient_decent[sim, i] = np.sum(l)
 
     # simulated annealing
-    plot_error_simulated_annealing = np.zeros((num_runs, run_time))
-    for sim in tqdm(xrange(num_runs)):
-      sess.run(params_op_init, feed_dict={params_op_set: start_params_np})
-      temp = 0.2
-      param_old = start_params_np 
-      param_new = distort_param(start_params_np, std)
-      fittness_old = sess.run(loss)
-      fittness_new = 0.0
-      for i in tqdm(xrange(run_time)):
-        sess.run(params_op_init, feed_dict={params_op_set: param_new})
-        fittness_new = sess.run(loss)
-        param_old, fittness_old, temp = simulated_annealing_step(param_old, fittness_old, param_new, fittness_new, temp=temp)
-        param_new = distort_param(param_old, std)
-        plot_error_simulated_annealing[sim, i] = fittness_old
+    plot_error_simulated_annealing = np.zeros((len(temps), num_runs, run_time))
+    for t in tqdm(xrange(len(temps))):
+      for sim in tqdm(xrange(num_runs)):
+        sess.run(params_op_init, feed_dict={params_op_set: start_params_np})
+        temp = temps[t]
+        param_old = start_params_np 
+        param_new = distort_param(start_params_np, std)
+        fittness_old = sess.run(loss)
+        fittness_new = 0.0
+        for i in tqdm(xrange(run_time)):
+          sess.run(params_op_init, feed_dict={params_op_set: param_new})
+          fittness_new = sess.run(loss)
+          param_old, fittness_old, temp = simulated_annealing_step(param_old, fittness_old, param_new, fittness_new, temp=temp)
+          param_new = distort_param(param_old, std)
+          plot_error_simulated_annealing[t, sim, i] = fittness_old
 
     x = np.arange(run_time)
+
     plot_error_gradient_decent_mean, plot_error_gradient_decent_std = calc_mean_and_std(plot_error_gradient_decent)
-    plot_error_simulated_annealing_mean, plot_error_simulated_annealing_std = calc_mean_and_std(plot_error_simulated_annealing)
-    plt.errorbar(x, plot_error_gradient_decent_mean, yerr=plot_error_gradient_decent_std, c='y', lw=1.0, label="Gradient Descent")
-    plt.errorbar(x, plot_error_simulated_annealing_mean, yerr=plot_error_simulated_annealing_std, c='g', lw=1.0, label="Simulated Annealing")
+    plt.errorbar(x, plot_error_gradient_decent_mean, yerr=plot_error_gradient_decent_std, lw=1.0, label="Gradient Descent")
+
+    for t in tqdm(xrange(len(temps))):
+      plot_error_simulated_annealing_mean, plot_error_simulated_annealing_std = calc_mean_and_std(plot_error_simulated_annealing[t])
+      #plt.errorbar(x, plot_error_simulated_annealing_mean, yerr=plot_error_simulated_annealing_std, c='g', lw=1.0, label="Simulated Annealing temp = " + str(temps[t]))
+      plt.errorbar(x, plot_error_simulated_annealing_mean, yerr=plot_error_simulated_annealing_std, lw=1.0, label="Simulated Annealing temp = " + str(temps[t]))
+
     plt.xlabel('Step', fontsize="x-large")
     plt.ylabel('Loss', fontsize="x-large")
     plt.title("Optimization")

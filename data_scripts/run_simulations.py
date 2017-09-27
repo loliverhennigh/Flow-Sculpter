@@ -8,10 +8,10 @@ from lxml import etree
 import glob
 import subprocess
 
-#dim = 2
-#size = 64
-dim = 3
-size = 32
+dim = 2
+size = 256
+#dim = 3
+#size = 96
 
 def initialize_script(xml_file):
   tree = etree.parse(xml_file)
@@ -51,7 +51,7 @@ def should_run(root):
   else:
     return True
   
-q = que.Que([1])
+q = que.Que([0,1])
 q.enque_file("../data/experiment_runs_master.xml", should_run, initialize_script, finish_script)
 q.start_que_runner()
 

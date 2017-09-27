@@ -11,6 +11,7 @@ import re
 from glob import glob as glb
 from tqdm import *
 import os
+from subprocess import call
 
 import numpy as np
 import tensorflow as tf
@@ -20,6 +21,7 @@ sys.path.append('../')
 
 import model.flow_net as flow_net 
 from model.pressure import calc_force
+from utils.boundary_utils import wing_boundary_2d
 from utils.experiment_manager import make_checkpoint_path
 
 import matplotlib.pyplot as plt
@@ -33,6 +35,58 @@ BOUNDARY_DIR = make_checkpoint_path(FLAGS.base_dir_boundary, FLAGS, network="bou
 shape = FLAGS.shape.split('x')
 shape = map(int, shape)
 batch_size=1
+fig_pos = 4
+
+def run_flow_solver(params, boundary, flow, sess, drag_lift_ratio_op):
+  drag_lift_ratio = np.zeros(params.shape[0])
+  for i in xrange(params.shape[0]):
+    wing_filename = './figs/param_' + str(i)
+    wing_image = wing_boundary_2d(params[i,0], params[i,1], params[i,2],
+                                  params[i,3:int((FLAGS.nr_boundary_params-4)/2)],
+                                  params[i,int((FLAGS.nr_boundary_params-4)/2):-1],
+                                  params[i,-1], FLAGS.dims*[FLAGS.obj_size])
+    wing_image = np.array(wing_image[:,:,0], dtype=np.int)
+    print(wing_image.shape)
+    wing_image = np.swapaxes(wing_image, 0, -1)
+    #wing_image = np.rot90(wing_image, 1)
+    np.save(wing_filename,wing_image)
+
+    run_cmd = ("python steady_state_flow_" + str(FLAGS.dims) + "d.py "
+             + "--vox_filename=../Flow_Sculpter/test/" + wing_filename + ".npy "
+             + "--vox_size=" + str(FLAGS.obj_size) + " "
+             + "--output=../Flow_Sculpter/test/figs/flow_simulation_store/param_"  + str(i) + "/step")
+
+    call(("rm ./figs/flow_simulation_store/param_" + str(i) + "/*").split(' '), cwd="../../sailfish_flows/")
+    call(run_cmd.split(' '), cwd="../../sailfish_flows/")
+
+    wing_boundary = np.load("./figs/flow_simulation_store/param_"  + str(i) + "/step_boundary.npy")
+    wing_boundary = np.swapaxes(wing_boundary, 0, -1)
+    wing_boundary = np.expand_dims(wing_boundary, axis=-1)
+    wing_boundary = np.expand_dims(wing_boundary, axis=0)
+    wing_boundary = wing_boundary[:,int(FLAGS.obj_size/2+1):int(5*FLAGS.obj_size/2+1),1:-1]
+    print(wing_boundary.shape)
+    wing_boundary = wing_boundary.astype(np.float32)
+
+    wing_flow = np.load("./figs/flow_simulation_store/param_"  + str(i) + "/step_steady_flow.npz")
+    velocity_array = wing_flow.f.v
+    pressure_array = np.expand_dims(wing_flow.f.rho, axis=0)
+    velocity_array[np.where(np.isnan(velocity_array))] = 0.0
+    pressure_array[np.where(np.isnan(pressure_array))] = 1.0
+    pressure_array = pressure_array - 1.0
+    wing_flow = np.concatenate([velocity_array, pressure_array], axis=0)
+    wing_flow = np.swapaxes(wing_flow, 0, -1)
+    wing_flow = np.expand_dims(wing_flow, axis=0)
+    print(wing_flow.shape)
+    wing_flow = wing_flow[:,int(FLAGS.obj_size/2):int(5*FLAGS.obj_size/2)]
+    np.nan_to_num(wing_flow, False)
+    wing_flow = wing_flow.astype(np.float32)
+
+    #plt.imshow(wing_flow[0,:,:,2])
+    #plt.show()
+ 
+    drag_lift_ratio[i] = sess.run(drag_lift_ratio_op, feed_dict={boundary: wing_boundary, flow: wing_flow}) 
+    
+  return drag_lift_ratio 
 
 def evaluate():
   """Run Eval once.
@@ -44,9 +98,9 @@ def evaluate():
     summary_op: Summary op.
   """
 
-  num_angles = 32
-  max_angle =  0.2
-  min_angle = -0.1
+  num_angles = 10
+  max_angle =  0.05
+  min_angle = -0.05
   set_params          = np.array(num_angles*[FLAGS.nr_boundary_params*[0.0]])
   set_params[:,:]     = 0.0
   set_params_pos      = np.array(num_angles*[FLAGS.nr_boundary_params*[0.0]])
@@ -69,40 +123,25 @@ def evaluate():
     # Make image placeholder
     params_op, params_op_init, params_op_set, squeeze_loss = flow_net.inputs_boundary_learn(batch_size, set_params=set_params, set_params_pos=set_params_pos, noise_std=0.001)
 
+    # Make placeholder for flow computed by lattice boltzmann solver
+    solver_boundary, solver_flow = flow_net.inputs_flow(1, shape, FLAGS.dims)
+
     # Make boundary
     boundary = flow_net.inference_boundary(batch_size*set_params.shape[0], FLAGS.dims*[FLAGS.obj_size], params_op, full_shape=shape)
-    sharp_boundary = tf.round(boundary)
 
     # predict steady flow on boundary
     predicted_flow = flow_net.inference_flow(boundary, 1.0)
-    predicted_sharp_flow = flow_net.inference_flow(sharp_boundary, 1.0)
 
     # quantities to optimize
     force = calc_force(boundary, predicted_flow[:,:,:,2:3])
-    sharp_force = calc_force(sharp_boundary, predicted_sharp_flow[:,:,:,2:3])
+    solver_force = calc_force(solver_boundary, solver_flow[:,:,:,2:3])
     drag_x = tf.reduce_sum(force[:,:,:,0], axis=[1,2])/batch_size
     drag_y = tf.reduce_sum(force[:,:,:,1], axis=[1,2])/batch_size
-    sharp_drag_x = tf.reduce_sum(sharp_force[:,:,:,0], axis=[1,2])/batch_size
-    sharp_drag_y = tf.reduce_sum(sharp_force[:,:,:,1], axis=[1,2])/batch_size
-    """
-    vel_x = (tf.reduce_sum(predicted_flow[:,:,:,0:1]*(-.5*(boundary-1.0)), axis=[0,1,2])
-            /tf.reduce_sum(-.5*(boundary-1.0), axis=[0,1,2,3]))
-    vel_y = (tf.reduce_sum(predicted_flow[:,:,:,1:2]*(-.5*boundary-1.0), axis=[0,1,2])
-            /tf.reduce_sum(-.5*boundary-1.0, axis=[0,1,2,3]))
-    sharp_vel_x = (tf.reduce_sum(predicted_sharp_flow[:,:,:,0:1]*(-.5*(boundary-1.0)), axis=[1,2,3])
-                  /tf.reduce_sum(-.5*(boundary-1.0), axis=[1,2,3]))
-    sharp_vel_y = (tf.reduce_sum(predicted_sharp_flow[:,:,:,1:2]*(-.5*(boundary-1.0)), axis=[1,2,3])
-                  /tf.reduce_sum(-.5*(boundary-1.0), axis=[1,2,3]))
-    vel_norm = (vel_x*vel_x) + (vel_y*vel_y)
-    sharp_vel_norm = (sharp_vel_x*sharp_vel_x) + (sharp_vel_y*sharp_vel_y)
-    lift_coef_x = -drag_x/(0.5*vel_norm)
-    lift_coef_y =  drag_y/(0.5*vel_norm)
-    sharp_lift_coef_x = -sharp_drag_x/(0.5*sharp_vel_norm)
-    sharp_lift_coef_y =  sharp_drag_y/(0.5*sharp_vel_norm)
-    """
+    solver_drag_x = tf.reduce_sum(solver_force[:,:,:,0], axis=[1,2])/batch_size
+    solver_drag_y = tf.reduce_sum(solver_force[:,:,:,1], axis=[1,2])/batch_size
     
-    drag_lift_ratio = (drag_x/drag_y)
-    sharp_drag_lift_ratio = (sharp_drag_x/sharp_drag_y)
+    drag_lift_ratio        = (drag_x/drag_y)
+    solver_drag_lift_ratio = (solver_drag_x/solver_drag_y)
 
     # loss
     loss = -tf.reduce_sum(drag_lift_ratio)
@@ -147,32 +186,23 @@ def evaluate():
     # make store dir
     os.system("mkdir ./figs/boundary_learn_image_store")
     for i in tqdm(xrange(run_time)):
-      l, _, d_y, d_x, p_o = sess.run([loss, train_step, sharp_drag_y, sharp_drag_x, params_op], feed_dict={})
-      print(l)
-      if i > 0:
-        plot_error[i] = np.sum(l)
-        #plot_error[i] = np.sum(l[2])
-        plot_drag_x[i] = np.sum(d_x[2])
-        plot_drag_y[i] = np.sum(d_y[2])
-      if (i+1) % 2 == 0:
+      l, _, d_y, d_x = sess.run([loss, train_step, drag_y, drag_x], feed_dict={})
+      plot_error[i] = np.sum(l)
+      plot_drag_x[i] = np.sum(d_x[fig_pos])
+      plot_drag_y[i] = np.sum(d_y[fig_pos])
+      if ((i+1) % 100 == 0) or i == run_time-1:
         # make video with opencv
-        velocity_norm_g, boundary_g = sess.run([predicted_sharp_flow, sharp_boundary],feed_dict={})
-        d_y, d_x, l_c, s_l_c, p_o = sess.run([sharp_drag_y, sharp_drag_x, drag_lift_ratio, sharp_drag_lift_ratio, params_op], feed_dict={})
-        #velocity_norm_g, boundary_g = sess.run([force, boundary],feed_dict={})
-        #sflow_plot = np.concatenate([ 5.0*velocity_norm_g[0], boundary_g[0]], axis=1)
-        #sflow_plot = np.uint8(grey_to_short_rainbow(sflow_plot))
-        #sflow_plot = cv2.applyColorMap(sflow_plot
-        #video.write(sflow_plot)
+        p_flow, p_boundary, d_l_ratio = sess.run([predicted_flow, boundary, drag_lift_ratio],feed_dict={})
     
         # save plot image to make video
-        velocity_norm_g = velocity_norm_g[2,:,:,2]
-        boundary_g = boundary_g[2,:,:,0]
+        p_pressure = p_flow[fig_pos,:,:,2]
+        p_boundary = p_boundary[fig_pos,:,:,0]
         fig = plt.figure()
         fig.set_size_inches(15.5, 7.5)
         a = fig.add_subplot(1,5,1)
-        plt.imshow(velocity_norm_g)
+        plt.imshow(p_pressure)
         a = fig.add_subplot(1,5,2)
-        plt.imshow(boundary_g)
+        plt.imshow(p_boundary)
         a = fig.add_subplot(1,5,3)
         plt.plot(plot_error, label="lift/drag")
         plt.xlabel("step")
@@ -183,22 +213,28 @@ def evaluate():
         plt.xlabel("step")
         plt.legend()
         a = fig.add_subplot(1,5,5)
-        plt.plot(set_params[:,0], l_c, 'bo', label="lift/drag")
-        plt.plot(set_params[:,0], s_l_c, 'ro', label="lift/drag")
+        plt.plot(-set_params[:,0], d_l_ratio, 'bo', label="lift/drag Network")
+        if i == run_time-1:
+          solver_d_l_ratio = run_flow_solver(sess.run(params_op), solver_boundary, solver_flow, sess, solver_drag_lift_ratio)
+          plt.plot(-set_params[:,0], solver_d_l_ratio, 'ro', label="lift/drag Solver")
         plt.xlabel("angle of attack")
-        plt.xlim(min(set_params[:,0])-0.03, max(set_params[:,0])+0.03)
-        #plt.legend()
+        plt.xlim(min(-set_params[:,0])-0.03, max(-set_params[:,0])+0.03)
+        plt.legend()
         plt.suptitle("Using Gradient Decent")
         plt.savefig("./figs/boundary_learn_image_store/plot_" + str(i).zfill(5) + ".png")
         if run_time - i <= 100:
           plt.savefig("./figs/" + FLAGS.boundary_learn_loss + "_plot.png")
-          #plt.show()
+        if i == run_time - 1:
+          plt.show()
         plt.close(fig)
 
+
     # generate video of plots
-    os.system("rm ./figs/" + FLAGS.boundary_learn_loss + "_plot_video.mp4")
-    os.system("cat ./figs/boundary_learn_image_store/*.png | ffmpeg -f image2pipe -r 30 -vcodec png -i - -vcodec libx264 ./figs/" + FLAGS.boundary_learn_loss + "_plot_video.mp4")
-    os.system("rm -r ./figs/boundary_learn_image_store")
+    #os.system("rm ./figs/" + FLAGS.boundary_learn_loss + "_plot_video.mp4")
+    #os.system("cat ./figs/boundary_learn_image_store/*.png | ffmpeg -f image2pipe -r 30 -vcodec png -i - -vcodec libx264 ./figs/" + FLAGS.boundary_learn_loss + "_plot_video.mp4")
+    #os.system("rm -r ./figs/boundary_learn_image_store")
+
+     
 
 def main(argv=None):  # pylint: disable=unused-argument
   evaluate()

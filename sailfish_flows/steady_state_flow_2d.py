@@ -85,10 +85,16 @@ class BoxSubdomain(Subdomain2D):
     sim.vx[:] = 4.0 * self.max_v / H**2 * hhy * (H - hhy)
 
   def load_vox_file(self, vox_filename):
-    with open(vox_filename, 'rb') as f:
-      model = binvox_rw.read_as_3d_array(f)
-      model = model.data[:,:,model.dims[2]/2]
-    model = np.array(model, dtype=np.int)
+    # if the file is .binvox slice the middle of it
+    if vox_filename[-3:] == "vox":
+      with open(vox_filename, 'rb') as f:
+        model = binvox_rw.read_as_3d_array(f)
+        model = model.data[:,:,model.dims[2]/2]
+      model = np.array(model, dtype=np.int)
+    # if the file is .npy assume that it is 2D 0s and 1s
+    elif vox_filename[-3:] == "npy":
+      model = np.load(vox_filename)
+      print(model.shape)
     model = np.pad(model, ((1,1),(1, 1)), 'constant', constant_values=0)
     floodfill(model, 0, 0)
     model = np.greater(model, -0.1)
