@@ -35,12 +35,8 @@ class Sailfish_data:
     root = tree.getroot()
     run_roots = root.findall("run")
 
-    print("loading dataset")
-    #stopper = 0
+    print("parsing dataset")
     for run_root in tqdm(run_roots):
-      #stopper += 1
-      #if stopper > 6000:
-      #  break
 
       # check if right size
       xml_size = int(run_root.find("size").text)

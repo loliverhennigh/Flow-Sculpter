@@ -178,7 +178,8 @@ def loss_flow(true_flow, predicted_flow):
   loss_total = 0 
   loss_mse  = tf.nn.l2_loss(true_flow - predicted_flow)/(FLAGS.batch_size*FLAGS.nr_gpus)
   loss_grad = loss.loss_gradient_difference(true_flow, predicted_flow)/(FLAGS.batch_size*FLAGS.nr_gpus)
-  loss_total = loss_mse + loss_grad
+  #loss_total = loss_mse + loss_grad
+  loss_total = loss_mse
 
   # image summary
   difference_i = tf.abs(true_flow - predicted_flow)

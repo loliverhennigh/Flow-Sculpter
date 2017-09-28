@@ -9,7 +9,7 @@ import glob
 import subprocess
 
 dim = 2
-size = 256
+size = 128
 #dim = 3
 #size = 96
 
@@ -30,7 +30,7 @@ def finish_script(xml_file):
   base_path = root.find("save_path").text
   flow_data.find("availible").text = "True"
   etree.SubElement(flow_data, "geometry_file").text = base_path + "steady_state_flow_boundary.npy"
-  etree.SubElement(flow_data, "flow_file").text = base_path + "steady_state_flow_steady_flow.npz"
+  etree.SubElement(flow_data, "flow_file").text = base_path + "steady_state_flow_steady_flow.npy"
   tree = etree.ElementTree(root)
   tree.write(xml_file, pretty_print=True)
 

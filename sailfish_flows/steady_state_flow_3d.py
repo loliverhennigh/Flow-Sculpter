@@ -18,14 +18,13 @@ import sys
 sys.path.append('../sailfish/')
 
 import numpy as np
+import time
 
-from sailfish.geo import EqualSubdomainsGeometry3D
 from sailfish.subdomain import Subdomain3D
+from sailfish.node_type import NTFullBBWall,NTRegularizedDensity, NTRegularizedVelocity
 from sailfish.controller import LBSimulationController
-from sailfish.lb_base import LBForcedSim
 from sailfish.lb_base import ForceObject
 from sailfish.lb_single import LBFluidSim
-from sailfish.node_type import NTFullBBWall, NTHalfBBWall
 import binvox_rw
 import matplotlib.pyplot as plt
 import glob
@@ -46,13 +45,42 @@ def floodfill(image, x, y, z):
                     newedge.append((s, t, k))
         edge = newedge
 
-def clean_files(filename):
+def clean_files(filename, size):
+
+  # list all saved files
+  print("waiting for files saving to chetch up")
+  time.sleep(4.0)
   files = glob.glob(filename + ".0.*")
   files.sort()
-  rm_files = files[:-1]
+  steady_flow_file = files[-1]
+
+  # convert the last flow to the proper save formate
+  steady_flow_array = np.load(steady_flow_file)
+  velocity_array = steady_flow_array.f.v
+  pressure_array = np.expand_dims(steady_flow_array.f.rho, axis=0)
+  velocity_array[np.where(np.isnan(velocity_array))] = 0.0
+  pressure_array[np.where(np.isnan(pressure_array))] = 1.0
+  pressure_array = pressure_array - 1.0
+  steady_flow_array = np.concatenate([velocity_array, pressure_array], axis=0)
+  steady_flow_array = np.swapaxes(steady_flow_array, 0, 1)
+  steady_flow_array = np.swapaxes(steady_flow_array, 1, 2)
+  steady_flow_array = np.swapaxes(steady_flow_array, 2, 3)
+  steady_flow_array = steady_flow_array[size/4:7*size/4]
+  np.nan_to_num(steady_flow_array, False)
+  steady_flow_array = steady_flow_array.astype(np.float32)
+  np.save(filename + "_steady_flow", steady_flow_array) 
+
+  # convert boundary
+  geometry_array = np.load(filename + "_boundary.npy")
+  geometry_array = geometry_array.astype(np.uint8)
+  geometry_array = geometry_array[size/4+1:7*size/4+1,1:-1,1:-1]
+  geometry_array = np.expand_dims(geometry_array, axis=-1)
+  np.save(filename + "_boundary", geometry_array)
+
+  # clean files
+  rm_files = files
   for f in rm_files:
     os.remove(f)
-  os.rename(files[-1], filename + "_steady_flow.npz")
 
 class DuctSubdomain(Subdomain3D):
   max_v = 0.08
@@ -62,6 +90,15 @@ class DuctSubdomain(Subdomain3D):
   def boundary_conditions(self, hx, hy, hz):
     wall_map = (hx == 0) | (hx == self.gx - 1) | (hy == 0) | (hy == self.gy - 1)
     self.set_node(wall_map, self.wall_bc)
+
+    vel = self.analytical(hx, hy)[0,1:-1,1:-1]
+    vel = np.core.records.fromarrays([np.zeros_like(vel), np.zeros_like(vel), vel])
+    vel = vel.flatten()
+    self.set_node((hz == 0) & np.logical_not(wall_map),
+                  NTRegularizedVelocity(vel))
+ 
+    self.set_node((hz == self.gz - 1) & np.logical_not(wall_map),
+                  NTRegularizedDensity(1))
 
     L = self.config.vox_size
     model = self.load_vox_file(self.config.vox_filename)
@@ -81,7 +118,7 @@ class DuctSubdomain(Subdomain3D):
   def accel(cls, config):
     # The maximum velocity is attained at the center of the channel,
     # i.e. x = y = 0.
-    ii = np.arange(1, 100, 2)
+    ii = np.arange(1, 20, 2)
     ssum = np.sum((-1)**((ii - 1)/2.0) * (1 - np.cosh(0) / np.cosh(ii * np.pi / 2)) *
                   np.cos(0) / ii**3)
     a = cls.width(config) / 2.0
@@ -116,7 +153,7 @@ class DuctSubdomain(Subdomain3D):
     model = np.greater(model, -0.1)
     return model
 
-class DuctSim(LBFluidSim, LBForcedSim):
+class DuctSim(LBFluidSim):
   subdomain = DuctSubdomain
 
   @classmethod
@@ -134,7 +171,8 @@ class DuctSim(LBFluidSim, LBForcedSim):
       'max_iters': 600000,
       'output_format': 'npy',
       'output': 'test_flow',
-      'every': 5000,
+      'every': 2500,
+      'grid': 'D3Q15'
       })
 
 
@@ -150,15 +188,12 @@ class DuctSim(LBFluidSim, LBForcedSim):
   def __init__(self, config):
     super(DuctSim, self).__init__(config)
     # The flow is driven by a body force.
-    self.add_body_force((0.0, 0.0, DuctSubdomain.accel(config)))
 
     L = self.config.vox_size
     margin = 5
     self.add_force_oject(ForceObject(
         (3,  3,  3),
         (3*L/2 - 3, 3*L/2 - 3, 2*L + 3)))
-        #(  L/4 - margin,   L/4 - margin,   L/4 - margin),
-        #(5*L/4 + margin, 5*L/4 + margin, 5*L/4 + margin)))
 
     a = DuctSubdomain.width(config) / 2.0
     self.config.logger.info('Re = %.2f, width = %d' % (a * DuctSubdomain.max_v / config.visc, a))
@@ -194,15 +229,15 @@ class DuctSim(LBFluidSim, LBForcedSim):
 
           # Terminate simulation when steady state has
           # been reached.
-          diff = np.abs(f - self.prev_f) / (np.abs(f) + 1.0e-2)
+          diff = np.abs(f - self.prev_f) / (np.abs(f) + 1.0e-1)
           print("diff")
           print(diff)
 
-          if (np.all(diff < 1e-4) or (self.config.max_iters < self.iteration + 501)) and (not ( 10000 > self.iteration)):
-            clean_files(self.config.output)
+          if (np.all(diff < 1e-4) or (self.config.max_iters < self.iteration + 501)) and (not ( 2000 > self.iteration)):
+            clean_files(self.config.output, self.config.vox_size)
             runner._quit_event.set()
           self.prev_f = f
 
 if __name__ == '__main__':
-  ctrl = LBSimulationController(DuctSim, EqualSubdomainsGeometry3D)
+  ctrl = LBSimulationController(DuctSim)
   ctrl.run()

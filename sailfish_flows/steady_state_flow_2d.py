@@ -18,6 +18,8 @@ import sys
 sys.path.append('../sailfish/')
 
 import numpy as np
+import time
+
 from sailfish.subdomain import Subdomain2D
 from sailfish.node_type import NTHalfBBWall, NTEquilibriumVelocity, NTEquilibriumDensity, DynamicValue, NTFullBBWall
 from sailfish.controller import LBSimulationController
@@ -43,13 +45,40 @@ def floodfill(image, x, y):
                     newedge.append((s, t))
         edge = newedge
 
-def clean_files(filename):
+def clean_files(filename, size):
+  # list all saved files
+  print("waiting for files saving to chetch up")
+  time.sleep(4.0)
   files = glob.glob(filename + ".0.*")
   files.sort()
-  rm_files = files[:-1]
+  steady_flow_file = files[-1]
+
+  # convert the last flow to the proper save formate
+  steady_flow_array = np.load(steady_flow_file)
+  velocity_array = steady_flow_array.f.v
+  pressure_array = np.expand_dims(steady_flow_array.f.rho, axis=0)
+  velocity_array[np.where(np.isnan(velocity_array))] = 0.0
+  pressure_array[np.where(np.isnan(pressure_array))] = 1.0
+  pressure_array = pressure_array - 1.0
+  steady_flow_array = np.concatenate([velocity_array, pressure_array], axis=0)
+  steady_flow_array = np.swapaxes(steady_flow_array, 0, -1)
+  steady_flow_array = steady_flow_array[size/2:5*size/2]
+  np.nan_to_num(steady_flow_array, False)
+  steady_flow_array = steady_flow_array.astype(np.float32)
+  np.save(filename + "_steady_flow", steady_flow_array) 
+
+  # convert boundary
+  geometry_array = np.load(filename + "_boundary.npy")
+  geometry_array = geometry_array.astype(np.uint8)
+  geometry_array = np.swapaxes(geometry_array, 0, -1)
+  geometry_array = geometry_array[size/2+1:5*size/2+1,1:-1]
+  geometry_array = np.expand_dims(geometry_array, axis=-1)
+  np.save(filename + "_boundary", geometry_array)
+
+  # clean files
+  rm_files = files
   for f in rm_files:
     os.remove(f)
-  os.rename(files[-1], filename + "_steady_flow.npz")
 
 class BoxSubdomain(Subdomain2D):
   #bc = NTHalfBBWall
@@ -63,6 +92,8 @@ class BoxSubdomain(Subdomain2D):
 
     H = self.config.lat_ny
     hhy = S.gy - self.bc.location
+    print("bc location")
+    print(self.bc.location)
     self.set_node((hx == 0) & np.logical_not(walls),
                   NTEquilibriumVelocity(
                   DynamicValue(4.0 * self.max_v / H**2 * hhy * (H - hhy), 0.0)))
@@ -118,14 +149,14 @@ class BoxSimulation(LBFluidSim):
       'max_iters': 300000,
       'output_format': 'npy',
       'output': 'test_flow',
-      'every': 5000,
+      'every': 10000,
       })
 
   @classmethod
   def modify_config(cls, config):
     config.lat_nx = config.vox_size*8
     config.lat_ny = config.vox_size*2
-    config.visc   = 0.05 * (config.lat_ny/100.0)
+    config.visc   = 0.10 * (config.lat_ny/100.0)
     print(config.visc)
 
   def __init__(self, *args, **kwargs):
@@ -177,7 +208,7 @@ class BoxSimulation(LBFluidSim):
 
           print(diff)
           if np.all(diff < 1e-4) or (self.config.max_iters < self.iteration + 501):
-            clean_files(self.config.output)
+            clean_files(self.config.output, self.config.vox_size)
             runner._quit_event.set()
           self.prev_f = f
 

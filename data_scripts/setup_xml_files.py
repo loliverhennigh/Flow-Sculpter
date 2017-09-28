@@ -17,7 +17,7 @@ base_path = os.path.abspath("../data/") + "/"
 num_flips_per_type = 4
 num_samples_per_type = 20
 #sizes = [16, 32, 64, 96, 128, 256]
-sizes = [16, 32, 64, 96, 128, 256]
+sizes = [32, 64, 96, 128, 256]
 
 # helper for voxelizing
 def voxelize_file(filename, size, flip_x, flip_z):
@@ -77,6 +77,7 @@ if __name__ == "__main__":
   #for rm_file in glob.glob(base_path + "xml_files/*.xml"):
   #  os.remove(rm_file)
 
+  print("generating for each class")
   for ids in tqdm(class_ids):
     # get list of all objects in class
     objs_in_class = glob.glob(base_path + "train/" + ids + "/*.obj")
@@ -84,7 +85,7 @@ if __name__ == "__main__":
     #for rm_file in glob.glob(base_path + "train/" + ids + "/*.binvox"):
     #  os.remove(rm_file)
 
-    for i in xrange(num_samples_per_type):
+    for i in tqdm(xrange(num_samples_per_type)):
       # get obj id
       obj_id = objs_in_class[i].split('/')[-1][6:-4]
   
