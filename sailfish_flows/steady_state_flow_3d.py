@@ -70,12 +70,14 @@ def clean_files(filename, size):
   steady_flow_array = steady_flow_array.astype(np.float32)
   np.save(filename + "_steady_flow", steady_flow_array) 
 
+  """
   # convert boundary
   geometry_array = np.load(filename + "_boundary.npy")
   geometry_array = geometry_array.astype(np.uint8)
   geometry_array = geometry_array[size/4+1:7*size/4+1,1:-1,1:-1]
   geometry_array = np.expand_dims(geometry_array, axis=-1)
   np.save(filename + "_boundary", geometry_array)
+  """
 
   # clean files
   rm_files = files
@@ -103,8 +105,13 @@ class DuctSubdomain(Subdomain3D):
     L = self.config.vox_size
     model = self.load_vox_file(self.config.vox_filename)
     model = np.pad(model, ((L/2,6*L/4),(L/4,L/4),(L/4, L/4)), 'constant', constant_values=False)
-    np.save(self.config.output + "_boundary", model)
     self.set_node(model, self.wall_bc)
+
+    # convert boundary
+    geometry_array = model.astype(np.uint8)
+    geometry_array = geometry_array[L/4+1:7*L/4+1,1:-1,1:-1]
+    geometry_array = np.expand_dims(geometry_array, axis=-1)
+    np.save(self.config.output + "_boundary", geometry_array)
 
   def initial_conditions(self, sim, hx, hy, hz):
     sim.rho[:] = 1.0

@@ -67,6 +67,7 @@ def clean_files(filename, size):
   steady_flow_array = steady_flow_array.astype(np.float32)
   np.save(filename + "_steady_flow", steady_flow_array) 
 
+  """
   # convert boundary
   geometry_array = np.load(filename + "_boundary.npy")
   geometry_array = geometry_array.astype(np.uint8)
@@ -74,6 +75,7 @@ def clean_files(filename, size):
   geometry_array = geometry_array[size/2+1:5*size/2+1,1:-1]
   geometry_array = np.expand_dims(geometry_array, axis=-1)
   np.save(filename + "_boundary", geometry_array)
+  """
 
   # clean files
   rm_files = files
@@ -92,8 +94,6 @@ class BoxSubdomain(Subdomain2D):
 
     H = self.config.lat_ny
     hhy = S.gy - self.bc.location
-    print("bc location")
-    print(self.bc.location)
     self.set_node((hx == 0) & np.logical_not(walls),
                   NTEquilibriumVelocity(
                   DynamicValue(4.0 * self.max_v / H**2 * hhy * (H - hhy), 0.0)))
@@ -103,9 +103,14 @@ class BoxSubdomain(Subdomain2D):
     L = self.config.vox_size
     model = self.load_vox_file(self.config.vox_filename)
     model = np.pad(model, ((L/2,L/2),(L, 6*L)), 'constant', constant_values=False)
-    np.save(self.config.output + "_boundary", model)
     self.set_node(model, self.bc)
 
+    # save boundary
+    geometry_array = model.astype(np.uint8)
+    geometry_array = np.swapaxes(geometry_array, 0, -1)
+    geometry_array = geometry_array[L/2+1:5*L/2+1,1:-1]
+    geometry_array = np.expand_dims(geometry_array, axis=-1)
+    np.save(self.config.output + "_boundary", geometry_array)
 
   def initial_conditions(self, sim, hx, hy):
     H = self.config.lat_ny

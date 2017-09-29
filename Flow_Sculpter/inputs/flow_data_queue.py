@@ -14,7 +14,7 @@ from Queue import Queue
 import threading
 
 class Sailfish_data:
-  def __init__(self, base_dir, size, dim, train_test_split=.8, max_queue=100, nr_threads=2):
+  def __init__(self, base_dir, size, dim, train_test_split=.8, max_queue=150, nr_threads=2):
 
     # base dir where all the xml files are
     self.base_dir = base_dir
@@ -47,6 +47,7 @@ class Sailfish_data:
   def data_worker(self):
     while True:
       geometry_file, steady_flow_file = self.queue.get()
+      print(geometry_file)
 
       # load geometry file
       geometry_array = np.load(geometry_file)
@@ -119,6 +120,7 @@ class Sailfish_data:
       # get needed filenames
       geometry_file    = root.find("flow_data").find("geometry_file").text
       steady_flow_file = root.find("flow_data").find("flow_file").text
+      print(geometry_file)
 
       # check file for geometry
       if not os.path.isfile(geometry_file):
@@ -171,21 +173,21 @@ class Sailfish_data:
     """
     return batch_boundary, batch_data
 
-#dataset = Sailfish_data("../../data/", size=32, dim=3)
-dataset = Sailfish_data("../../data/", size=64, dim=2)
+dataset = Sailfish_data("../../data/", size=32, dim=3)
+#dataset = Sailfish_data("../../data/", size=64, dim=2)
 dataset.parse_data()
-batch_boundary, batch_data = dataset.minibatch(batch_size=4)
+batch_boundary, batch_data = dataset.minibatch(batch_size=100)
 for i in xrange(100):
-  batch_boundary, batch_data = dataset.minibatch(batch_size=4)
+  batch_boundary, batch_data = dataset.minibatch(batch_size=100)
   print(batch_data.shape)
   print(batch_boundary.shape)
-  plt.imshow(batch_data[0,:,:,2])
+  plt.imshow(batch_data[0,:,:,28,2])
   plt.show()
-  plt.imshow(batch_data[0,:,:,1])
+  plt.imshow(batch_data[0,:,:,28,1])
   plt.show()
-  plt.imshow(batch_data[0,:,:,0])
+  plt.imshow(batch_data[0,:,:,28,0])
   plt.show()
-  plt.imshow(batch_boundary[0,:,:,0])
+  plt.imshow(batch_boundary[0,:,:,28,0])
   plt.show()
   #time.sleep(.4)
 

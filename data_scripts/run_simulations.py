@@ -8,10 +8,10 @@ from lxml import etree
 import glob
 import subprocess
 
-dim = 2
-size = 128
-#dim = 3
-#size = 96
+#dim = 2
+#size = 64
+dim = 3
+size = 32
 
 def initialize_script(xml_file):
   tree = etree.parse(xml_file)
