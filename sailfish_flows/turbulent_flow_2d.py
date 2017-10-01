@@ -52,125 +52,96 @@ def clean_files(filename):
     os.remove(f)
   os.rename(files[-1], filename + "_steady_flow.npz")
 
+def rand_vel(max_vel=.04, min_vel=.02):
+  vel = np.random.uniform(min_vel, max_vel)
+  angle = np.random.uniform(-np.pi/2, np.pi/2)
+  vel_x = vel * np.cos(angle)
+  vel_y = vel * np.sin(angle)
+  return (vel_x, vel_y)
+
 class BoxSubdomain(Subdomain2D):
-  #bc = NTHalfBBWall
   bc = NTFullBBWall
   max_v = 0.1
+  vel = rand_vel()
 
   def boundary_conditions(self, hx, hy):
 
-    H = self.config.lat_ny
-    hhy = S.gy - self.bc.location
-    self.set_node((hx == 0),
-                  NTEquilibriumVelocity((self.max_v, 0.0)))
-    self.set_node((hx == self.gx - 1),
+    # set walls
+    walls = (hx == -2) # set to all false
+    y_wall = np.random.randint(0,2)
+    if y_wall == 0:
+      walls = (hy == 0) | walls
+    # x bottom
+    x_wall = np.random.randint(0,2) 
+    if x_wall == 1:
+      walls = (hx == self.gx - 1) | walls
+    self.set_node(walls, self.bc)
+
+    self.set_node((hx == 0) & np.logical_not(walls),
+                  NTEquilibriumVelocity(self.vel))
+
+    # set open boundarys 
+    self.set_node((hx == self.gx - 1) & np.logical_not(walls),
                   NTEquilibriumDensity(1))
 
-    L = self.config.vox_size
-    model = self.load_vox_file(self.config.vox_filename)
-    model = np.pad(model, ((L,L),(L, 3*L)), 'constant', constant_values=False)
-    np.save(self.config.output + "_boundary", model)
-    self.set_node(model, self.bc)
+    boundary = self.make_boundary(hx)
+    self.set_node(boundary, self.bc)
 
 
   def initial_conditions(self, sim, hx, hy):
     H = self.config.lat_ny
     sim.rho[:] = 1.0
     sim.vy[:] = 0.0
-    sim.vx[:] = self.max_v
+    sim.vx[:] = 0.0
 
-  def load_vox_file(self, vox_filename):
-    with open(vox_filename, 'rb') as f:
-      model = binvox_rw.read_as_3d_array(f)
-      model = model.data[:,:,model.dims[2]/2]
-    model = np.array(model, dtype=np.uint8)
-    model = cv2.resize(model*255, (model.shape[0]*2, model.shape[0]*2))
-    model = model/255.
-    model = np.array(model, dtype=np.uint8)
-    model = np.pad(model, ((1,1),(1, 1)), 'constant', constant_values=0)
-    floodfill(model, 0, 0)
-    model = np.greater(model, -0.1)
-    return model
+  def make_boundary(self, hx):
+    boundary = (hx == -2)
+    all_vox_files = glob.glob('../data/train/**/*.binvox')
+    num_file_try = np.random.randint(2, 12)
+    for i in xrange(num_file_try):
+      file_ind = np.random.randint(0, len(all_vox_files))
+      with open(all_vox_files[file_ind], 'rb') as f:
+        model = binvox_rw.read_as_3d_array(f)
+        model = model.data[:,:,model.dims[2]/2]
+      model = np.array(model, dtype=np.int)
+      model = np.pad(model, ((1,1),(1, 1)), 'constant', constant_values=0)
+      floodfill(model, 0, 0)
+      model = np.greater(model, -0.1)
+
+      pos_x = np.random.randint(1, hx.shape[0]-model.shape[0]-1)
+      pos_y = np.random.randint(1, hx.shape[1]-model.shape[1]-1)
+      boundary[pos_x:pos_x+model.shape[0], pos_y:pos_y+model.shape[0]] = model | boundary[pos_x:pos_x+model.shape[0], pos_y:pos_y+model.shape[0]]
+
+    return boundary
 
 class BoxSimulation(LBFluidSim):
   subdomain = BoxSubdomain
 
   @classmethod
   def add_options(cls, group, defaults):
-    group.add_argument('--vox_filename',
-            help='name of vox file to run ',
-            type=str, default="test.vox")
-    group.add_argument('--vox_size',
-            help='size of vox file to run ',
-            type=int, default=32)
+    group.add_argument('--sim_size',
+            help='size of simulation to run ',
+            type=int, default=300)
 
   @classmethod
   def update_defaults(cls, defaults):
     defaults.update({
-      'max_iters': 300000,
+      'max_iters': 60000,
       'output_format': 'npy',
       'output': 'test_flow',
-      'every': 5000,
       'periodic_y': True,
+      'checkpoint_file': '/data/sailfish_store/test_checkpoint',
+      'checkpoint_every': 120
       })
 
   @classmethod
   def modify_config(cls, config):
-    config.lat_nx = config.vox_size*5
-    config.lat_ny = config.vox_size*3
-    config.visc   = 0.1
-    print(config.visc)
+    config.lat_nx = config.sim_size
+    config.lat_ny = config.sim_size
+    config.visc   = 0.01
 
   def __init__(self, *args, **kwargs):
     super(BoxSimulation, self).__init__(*args, **kwargs)
-
-    L = self.config.vox_size
-    margin = 5
-    self.add_force_oject(ForceObject(
-      (L-margin,  L/2 - margin),
-      (2*L + margin, 3*L/2 + margin)))
-
-    subdomain = BoxSubdomain
-    print('Re = %2.f' % (BoxSubdomain.max_v * L / self.config.visc))
-
-  def record_value(self, iteration, force, C_D, C_L):
-    print("iteration")
-    print(iteration)
-    print("force_x")
-    print(force[0])
-    print("force_y")
-    print(force[1])
-    print("c_d")
-    print(C_D)
-    print("c_l")
-    print(C_L)
-
-  prev_f = None
-  every = 500
-  def after_step(self, runner):
-    if self.iteration % self.every == 0:
-      runner.update_force_objects()
-      for fo in self.force_objects:
-        runner.backend.from_buf(fo.gpu_force_buf)
-        f = fo.force()
-
-        # Compute drag and lift coefficients.
-        C_D = (2.0 * f[0] / (self.config.lat_nx * BoxSubdomain.max_v**2))
-        C_L = (2.0 * f[1] / (self.config.lat_ny * BoxSubdomain.max_v**2))
-        self.record_value(runner._sim.iteration, f, C_D, C_L)
-
-        if self.prev_f is None:
-          self.prev_f = np.array(f)
-        else:
-          f = np.array(f)
-
-          # Terminate simulation when steady state has
-          # been reached.
-          diff = np.abs(f - self.prev_f) / (np.abs(f) + 0.001)
-
-          if np.all(diff < 1e-4) or (self.config.max_iters < self.iteration + 501):
-            runner._quit_event.set()
-          self.prev_f = f
 
 if __name__ == '__main__':
   ctrl = LBSimulationController(BoxSimulation)

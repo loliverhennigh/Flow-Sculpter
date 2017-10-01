@@ -10,9 +10,6 @@ import numpy as np
 
 FLAGS = tf.app.flags.FLAGS
 
-tf.app.flags.DEFINE_float('weight_decay', 0.0005,
-                          """ """)
-
 def int_shape(x):
   return list(map(int, x.get_shape()))
 

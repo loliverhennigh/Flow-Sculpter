@@ -27,7 +27,7 @@ tf.app.flags.DEFINE_string('base_dir_flow', '../checkpoints_flow',
                             """dir to store trained flow net """)
 tf.app.flags.DEFINE_string('base_dir_boundary', '../checkpoints_boundary',
                             """dir to store trained net boundary """)
-tf.app.flags.DEFINE_integer('batch_size', 8,
+tf.app.flags.DEFINE_integer('batch_size', 4,
                             """ training batch size """)
 tf.app.flags.DEFINE_integer('nr_gpus', 1,
                            """ number of gpus for training (each gpu with have batch size FLAGS.batch_size""")
@@ -37,41 +37,35 @@ tf.app.flags.DEFINE_float('keep_prob', 1.0,
                             """ keep probability for dropout """)
 tf.app.flags.DEFINE_float('lr', 1e-4,
                             """ r dropout """)
-tf.app.flags.DEFINE_string('shape', '128x128',
+tf.app.flags.DEFINE_string('shape', '512x512',
                             """ shape of flow """)
 tf.app.flags.DEFINE_integer('dims', 2,
                             """ dims of flow """)
-tf.app.flags.DEFINE_integer('obj_size', 64,
+tf.app.flags.DEFINE_integer('obj_size', 256,
                             """ max size of voxel object """)
 
 
 # model params flow
 tf.app.flags.DEFINE_string('flow_model', 'residual_network',
                            """ model name to train """)
-tf.app.flags.DEFINE_integer('nr_pyramids', 0,
-                           """ number of iteration in increaseing size resolution """)
 tf.app.flags.DEFINE_integer('filter_size', 8,
                            """ filter size of first res block (preceding layers have double the filter size) """)
-tf.app.flags.DEFINE_integer('nr_downsamples', 5,
+tf.app.flags.DEFINE_integer('nr_downsamples', 7,
                            """ number of downsamples in u network """)
 tf.app.flags.DEFINE_integer('nr_residual_blocks', 4,
                            """ number of res blocks after each downsample """)
 tf.app.flags.DEFINE_bool('gated', True,
                            """ gated resnet or not """)
-tf.app.flags.DEFINE_string('nonlinearity', 'concat_elu',
+tf.app.flags.DEFINE_string('nonlinearity', 'relu',
                            """ nonlinearity used such as concat_elu, elu, concat_relu, relu """)
 tf.app.flags.DEFINE_bool('sdf', False,
                            """ whether to use the signed distance function on inputs """)
 
 # model params boundary
-tf.app.flags.DEFINE_string('boundary_type', 'shapes',
-                           """ type of boundarys to train on """)
 tf.app.flags.DEFINE_string('boundary_model', 'fc_conv',
                            """ model name to train boundary network on """)
 tf.app.flags.DEFINE_integer('nr_boundary_params', 42,
                             """ number of boundary paramiters """)
-tf.app.flags.DEFINE_float('beta', 0.1,
-                            """ learning rate when learning boundary """)
 
 # params boundary learn
 tf.app.flags.DEFINE_string('boundary_learn_loss', "drag_xy",

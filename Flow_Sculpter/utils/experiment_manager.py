@@ -3,7 +3,7 @@ import tensorflow as tf
 import fnmatch
 import os
 
-NOT_PATH_ANY = ['base_dir_flow', 'base_dir_boundary', 'batch_size', 'display_test', 'test_set', 'max_steps', 'test_set', 'boundary_learn_loss', 'shape', 'boundary_learn_loss', 'boundary_learn_lr', 'boundary_learn_steps', 'lb_seq_length', 'obj_size']
+NOT_PATH_ANY = ['base_dir_flow', 'base_dir_boundary', 'batch_size', 'display_test', 'test_set', 'max_steps', 'test_set', 'boundary_learn_loss', 'shape', 'boundary_learn_loss', 'boundary_learn_lr', 'boundary_learn_steps', 'lb_seq_length', 'obj_size','nr_gpus']
 NOT_PATH_FLOW = NOT_PATH_ANY + ['nr_boundary_params', 'boundary_model']
 NOT_PATH_BOUNDARY = NOT_PATH_ANY + ['flow_model', 'filter_size', 'nr_downsamples', 'nr_res_blocks', 'gated_res', 'nonlinearity', 'div_constant', 'tau', 'density']
 

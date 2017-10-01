@@ -47,41 +47,12 @@ class Sailfish_data:
   def data_worker(self):
     while True:
       geometry_file, steady_flow_file = self.queue.get()
-      print(geometry_file)
 
       # load geometry file
       geometry_array = np.load(geometry_file)
-      print(geometry_array.shape)
-      """
-      geometry_array = geometry_array.astype(np.uint8)
-      if self.dim == 2:
-        geometry_array = np.swapaxes(geometry_array, 0, -1)
-        geometry_array = geometry_array[self.size/2+1:5*self.size/2+1,1:-1]
-      elif self.dim == 3:
-        geometry_array = geometry_array[self.size/4+1:7*self.size/4+1,1:-1,1:-1]
-      geometry_array = np.expand_dims(geometry_array, axis=-1)
-      """
 
       # load flow file
       steady_flow_array = np.load(steady_flow_file)
-      """
-      velocity_array = steady_flow_array.f.v
-      pressure_array = np.expand_dims(steady_flow_array.f.rho, axis=0)
-      velocity_array[np.where(np.isnan(velocity_array))] = 0.0
-      pressure_array[np.where(np.isnan(pressure_array))] = 1.0
-      pressure_array = pressure_array - 1.0
-      steady_flow_array = np.concatenate([velocity_array, pressure_array], axis=0)
-      if self.dim == 2:
-        steady_flow_array = np.swapaxes(steady_flow_array, 0, -1)
-        steady_flow_array = steady_flow_array[self.size/2:5*self.size/2]
-      elif self.dim == 3:
-        steady_flow_array = np.swapaxes(steady_flow_array, 0, 1)
-        steady_flow_array = np.swapaxes(steady_flow_array, 1, 2)
-        steady_flow_array = np.swapaxes(steady_flow_array, 2, 3)
-        steady_flow_array = steady_flow_array[self.size/4:7*self.size/4]
-      np.nan_to_num(steady_flow_array, False)
-      steady_flow_array = steady_flow_array.astype(np.float32)
-      """
   
       # add to que
       self.queue_batches.append((geometry_array, steady_flow_array))
@@ -120,7 +91,6 @@ class Sailfish_data:
       # get needed filenames
       geometry_file    = root.find("flow_data").find("geometry_file").text
       steady_flow_file = root.find("flow_data").find("flow_file").text
-      print(geometry_file)
 
       # check file for geometry
       if not os.path.isfile(geometry_file):
@@ -136,6 +106,7 @@ class Sailfish_data:
 
     gc.collect()
     self.split_line = int(self.train_test_split * len(self.geometries))
+    print("finished parsing data")
     self.test_set_pos = self.split_line
 
   def minibatch(self, train=True, batch_size=32, signed_distance_function=False):
@@ -173,22 +144,23 @@ class Sailfish_data:
     """
     return batch_boundary, batch_data
 
-dataset = Sailfish_data("../../data/", size=32, dim=3)
-#dataset = Sailfish_data("../../data/", size=64, dim=2)
+#dataset = Sailfish_data("../../data/", size=32, dim=3)
+"""
+dataset = Sailfish_data("../../data/", size=256, dim=2)
 dataset.parse_data()
 batch_boundary, batch_data = dataset.minibatch(batch_size=100)
 for i in xrange(100):
   batch_boundary, batch_data = dataset.minibatch(batch_size=100)
   print(batch_data.shape)
   print(batch_boundary.shape)
-  plt.imshow(batch_data[0,:,:,28,2])
+  plt.imshow(batch_data[0,:,:,2])
   plt.show()
-  plt.imshow(batch_data[0,:,:,28,1])
+  plt.imshow(batch_data[0,:,:,1])
   plt.show()
-  plt.imshow(batch_data[0,:,:,28,0])
+  plt.imshow(batch_data[0,:,:,0])
   plt.show()
-  plt.imshow(batch_boundary[0,:,:,28,0])
+  plt.imshow(batch_boundary[0,:,:,0])
   plt.show()
   #time.sleep(.4)
-
+"""
 
