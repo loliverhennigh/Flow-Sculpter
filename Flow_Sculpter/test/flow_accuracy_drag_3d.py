@@ -17,7 +17,7 @@ import sys
 sys.path.append('../')
 
 import model.flow_net as flow_net 
-from inputs.flow_data import Sailfish_data
+from inputs.flow_data_queue import Sailfish_data
 from utils.experiment_manager import make_checkpoint_path
 from model.pressure import calc_force
 
@@ -84,8 +84,8 @@ def evaluate():
     graph_def = tf.get_default_graph().as_graph_def(add_shapes=True)
 
     # make vtm dataset
-    dataset = Sailfish_data("../../data/")
-    dataset.load_data(FLAGS.dims, FLAGS.obj_size)
+    dataset = Sailfish_data("../../data/", size=FLAGS.obj_size, dim=FLAGS.dims)
+    dataset.parse_data()
   
     # store drag data
     p_drag_x_data = []

@@ -18,7 +18,7 @@ sys.path.append('../')
 
 import model.flow_net as flow_net 
 from model.velocity_norm import calc_velocity_norm
-from inputs.flow_data import Sailfish_data
+from inputs.flow_data_queue import Sailfish_data
 from utils.experiment_manager import make_checkpoint_path
 
 import matplotlib
@@ -65,14 +65,15 @@ def evaluate():
     graph_def = tf.get_default_graph().as_graph_def(add_shapes=True)
 
     # make dataset
-    dataset = Sailfish_data("../../data/")
-    dataset.load_data(FLAGS.dims, FLAGS.obj_size)
+    dataset = Sailfish_data("../../data/", size=FLAGS.obj_size, dim=FLAGS.dims)
+    dataset.parse_data()
    
     # make plot
     sup_plot = plt.figure(figsize = (3, 2))
     gs1 = gridspec.GridSpec(2, 3)
     gs1.update(wspace=0.025, hspace=0.025)
     #plt.style.use('seaborn-darkgrid')
+    vmax = 0.1
 
     for i in xrange(10):
       # read in boundary
@@ -81,32 +82,32 @@ def evaluate():
       # calc flow 
       p_flow_norm, p_pressure, t_flow_norm, t_pressure = sess.run([predicted_flow_norm, predicted_pressure, true_flow_norm, true_pressure],feed_dict={boundary: batch_boundary, true_flow: batch_flow})
       axarr = plt.subplot(gs1[0])
-      axarr.imshow(p_flow_norm[0], vmin=0.0, vmax=0.20)
+      axarr.imshow(p_flow_norm[0], vmin=0.0, vmax=vmax)
       axarr.get_xaxis().set_ticks([])
       axarr.get_yaxis().set_ticks([])
       axarr.set_ylabel("Velocity", y = .5, x = .5)
       axarr.set_title("Generated", y = .99)
       axarr = plt.subplot(gs1[1])
-      axarr.imshow(t_flow_norm[0], vmin=0.0, vmax=0.20)
+      axarr.imshow(t_flow_norm[0], vmin=0.0, vmax=vmax)
       axarr.get_xaxis().set_ticks([])
       axarr.get_yaxis().set_ticks([])
       axarr.set_title("True", y = .99)
       axarr = plt.subplot(gs1[2])
-      axarr.imshow(np.abs(p_flow_norm[0] - t_flow_norm[0]), vmin=0.0, vmax=0.20)
+      axarr.imshow(np.abs(p_flow_norm[0] - t_flow_norm[0]), vmin=0.0, vmax=vmax)
       axarr.get_xaxis().set_ticks([])
       axarr.get_yaxis().set_ticks([])
       axarr.set_title("Difference", y = .99)
       axarr = plt.subplot(gs1[3])
-      axarr.imshow(p_pressure[0], vmin=0.0, vmax=0.20)
+      axarr.imshow(p_pressure[0], vmin=0.0, vmax=vmax)
       axarr.get_xaxis().set_ticks([])
       axarr.get_yaxis().set_ticks([])
       axarr.set_ylabel("Pressure", y = .5, x = .5)
       axarr = plt.subplot(gs1[4])
-      axarr.imshow(t_pressure[0], vmin=0.0, vmax=0.20)
+      axarr.imshow(t_pressure[0], vmin=0.0, vmax=vmax)
       axarr.get_xaxis().set_ticks([])
       axarr.get_yaxis().set_ticks([])
       axarr = plt.subplot(gs1[5])
-      axarr.imshow(np.abs(p_pressure[0] - t_pressure[0]), vmin=0.0, vmax=0.20)
+      axarr.imshow(np.abs(p_pressure[0] - t_pressure[0]), vmin=0.0, vmax=vmax)
       axarr.get_xaxis().set_ticks([])
       axarr.get_yaxis().set_ticks([])
 

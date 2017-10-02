@@ -19,7 +19,7 @@ import sys
 sys.path.append('../')
 
 import model.flow_net as flow_net 
-from inputs.flow_data import Sailfish_data
+from inputs.flow_data_queue import Sailfish_data
 from utils.experiment_manager import make_checkpoint_path
 
 import matplotlib.pyplot as plt
@@ -55,12 +55,12 @@ def evaluate():
     graph_def = tf.get_default_graph().as_graph_def(add_shapes=True)
 
     # make dataset
-    dataset = Sailfish_data("../../data/")
-    dataset.load_data(FLAGS.dims, FLAGS.obj_size)
+    dataset = Sailfish_data("../../data/", size=FLAGS.obj_size, dim=FLAGS.dims)
+    dataset.parse_data()
    
     for i in xrange(10):
       # read in boundary
-      batch_boundary, batch_flow = dataset.minibatch(train=True, batch_size=1)
+      batch_boundary, batch_flow = dataset.minibatch(train=False, batch_size=1, signed_distance_function=FLAGS.sdf)
 
       # calc flow 
       p_flow = sess.run(predicted_flow,feed_dict={boundary: batch_boundary})

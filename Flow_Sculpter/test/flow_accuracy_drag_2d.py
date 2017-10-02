@@ -17,7 +17,7 @@ import sys
 sys.path.append('../')
 
 import model.flow_net as flow_net 
-from inputs.flow_data import Sailfish_data
+from inputs.flow_data_queue import Sailfish_data
 from utils.experiment_manager import make_checkpoint_path
 from model.pressure import calc_force
 
@@ -31,7 +31,7 @@ FLOW_DIR = make_checkpoint_path(FLAGS.base_dir_flow, FLAGS, network="flow")
 shape = FLAGS.shape.split('x')
 shape = map(int, shape)
 
-batch_size = 8
+batch_size = 10
 
 def tryint(s):
   try:
@@ -80,8 +80,9 @@ def evaluate():
     graph_def = tf.get_default_graph().as_graph_def(add_shapes=True)
 
     # make vtm dataset
-    dataset = Sailfish_data("../../data/")
-    dataset.load_data(FLAGS.dims, FLAGS.obj_size)
+    dataset = Sailfish_data("../../data/", size=FLAGS.obj_size, dim=FLAGS.dims)
+    dataset.parse_data()
+    #dataset.load_data(FLAGS.dims, FLAGS.obj_size)
   
     # store drag data
     p_drag_x_data = []
@@ -94,7 +95,7 @@ def evaluate():
     t_max_vel_y_data = []
  
     #for run in filenames:
-    for i in tqdm(xrange(25)):
+    for i in tqdm(xrange(60)):
       # read in boundary
       batch_boundary, batch_flow = dataset.minibatch(train=False, batch_size=batch_size, signed_distance_function=FLAGS.sdf)
 

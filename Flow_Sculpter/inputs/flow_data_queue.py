@@ -117,7 +117,8 @@ class Sailfish_data:
       else:
         sample = self.test_set_pos 
         self.test_set_pos += 1
-      self.queue.put((self.geometries[sample], self.steady_flows[sample]))
+      if (0 <= sample) & (len(self.geometries) > sample):
+        self.queue.put((self.geometries[sample], self.steady_flows[sample]))
    
     while len(self.queue_batches) < batch_size:
       time.sleep(0.01)

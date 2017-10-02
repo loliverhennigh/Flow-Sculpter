@@ -19,7 +19,7 @@ import sys
 sys.path.append('../')
 
 import model.flow_net as flow_net 
-from inputs.flow_data import Sailfish_data
+from inputs.flow_data_queue import Sailfish_data
 from utils.experiment_manager import make_checkpoint_path
 from utils.boundary_utils import get_random_params
 
