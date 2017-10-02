@@ -62,8 +62,8 @@ def res_generator_network(batch_size, shape, inputs=None, full_shape=None, hidde
 
   # fc layer
   x_i = inputs
-  x_i = nn.fc_layer(x_i, pow(2,len(shape))*filter_size, "decode_layer", nn.set_nonlinearity("relu"))
-  x_i = tf.reshape(x_i, [batch_size] + len(shape)*[2] + [filter_size])
+  x_i = nn.fc_layer(x_i, pow(3,len(shape))*filter_size, "decode_layer", nn.set_nonlinearity("relu"))
+  x_i = tf.reshape(x_i, [batch_size] + len(shape)*[3] + [filter_size])
 
   # decoding piece
   for i in xrange(nr_upsamples):
@@ -72,6 +72,7 @@ def res_generator_network(batch_size, shape, inputs=None, full_shape=None, hidde
     for j in xrange(nr_residual_blocks):
       x_i = nn.res_block(x_i, filter_size=filter_size, gated=gated, nonlinearity=nonlinearity, name="res_decode_" + str(i) + "_block_" + str(j))
   x_i = nn.conv_layer(x_i, 3, 1, 1, "final_conv")
+  print(x_i.get_shape())
   #x_i = tf.sigmoid(x_i)
 
   if full_shape is not None:
