@@ -54,7 +54,7 @@ xiao_template = tf.make_template('xiao_template', xiao_network)
 def res_generator_network(batch_size, shape, inputs=None, full_shape=None, hidden_size=100, filter_size=8, nr_residual_blocks=2, gated=True, nonlinearity="concat_elu"):
 
   # new shape
-  nr_upsamples = int(np.log2(shape[0]/2))
+  nr_upsamples = int(np.log2(shape[0]/3))
   filter_size = filter_size*pow(2,nr_upsamples)
 
   # set nonlinearity
