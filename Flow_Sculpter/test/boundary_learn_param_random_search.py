@@ -19,7 +19,7 @@ import sys
 sys.path.append('../')
 
 import model.flow_net as flow_net 
-from model.pressure import force_2d
+from model.pressure import calc_force
 #from utils.flow_reader import load_flow, load_boundary, load_state
 from utils.experiment_manager import make_checkpoint_path
 
@@ -30,10 +30,10 @@ import matplotlib.pyplot as plt
 FLAGS = tf.app.flags.FLAGS
 
 # video init
-shape = [256, 256]
-dims = 2
-obj_size = 128
-batch_size= 2 
+shape = FLAGS.shape.split('x')
+shape = map(int, shape)
+batch_size= 1
+fig_pos = 0
 
 fourcc = cv2.cv.CV_FOURCC('m', 'p', '4', 'v') 
 video = cv2.VideoWriter()
@@ -64,34 +64,45 @@ def evaluate():
     top_k_op: Top K op.
     summary_op: Summary op.
   """
-  set_params     = np.array([FLAGS.nr_boundary_params*[0.0]])
-  set_params_pos = np.array([FLAGS.nr_boundary_params*[0.0]]) + 1.0
-  set_params[0,1]      = 0.5
-  set_params[0,2]      = 1.0
-  set_params_pos[0,0]  = 0.0 # set angle to 0.0
-  set_params_pos[0,1]  = 0.0 # set n_1 to .5
-  set_params_pos[0,2]  = 0.0 # set n_2 to 1.0
-  #set_params_pos[0,-1] = 0.0 # set tail hieght to 0.0
- 
+  num_angles = 1
+  max_angle =  0.0
+  min_angle =  0.0
+  set_params          = np.array(num_angles*[FLAGS.nr_boundary_params*[0.0]])
+  set_params[:,:]     = 0.0
+  set_params_pos      = np.array(num_angles*[FLAGS.nr_boundary_params*[0.0]])
+  set_params_pos[:,:] = 1.0
+
+  for i in xrange(num_angles):
+    set_params[i,0]      = -i 
+  set_params[:,0] = ((max_angle - min_angle) * (set_params[:,0]/num_angles)) - min_angle
+
+  set_params[:,1]      = 0.5
+  set_params[:,2]      = 1.0
+  set_params[:,-1]     = 0.0
+
+  set_params_pos[:,0]  = 0.0 # set angle to 0.0
+  set_params_pos[:,1]  = 0.0 # set n_1 to .5
+  set_params_pos[:,2]  = 0.0 # set n_2 to 1.0
+  set_params_pos[:,-1] = 0.0 # set tail hieght to 0.0
+
   with tf.Graph().as_default():
     # Make vector placeholder
     params_op, params_op_init, params_op_set, squeeze_loss = flow_net.inputs_boundary_learn(batch_size, set_params=set_params, set_params_pos=set_params_pos)
 
     # Compute boundary 
-    boundary = flow_net.inference_boundary(batch_size, [obj_size, obj_size], params_op, full_shape=shape)
-    boundary_blaa = boundary
+    boundary = flow_net.inference_boundary(batch_size*num_angles, FLAGS.dims*[FLAGS.obj_size], params_op, full_shape=shape)
     boundary = tf.round(boundary)
-    boundary = 2.0*(boundary - 0.5)
 
     # Build a Graph that computes the logits predictions from the
     # inference model.
     predicted_flow = flow_net.inference_flow(boundary, 1.0)
 
     # quantities to optimize
-    force = force_2d(boundary, predicted_flow[:,:,:,2:3])
-    drag_x = tf.reduce_sum(force[:,:,:,0], axis=[1,2])
-    drag_y = tf.reduce_sum(force[:,:,:,1], axis=[1,2])
-    drag_ratio = (drag_y/(-drag_x))
+    force = calc_force(boundary, predicted_flow[:,:,:,2:3])
+    drag_x = tf.reduce_sum(force[:,:,:,0], axis=[0,1,2])
+    drag_y = tf.reduce_sum(force[:,:,:,1], axis=[0,1,2])
+    #drag_ratio = -(drag_x/drag_y)
+    drag_ratio = drag_x
 
     # init graph
     init = tf.global_variables_initializer()
@@ -116,10 +127,10 @@ def evaluate():
     run_time = FLAGS.boundary_learn_steps
 
     # make store vectors for values
-    best_boundary = None
+    best_boundary = []
     max_d_ratio = np.zeros((run_time))
     iteration = np.arange(run_time) * batch_size
-    d_ratio_store = None
+    d_ratio_store = []
 
     # make store dir
     os.system("mkdir ./figs/boundary_random_image_store")
@@ -130,22 +141,14 @@ def evaluate():
       #plt.imshow(1.0*sess.run(force)[0,:,:,1] - boundary_batch[0,3:-3,3:-3,0])
       #plt.imshow(1.0*sess.run(force)[0,:,:,1])
       #plt.show()
-      if best_boundary is None:
-        best_boundary = boundary_batch[np.argmax(d_ratio)]
-        best_input = input_batch[np.argmax(d_ratio)]
-      elif np.max(d_ratio_store) < np.max(d_ratio):
-        best_boundary = boundary_batch[np.argmax(d_ratio)]
-        best_input = input_batch[np.argmax(d_ratio)]
-      if d_ratio_store is None:
-        d_ratio_store = d_ratio
-      else:
-        d_ratio_store = np.concatenate([d_ratio_store, d_ratio], axis=0)
-      max_d_ratio[i] = np.max(d_ratio_store)
-      if i % 1 == 0:
+      d_ratio_store.append(d_ratio)
+      if np.max(np.array(d_ratio_store)) <= d_ratio:
+        best_boundary = boundary_batch
+        best_input = input_batch
+      max_d_ratio[i] = np.max(np.array(d_ratio_store))
+      if i % 10 == 0:
         # make video with opencv
-        best_input_store = np.expand_dims(best_input, axis=0)
-        best_input_store = np.concatenate(batch_size*[best_input_store], axis=0)
-        sess.run(params_op_init, feed_dict={params_op_set: best_input_store})
+        sess.run(params_op_init, feed_dict={params_op_set: best_input})
         velocity_norm_g = sess.run(predicted_flow)
         #velocity_norm_g, boundary_g = sess.run([force, boundary],feed_dict={})
         #sflow_plot = np.concatenate([ 5.0*velocity_norm_g[0], boundary_g[0]], axis=1)
@@ -154,8 +157,8 @@ def evaluate():
         #video.write(sflow_plot)
     
         # save plot image to make video
-        velocity_norm_g = velocity_norm_g[0,:,:,2]
-        boundary_g = best_boundary[:,:,0]
+        velocity_norm_g = velocity_norm_g[fig_pos,:,:,2]
+        boundary_g = best_boundary[fig_pos,:,:,0]
         fig = plt.figure()
         fig.set_size_inches(25.5, 7.5)
         a = fig.add_subplot(1,4,1)
@@ -167,7 +170,7 @@ def evaluate():
         plt.legend(loc=4)
         a = fig.add_subplot(1,4,4)
         # the histogram of the data
-        n, bins, patches = plt.hist(d_ratio_store, 50, normed=1, facecolor='green')
+        n, bins, patches = plt.hist(np.array(d_ratio_store), 50, normed=1, facecolor='green')
         #plt.hist(d_ratio_store, 10, normed=1, facecolor='green')
         plt.xlabel("lift/drag")
         plt.ylabel("frequency")

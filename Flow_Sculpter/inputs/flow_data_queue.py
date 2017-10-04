@@ -106,7 +106,7 @@ class Sailfish_data:
 
     gc.collect()
     self.split_line = int(self.train_test_split * len(self.geometries))
-    print("finished parsing data")
+    print("finished parsing " + str(len(self.geometries)) + " data points")
     self.test_set_pos = self.split_line
 
   def minibatch(self, train=True, batch_size=32, signed_distance_function=False):
@@ -121,7 +121,8 @@ class Sailfish_data:
         self.queue.put((self.geometries[sample], self.steady_flows[sample]))
    
     while len(self.queue_batches) < batch_size:
-      time.sleep(0.01)
+      print("spending time waiting for queue, consider makein more threads") 
+      time.sleep(1.0)
 
     batch_boundary = []
     batch_data = []
@@ -137,16 +138,18 @@ class Sailfish_data:
       self.queue_batches.pop(0)
     batch_boundary = np.stack(batch_boundary, axis=0)
     batch_data = np.stack(batch_data, axis=0)
-    """
+   
+    # maybe flip batch 
     flip = np.random.randint(0,2)
     if flip == 1:
-      batch_data = np.flip(batch_data, axis=1)
-      batch_boundary = np.flip(batch_boundary, axis=1)
-    """
+      batch_data = np.flip(batch_data, axis=2)
+      batch_data[...,1] = -batch_data[...,1]
+      batch_boundary = np.flip(batch_boundary, axis=2)
+   
     return batch_boundary, batch_data
 
-#dataset = Sailfish_data("../../data/", size=32, dim=3)
 """
+#dataset = Sailfish_data("../../data/", size=32, dim=3)
 dataset = Sailfish_data("../../data/", size=256, dim=2)
 dataset.parse_data()
 batch_boundary, batch_data = dataset.minibatch(batch_size=100)
@@ -164,4 +167,3 @@ for i in xrange(100):
   plt.show()
   #time.sleep(.4)
 """
-

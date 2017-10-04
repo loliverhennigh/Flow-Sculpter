@@ -1,9 +1,9 @@
 
-#python flow_speed_test.py --batch_size=1
-#python flow_speed_test.py --batch_size=2
-#python flow_speed_test.py --batch_size=4
-#python flow_speed_test.py --batch_size=8
-#python flow_speed_test.py --batch_size=16
+python flow_speed_test.py --batch_size=1
+python flow_speed_test.py --batch_size=2
+python flow_speed_test.py --batch_size=4
+python flow_speed_test.py --batch_size=8
+python flow_speed_test.py --batch_size=16
 
 python flow_speed_test.py --batch_size=1 --shape=144x144x144 --dims=3 --obj_size=96 --nr_downsamples=5 --nr_residual_blocks=3 --nonlinearity=relu
 python flow_speed_test.py --batch_size=2 --shape=144x144x144 --dims=3 --obj_size=96 --nr_downsamples=5 --nr_residual_blocks=3 --nonlinearity=relu

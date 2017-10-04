@@ -85,9 +85,9 @@ def evaluate():
     summary_op: Summary op.
   """
 
-  num_angles = 5
-  max_angle =  0.05
-  min_angle = -0.05
+  num_angles = 9
+  max_angle =  0.20
+  min_angle = -0.15
   set_params          = np.array(num_angles*[FLAGS.nr_boundary_params*[0.0]])
   set_params[:,:]     = 0.0
   set_params_pos      = np.array(num_angles*[FLAGS.nr_boundary_params*[0.0]])
@@ -138,6 +138,7 @@ def evaluate():
 
     # loss
     loss = -tf.reduce_sum(drag_lift_ratio)
+    #loss = -tf.reduce_sum(drag_x)
     loss += squeeze_loss
 
     # train_op
@@ -194,9 +195,9 @@ def evaluate():
                                            s_params[p,-1], FLAGS.dims*[FLAGS.obj_size]))
         wing_boundary = np.stack(wing_boundary)
         wing_boundary = np.pad(wing_boundary, [[0,0],[128,128],[128,128],[0,0]], 'constant', constant_values=0.0)
-        print(sharp_boundary.get_shape())
-        print(wing_boundary.shape)
-        p_flow, p_boundary, d_l_ratio = sess.run([sharp_predicted_flow, boundary, sharp_drag_lift_ratio],feed_dict={sharp_boundary: wing_boundary})
+        #print(sharp_boundary.get_shape())
+        #print(wing_boundary.shape)
+        p_flow, p_boundary, d_l_ratio, sharp_d_l_ratio = sess.run([sharp_predicted_flow, boundary, drag_lift_ratio, sharp_drag_lift_ratio],feed_dict={sharp_boundary: wing_boundary})
     
         # save plot image to make video
         p_pressure = p_flow[fig_pos,:,:,2]
@@ -218,6 +219,7 @@ def evaluate():
         plt.legend()
         a = fig.add_subplot(1,5,5)
         plt.plot(-set_params[:,0], d_l_ratio, 'bo', label="lift/drag Network")
+        plt.plot(-set_params[:,0], sharp_d_l_ratio, 'ro', label="lift/drag Sharp")
         if i == run_time-1:
           solver_d_l_ratio = run_flow_solver(sess.run(params_op), solver_boundary, solver_flow, sess, solver_drag_lift_ratio)
           plt.plot(-set_params[:,0], solver_d_l_ratio, 'ro', label="lift/drag Solver")
@@ -228,8 +230,9 @@ def evaluate():
         plt.savefig("./figs/boundary_learn_image_store/plot_" + str(i).zfill(5) + ".png")
         if run_time - i <= 100:
           plt.savefig("./figs/" + FLAGS.boundary_learn_loss + "_plot.png")
-        #if i == run_time - 1:
-        plt.show()
+        if i == run_time - 1:
+          plt.savefig("./figs/learn_gradient_decent.jpeg")
+          plt.show()
         plt.close(fig)
 
 

@@ -30,7 +30,7 @@ FLOW_DIR = make_checkpoint_path(FLAGS.base_dir_flow, FLAGS, network="flow")
 
 shape = FLAGS.shape.split('x')
 shape = map(int, shape)
-run_steps = 100
+run_steps = 10
 
 def evaluate():
   """Run Eval once.

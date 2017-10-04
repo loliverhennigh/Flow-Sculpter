@@ -4,7 +4,7 @@ import numpy as np
 
 def _simple_conv_2d(x, k):
   """A simplified 2D convolution operation"""
-  y = tf.nn.conv2d(x, k, [1, 1, 1, 1], padding='SAME')
+  y = tf.nn.conv2d(x, k, [1, 1, 1, 1], padding='VALID')
   return y
 
 def _simple_conv_3d(x, k):
@@ -41,7 +41,7 @@ def calc_force_2d(boundary, pressure_field):
   weight = tf.constant(np.float32(weight_np))
 
   # calc gradientes
-  pressure_integral = _simple_conv_2d(boundary, weight)[:,3:-3,3:-3]
+  pressure_integral = _simple_conv_2d(boundary, weight)[:,2:-2,2:-2]
   pressure_field = pressure_field[:,3:-3,3:-3]
   force = ((1.0 - boundary[:,3:-3,3:-3]) * pressure_integral) * pressure_field
   return force
@@ -49,6 +49,8 @@ def calc_force_2d(boundary, pressure_field):
 def calc_force_3d(boundary, pressure_field):
   # implementation of spatial divergence
   # reimplemented from torch FluidNet implementation
+  print(boundary.get_shape())
+  print(pressure_field.get_shape())
 
   # make weight for x divergence
   weight_np = np.zeros([3,3,3,1,3])

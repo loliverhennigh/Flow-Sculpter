@@ -28,7 +28,7 @@ FLAGS = tf.app.flags.FLAGS
 # video init
 shape = FLAGS.shape.split('x')
 shape = map(int, shape)
-run_steps = 100
+run_steps = 10
 
 def evaluate():
   """Run Eval once.
@@ -55,7 +55,7 @@ def evaluate():
       sess.run(predicted_boundary,feed_dict={input_vector: input_batch} )
     elapsed = time.time() - t
 
-    filename = "./figs/boundary_network_batch_size_shape_" + FLAGS.shape + str(FLAGS.batch_size) + ".txt"
+    filename = "./figs/boundary_network_shape_" + FLAGS.shape + "_batch_size_" + str(FLAGS.batch_size) + ".txt"
     with open(filename, "w") as f:
       f.write(str(elapsed/float(FLAGS.batch_size*run_steps)))
 

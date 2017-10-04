@@ -33,7 +33,7 @@ BOUNDARY_DIR = make_checkpoint_path(FLAGS.base_dir_boundary, FLAGS, network="bou
 
 shape = FLAGS.shape.split('x')
 shape = map(int, shape)
-run_steps = 100
+run_steps = 10
 
 def evaluate():
   """Run Eval once.
@@ -50,9 +50,9 @@ def evaluate():
     predicted_flow = flow_net.inference_flow(boundary, 1.0)
 
     # quantities to optimize
-    force = calc_force(boundary, predicted_flow[:,:,:,2:3])
-    drag_x = tf.reduce_sum(force[:,:,:,0], axis=[1,2])
-    drag_y = tf.reduce_sum(force[:,:,:,1], axis=[1,2])
+    force = calc_force(boundary, predicted_flow[...,2:3])
+    drag_x = tf.reduce_sum(force[...,0], axis=[1,2])
+    drag_y = tf.reduce_sum(force[...,1], axis=[1,2])
     drag_lift_ratio = (drag_x/drag_y)
 
     # loss
@@ -81,7 +81,7 @@ def evaluate():
       sess.run(train_step, feed_dict={})
     elapsed = time.time() - t
 
-    filename = "./figs/learn_step_batch_size_shape_" + FLAGS.shape  + str(FLAGS.batch_size) + ".txt"
+    filename = "./figs/learn_step_shape_" + FLAGS.shape  + "_batch_size_" + str(FLAGS.batch_size) + ".txt"
     with open(filename, "w") as f:
       f.write(str(elapsed/float(FLAGS.batch_size*run_steps)))
 
