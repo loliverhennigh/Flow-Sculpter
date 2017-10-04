@@ -31,10 +31,8 @@ from tqdm import *
 FLAGS = tf.app.flags.FLAGS
 
 # video init
-shape = [128, 128]
-dims = 2
-obj_size = 64
-nr_pyramids = 0
+shape = FLAGS.shape.split('x')
+shape = map(int, shape)
 batch_size=1
 
 # num_frames_save
@@ -78,7 +76,7 @@ def evaluate():
     # Build a Graph that computes the logits predictions from the
     # inference model.
     #inputs_vector_noise = inputs_vector + tf.random_normal(shape=tf.shape(inputs_vector), mean=0.0, stddev=0.0001, dtype=tf.float32) 
-    boundary = flow_net.inference_boundary(1, [obj_size,obj_size], inputs=inputs_vector, full_shape=shape)
+    boundary = flow_net.inference_boundary(1, FLAGS.dims*[FLAGS.obj_size], inputs=inputs_vector, full_shape=shape)
     #boundary = tf.round(boundary)
     predicted_flow = flow_net.inference_flow(boundary, 1.0)
 
@@ -116,13 +114,12 @@ def evaluate():
     params_np[0,5] = 0.0
 
     # make store vectors for values
-    resolution = 250
+    resolution = 1000
     loss_val = np.zeros((resolution))
     max_d_ratio = np.zeros((resolution))
     d_ratio_store = None
     boundary_frame_store = []
     store_freq = int(resolution/nr_frame_saves)
-    print(store_freq)
 
     # make store dir
     for i in tqdm(xrange(resolution)):
@@ -132,8 +129,9 @@ def evaluate():
         boundary_frame_store.append(sess.run(boundary,feed_dict={inputs_vector: np.concatenate(batch_size*[params_np], axis=0)})[0,int(FLAGS.obj_size/2):int(3*FLAGS.obj_size/2),int(FLAGS.obj_size/2):int(3*FLAGS.obj_size/2),0])
       loss_val[i] = velocity_norm_g
 
-    fig = plt.figure()
+    fig = plt.figure(figsize = (10,5))
     a = fig.add_subplot(1,2,1)
+    plt.title("Generated Boundary from Parameter Change")
     boundary_frame_store = tile_frames(boundary_frame_store)
     plt.imshow(boundary_frame_store)
     #plt.tick_params(axis='both', top="off", bottom="off")
@@ -144,6 +142,7 @@ def evaluate():
     plt.ylabel("Loss")
     plt.xlabel("Parameter Value")
     plt.title("Loss vs Parameter Value")
+    plt.savefig("./figs/boundary_space_explort.jpeg")
     plt.show() 
 
 

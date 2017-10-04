@@ -26,10 +26,10 @@ FLAGS = tf.app.flags.FLAGS
 
 BOUNDARY_DIR = make_checkpoint_path(FLAGS.base_dir_boundary, FLAGS, network="boundary")
 
-shape = [256, 256]
-dims = 2
-obj_size = 128
-nr_pyramids = 0
+# video init
+shape = FLAGS.shape.split('x')
+shape = map(int, shape)
+batch_size=1
 
 def tryint(s):
   try:
@@ -62,7 +62,7 @@ def evaluate():
     # Build a Graph that computes the logits predictions from the
     # inference model.
     #mean, stddev, x_sampled, predicted_boundary = flow_net.inference_boundary(true_boundary, shape) 
-    predicted_boundary = flow_net.inference_boundary_generator(1, [128,128], input_vector, full_shape=shape) 
+    predicted_boundary = flow_net.inference_boundary(1, FLAGS.dims*[FLAGS.obj_size], input_vector, full_shape=shape) 
 
     # Restore for eval
     init = tf.global_variables_initializer()
@@ -84,10 +84,12 @@ def evaluate():
 
       # calc flow 
       input_batch, boundary_batch = flow_net.feed_dict_boundary(input_dims, 1, shape)
-      print(input_batch)
+      """
+      #print(input_batch)
       input_batch[:,1] = .5
       input_batch[:,2] = 1.0
       input_batch = [[ 0.,         0.50044733, 1.0007602,  0.04609993, 0.02800636, 0.17423785, 0.32387334, 0.02092246, 0.06054832, 0.10314581, 0.00666449, 0.09281126]]
+      """
       p_boundary = sess.run(predicted_boundary,feed_dict={input_vector: input_batch} )
       #p_boundary = sess.run(predicted_boundary,feed_dict={true_boundary: batch_boundary})
       dim=0

@@ -54,7 +54,11 @@ xiao_template = tf.make_template('xiao_template', xiao_network)
 def res_generator_network(batch_size, shape, inputs=None, full_shape=None, hidden_size=100, filter_size=8, nr_residual_blocks=2, gated=True, nonlinearity="concat_elu"):
 
   # new shape
-  nr_upsamples = int(np.log2(shape[0]/3))
+  if shape[0] % 3 == 0:
+    factor = 3
+  else:
+    factor = 2
+  nr_upsamples = int(np.log2(shape[0]/factor))
   filter_size = filter_size*pow(2,nr_upsamples)
 
   # set nonlinearity
@@ -62,8 +66,8 @@ def res_generator_network(batch_size, shape, inputs=None, full_shape=None, hidde
 
   # fc layer
   x_i = inputs
-  x_i = nn.fc_layer(x_i, pow(2,len(shape))*filter_size, "decode_layer", nn.set_nonlinearity("relu"))
-  x_i = tf.reshape(x_i, [batch_size] + len(shape)*[2] + [filter_size])
+  x_i = nn.fc_layer(x_i, pow(factor,len(shape))*filter_size, "decode_layer", nn.set_nonlinearity("relu"))
+  x_i = tf.reshape(x_i, [batch_size] + len(shape)*[factor] + [filter_size])
 
   # decoding piece
   for i in xrange(nr_upsamples):
