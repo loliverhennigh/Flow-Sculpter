@@ -85,7 +85,7 @@ def clean_files(filename, size):
     os.remove(f)
 
 class DuctSubdomain(Subdomain3D):
-  max_v = 0.08
+  max_v = 0.1
   #wall_bc = NTHalfBBWall
   wall_bc = NTFullBBWall
 
@@ -151,13 +151,22 @@ class DuctSubdomain(Subdomain3D):
     return self.accel(self.config) * prefactor * ret
 
   def load_vox_file(self, vox_filename):
-    with open(vox_filename, 'rb') as f:
-      model = binvox_rw.read_as_3d_array(f)
-      model = model.data
-    model = np.array(model, dtype=np.int)
+    if vox_filename[-3:] == "vox":
+      with open(vox_filename, 'rb') as f:
+        model = binvox_rw.read_as_3d_array(f)
+        model = model.data
+    # if the file is .npy assume that it is 2D 0s and 1s
+    elif vox_filename[-3:] == "npy":
+      model = np.load(vox_filename)
+      model = model[...,0]
+    #model = np.array(model, dtype=np.int)
     model = np.pad(model, ((1,1,),(1,1),(1,1)), 'constant', constant_values=0)
-    floodfill(model, 0, 0, 0)
-    model = np.greater(model, -0.1)
+    #floodfill(model, 0, 0, 0)
+    plt.imshow(model[:,:,48])
+    plt.show()
+    model = np.greater(model, 0.1)
+    plt.imshow(model[:,:,48])
+    plt.show()
     return model
 
 class DuctSim(LBFluidSim):
@@ -188,7 +197,7 @@ class DuctSim(LBFluidSim):
     config.lat_nx = 3*config.vox_size/2
     config.lat_ny = 3*config.vox_size/2
     config.lat_nz = config.vox_size*3
-    config.visc   = 0.10 * (config.lat_ny/100.0)
+    config.visc   = 0.03 * (config.lat_ny/100.0)
     print(config.visc)
 
 

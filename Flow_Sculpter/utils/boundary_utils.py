@@ -50,9 +50,6 @@ def rotateImage(image, angle):
   angle = np.degrees(angle)
   rot_mat = cv2.getRotationMatrix2D(center,angle,1.0)
   return cv2.warpAffine(image, rot_mat, image.shape[0:2],flags=cv2.INTER_NEAREST)
-  #image = cv2.warpAffine(image, rot_mat, image.shape[0:2])
-  #image = np.round(image)
-  #return image
 
 def get_params_range(nr_params, dims):
   if dims == 2:
@@ -108,7 +105,7 @@ def wing_boundary_2d(angle, N_1, N_2, A_1, A_2, d_t, shape, boundary=None):
   boundary = cv2.resize(boundary, (old_shape[0], old_shape[1]))
   boundary = np.round(boundary)
   boundary = boundary.reshape(old_shape + [1])
-  boundary = np.rot90(boundary, 3)
+  #boundary = np.rot90(boundary, 3)
 
   return boundary
 
@@ -116,7 +113,7 @@ def wing_boundary_3d(angle_1, angle_2, N_1, N_2, sweep_slope, end_length, A_1, A
 
   # make lines for upper and lower wing profile
   old_shape = shape
-  new_shape = (3*shape[0], 3*shape[1], 3*shape[2])
+  new_shape = (5*shape[0], 5*shape[1], 5*shape[2])
   if boundary is None:
     boundary = np.zeros(new_shape)
 
@@ -141,15 +138,15 @@ def wing_boundary_3d(angle_1, angle_2, N_1, N_2, sweep_slope, end_length, A_1, A
   t = time.time()
   for i in xrange(len(A_1)):
     for j in xrange(len(B)):
+      constant =   (np.power(phi_1,float(i))*np.power((1.0-phi_1),float(len(A_1)-i))
+                  *np.power(nue,float(j))*np.power((1.0-nue),float(len(B)-j)))
       z_1_store += (B[j]*A_1[i]
                    *binomial(len(A_1), i)*binomial(len(B), j)
-                   *np.power(phi_1,float(i))*np.power((1.0-phi_1),float(len(A_1)-i))
-                   *np.power(nue,float(j))*np.power((1.0-nue),float(len(B)-j))
+                   *constant
                    )
       z_2_store += (B[j]*A_2[i]
                    *binomial(len(A_2), i)*binomial(len(B), j)
-                   *np.power(phi_1,float(i))*np.power((1.0-phi_1),float(len(A_2)-i))
-                   *np.power(nue,float(j))*np.power((1.0-nue),float(len(B)-j))
+                   *constant
                    )
   z_1 = z_1*z_1_store + phi_1 * d_t
   z_2 = z_2*z_2_store - phi_2 * d_t
@@ -163,29 +160,24 @@ def wing_boundary_3d(angle_1, angle_2, N_1, N_2, sweep_slope, end_length, A_1, A
       boundary[i, j+new_shape[1]/2-1, z_lower:z_upper] = 1.0
       boundary[i, -j+new_shape[1]/2-1, z_lower:z_upper] = 1.0
 
-  """
-  fig = plt.figure()
-  ax = fig.gca(projection='3d')
-  ax.plot_surface(x,y,z_1)
-  ax.plot_surface(x,y,z_2)
-
-  #plt.imshow(z_1)
-  plt.show()
-  plt.imshow(boundary[:,:,shape[1]/2])
-  plt.show()
-  voxel_plot(boundary)
-  """
-
-  #boundary = rotateImage(boundary, angle)
-  #boundary = rotateImage(boundary, angle_1)
+  # Danger Danger, High Voltage, Usin 2d cv2 functions on 3d shapes
+  t = time.time()
   boundary = np.swapaxes(boundary, 1, 2)
-  voxel_plot(cv2.resize(boundary, (old_shape[0], old_shape[1])))
   boundary = rotateImage(boundary, 0.2)
-  voxel_plot(boundary)
   boundary = np.swapaxes(boundary, 1, 2)
-  voxel_plot(boundary)
+
   boundary = cv2.resize(boundary, (old_shape[0], old_shape[1]))
+  boundary = np.swapaxes(boundary, 1, 2)
+  boundary = cv2.resize(boundary, (old_shape[0], old_shape[1]))
+  boundary = np.swapaxes(boundary, 1, 2)
+  print(time.time() - t)
+
+  boundary = np.round(boundary)
+  #plt.imshow(boundary[:,:,old_shape[0]/2])
+  #plt.imshow(boundary[old_shape[0]/2,:,:])
+  #plt.show()
   voxel_plot(boundary)
+
   boundary = boundary.reshape(shape + [1])
 
   return boundary
@@ -213,7 +205,10 @@ def wing_boundary_batch(nr_params, batch_size, shape, dims):
   input_batch = np.stack(input_batch, axis=0)
   return input_batch, boundary_batch
 
-_, boundary_batch = wing_boundary_batch(25, 32, [128,128,128], 3)
+"""
+t = time.time()
+_, boundary_batch = wing_boundary_batch(49, 2, [96,96,96], 3)
+print(time.time() - t)
 #_, boundary_batch = wing_boundary_batch(25, 32, [256,256], 2)
 print(boundary_batch.shape)
 for i in xrange(32):
@@ -224,3 +219,4 @@ for i in xrange(32):
   plt.imshow(boundary_batch[i,:,64,:,0])
   plt.show()
   plt.imshow(boundary_batch[i,:,:,32,0])
+"""

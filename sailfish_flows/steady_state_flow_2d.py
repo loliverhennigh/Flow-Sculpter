@@ -85,7 +85,7 @@ def clean_files(filename, size):
 class BoxSubdomain(Subdomain2D):
   #bc = NTHalfBBWall
   bc = NTFullBBWall
-  max_v = 0.08
+  max_v = 0.1
 
   def boundary_conditions(self, hx, hy):
 

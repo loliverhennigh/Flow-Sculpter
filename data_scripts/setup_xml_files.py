@@ -19,11 +19,12 @@ np.random.seed(0)
 #base_path = os.path.abspath("../data/") + "/"
 base_path = os.path.abspath("../data/") + "/"
 num_flips_per_type = 4
-num_samples_per_type = 20
-num_wingfoil_sim = 1000
+num_samples_per_type = 0
+num_wingfoil_sim = 50
 num_wingfoil_params = 46
 #sizes = [16, 32, 64, 96, 128, 256]
-sizes = [32, 64, 96, 128, 256]
+sizes_2d = [64, 128, 256]
+sizes_3d = [96]
 
 # helper for voxelizing
 def voxelize_file(filename, size, flip_x, flip_z):
@@ -58,8 +59,6 @@ def save_xml(filename, class_id, obj_id, vox_filename, dim, size, flip_x, filp_z
                                               + "--vox_size="     + str(size) + " "
                                               + "--output="       + str(save_path) + "steady_state_flow")
   etree.SubElement(single_root, "size").text = str(size)
-  etree.SubElement(single_root, "flip_x").text = str(flip_x)
-  etree.SubElement(single_root, "flip_z").text = str(flip_z)
   # save simulation info (will run simulation later)
   flow_data = etree.SubElement(single_root, "flow_data")
   etree.SubElement(flow_data, "availible").text = str(False)
@@ -83,6 +82,7 @@ if __name__ == "__main__":
   #for rm_file in glob.glob(base_path + "xml_files/*.xml"):
   #  os.remove(rm_file)
 
+  """
   print("generating for each class")
   for ids in tqdm(class_ids):
     # get list of all objects in class
@@ -122,43 +122,50 @@ if __name__ == "__main__":
             etree.SubElement(main_run, "size").text = str(sizes[k])
             etree.SubElement(main_run, "xml_filename").text = xml_filename
 
+  """
+
   ids = 0
   for i in tqdm(xrange(num_wingfoil_sim)):
-    for k in xrange(len(sizes)):
-      for dim in [2,3]:
+    ids += 1
+    for dim in [2,3]:
+      if dim == 2:
+        sizes = sizes_2d
+      elif dim == 3:
+        sizes = sizes_3d
+      for k in xrange(len(sizes)):
         # xml filename
-        xml_filename = (base_path + "xml_files/wing_" + str(ids) + "_"
+        xml_filename = (base_path + "xml_files/wing_" + str(ids).zfill(4) + "_"
                      + str(dim) + "_" + str(sizes[k]).zfill(4) 
                      + ".xml")
-        wing_filename = (base_path + "wingfoils/wing_" + str(ids) + "_"
+        wing_filename = (base_path + "wingfoils/wing_" + str(ids).zfill(4) + "_"
                      + str(dim) + "_" + str(sizes[k]).zfill(4) 
                      + ".npy")
 
         # make numpy boundary file
-        params = boundary_utils.get_random_params(num_wingfoil_params, dim)
-        if dim == 2: 
-          wing = boundary_utils.wing_boundary_2d(params[0], params[1], params[2],
-                                  params[3:(num_wingfoil_params-4)/2],
-                                  params[(num_wingfoil_params-4)/2:-1],
-                                  params[-1], dim*[sizes[k]])
-        elif dim == 3: 
-          wing = boundary_utils.wing_boundary_3d(params[0], params[1], params[2],
-                                             params[3], params[4], params[5],
-                                             params[6:(num_wingfoil_params-7)/3+6],
-                                             params[(num_wingfoil_params-7)/3+6:2*(num_wingfoil_params-7)/3+6],
-                                             params[2*(num_wingfoil_params-7)/3+6:-1],
-                                             params[-1], dim*[sizes[k]])
+        if not os.path.isfile(wing_filename):
+          params = boundary_utils.get_random_params(num_wingfoil_params, dim)
+          if dim == 2: 
+            wing = boundary_utils.wing_boundary_2d(params[0], params[1], params[2],
+                                    params[3:(num_wingfoil_params-4)/2],
+                                    params[(num_wingfoil_params-4)/2:-1],
+                                    params[-1], dim*[sizes[k]])
+          elif dim == 3: 
+            wing = boundary_utils.wing_boundary_3d(params[0], params[1], params[2],
+                                               params[3], params[4], params[5],
+                                               params[6:(num_wingfoil_params-7)/3+6],
+                                               params[(num_wingfoil_params-7)/3+6:2*(num_wingfoil_params-7)/3+6],
+                                               params[2*(num_wingfoil_params-7)/3+6:-1],
+                                               params[-1], dim*[sizes[k]])
+          np.save(wing_filename[:-4], wing)
  
         if not os.path.isfile(xml_filename):
-          np.save(wing_filename[:-4], wing)
           save_xml(xml_filename, str(ids), str(0), wing_filename, dim, sizes[k], 0, 0)
-                
+
         # make xml element for main
         main_run = etree.SubElement(main_root, "run")
         etree.SubElement(main_run, "dim").text = str(dim)
         etree.SubElement(main_run, "size").text = str(sizes[k])
         etree.SubElement(main_run, "xml_filename").text = xml_filename
-        ids += 1
   
   # save main xml file
   tree = etree.ElementTree(main_root)
