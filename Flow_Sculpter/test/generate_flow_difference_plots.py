@@ -68,50 +68,55 @@ def evaluate():
     dataset = Sailfish_data("../../data/", size=FLAGS.obj_size, dim=FLAGS.dims)
     dataset.parse_data()
    
-    # make plot
-    sup_plot = plt.figure(figsize = (3, 2))
-    gs1 = gridspec.GridSpec(2, 3)
-    gs1.update(wspace=0.025, hspace=0.025)
-    #plt.style.use('seaborn-darkgrid')
-    vmax = 0.1
-
     for i in xrange(10):
+      # make plot
+      fig = plt.figure(figsize = (13, 6))
+      gs1 = gridspec.GridSpec(2, 3)
+      gs1.update(wspace=0.025, hspace=0.025)
+
       # read in boundary
       batch_boundary, batch_flow = dataset.minibatch(train=False, batch_size=1, signed_distance_function=FLAGS.sdf)
 
       # calc flow 
       p_flow_norm, p_pressure, t_flow_norm, t_pressure = sess.run([predicted_flow_norm, predicted_pressure, true_flow_norm, true_pressure],feed_dict={boundary: batch_boundary, true_flow: batch_flow})
       axarr = plt.subplot(gs1[0])
-      axarr.imshow(p_flow_norm[0], vmin=0.0, vmax=vmax)
+      im = axarr.imshow(p_flow_norm[0])
       axarr.get_xaxis().set_ticks([])
       axarr.get_yaxis().set_ticks([])
       axarr.set_ylabel("Velocity", y = .5, x = .5)
       axarr.set_title("Generated", y = .99)
+      fig.colorbar(im, ax=axarr)
       axarr = plt.subplot(gs1[1])
-      axarr.imshow(t_flow_norm[0], vmin=0.0, vmax=vmax)
+      im = axarr.imshow(t_flow_norm[0])
       axarr.get_xaxis().set_ticks([])
       axarr.get_yaxis().set_ticks([])
       axarr.set_title("True", y = .99)
+      fig.colorbar(im, ax=axarr)
       axarr = plt.subplot(gs1[2])
-      axarr.imshow(np.abs(p_flow_norm[0] - t_flow_norm[0]), vmin=0.0, vmax=vmax)
+      im = axarr.imshow(np.abs(p_flow_norm[0] - t_flow_norm[0]))
       axarr.get_xaxis().set_ticks([])
       axarr.get_yaxis().set_ticks([])
       axarr.set_title("Difference", y = .99)
+      fig.colorbar(im, ax=axarr)
       axarr = plt.subplot(gs1[3])
-      axarr.imshow(p_pressure[0], vmin=0.0, vmax=vmax)
+      im = axarr.imshow(p_pressure[0])
       axarr.get_xaxis().set_ticks([])
       axarr.get_yaxis().set_ticks([])
       axarr.set_ylabel("Pressure", y = .5, x = .5)
+      fig.colorbar(im, ax=axarr)
       axarr = plt.subplot(gs1[4])
-      axarr.imshow(t_pressure[0], vmin=0.0, vmax=vmax)
+      im = axarr.imshow(t_pressure[0])
       axarr.get_xaxis().set_ticks([])
       axarr.get_yaxis().set_ticks([])
+      fig.colorbar(im, ax=axarr)
       axarr = plt.subplot(gs1[5])
-      axarr.imshow(np.abs(p_pressure[0] - t_pressure[0]), vmin=0.0, vmax=vmax)
+      im = axarr.imshow(np.abs(p_pressure[0] - t_pressure[0]))
       axarr.get_xaxis().set_ticks([])
       axarr.get_yaxis().set_ticks([])
+      fig.colorbar(im, ax=axarr)
 
       plt.suptitle("Predicted vs True Steady State Flows", fontsize="x-large", y=0.94)
+      plt.savefig("./figs/generated_flow_difference.jpeg")
       plt.show()
 
 def main(argv=None):  # pylint: disable=unused-argument

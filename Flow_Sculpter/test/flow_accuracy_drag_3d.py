@@ -137,7 +137,7 @@ def evaluate():
     t_max_vel_y_data = np.concatenate(t_max_vel_y_data, axis=0)
     p_max_vel_z_data = np.concatenate(p_max_vel_z_data, axis=0)
     t_max_vel_z_data = np.concatenate(t_max_vel_z_data, axis=0)
-    fig = plt.figure()
+    fig = plt.figure(figsize = (18,3))
     a = fig.add_subplot(1,6,1)
     plt.scatter(p_drag_x_data, t_drag_x_data)
     plt.plot(t_drag_x_data, t_drag_x_data, color="red")
@@ -162,6 +162,7 @@ def evaluate():
     plt.scatter(p_max_vel_z_data, t_max_vel_z_data)
     plt.plot(t_max_vel_z_data, t_max_vel_z_data, color="red")
     plt.title("Max Z Velocity")
+    plt.savefig("./figs/flow_accuracy_3d.jpeg")
     plt.show()
 
 def main(argv=None):  # pylint: disable=unused-argument

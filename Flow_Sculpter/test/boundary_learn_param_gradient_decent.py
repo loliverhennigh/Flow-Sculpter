@@ -46,6 +46,7 @@ def run_flow_solver(params, boundary, flow, sess, drag_lift_ratio_op):
                                   params[i,int((FLAGS.nr_boundary_params-4)/2):-1],
                                   params[i,-1], FLAGS.dims*[FLAGS.obj_size])
     wing_image = np.array(wing_image[:,:,0], dtype=np.int)
+    print("wing image")
     print(wing_image.shape)
     wing_image = np.swapaxes(wing_image, 0, -1)
     #wing_image = np.rot90(wing_image, 1)
@@ -60,25 +61,11 @@ def run_flow_solver(params, boundary, flow, sess, drag_lift_ratio_op):
     call(run_cmd.split(' '), cwd="../../sailfish_flows/")
 
     wing_boundary = np.load("./figs/flow_simulation_store/param_"  + str(i) + "/step_boundary.npy")
-    wing_boundary = np.swapaxes(wing_boundary, 0, -1)
-    wing_boundary = np.expand_dims(wing_boundary, axis=-1)
     wing_boundary = np.expand_dims(wing_boundary, axis=0)
-    wing_boundary = wing_boundary[:,int(FLAGS.obj_size/2+1):int(5*FLAGS.obj_size/2+1),1:-1]
-    print(wing_boundary.shape)
     wing_boundary = wing_boundary.astype(np.float32)
 
-    wing_flow = np.load("./figs/flow_simulation_store/param_"  + str(i) + "/step_steady_flow.npz")
-    velocity_array = wing_flow.f.v
-    pressure_array = np.expand_dims(wing_flow.f.rho, axis=0)
-    velocity_array[np.where(np.isnan(velocity_array))] = 0.0
-    pressure_array[np.where(np.isnan(pressure_array))] = 1.0
-    pressure_array = pressure_array - 1.0
-    wing_flow = np.concatenate([velocity_array, pressure_array], axis=0)
-    wing_flow = np.swapaxes(wing_flow, 0, -1)
+    wing_flow = np.load("./figs/flow_simulation_store/param_"  + str(i) + "/step_steady_flow.npy")
     wing_flow = np.expand_dims(wing_flow, axis=0)
-    print(wing_flow.shape)
-    wing_flow = wing_flow[:,int(FLAGS.obj_size/2):int(5*FLAGS.obj_size/2)]
-    np.nan_to_num(wing_flow, False)
     wing_flow = wing_flow.astype(np.float32)
 
     #plt.imshow(wing_flow[0,:,:,2])
@@ -98,9 +85,9 @@ def evaluate():
     summary_op: Summary op.
   """
 
-  num_angles = 10
-  max_angle =  0.05
-  min_angle = -0.05
+  num_angles = 9
+  max_angle =  0.20
+  min_angle = -0.15
   set_params          = np.array(num_angles*[FLAGS.nr_boundary_params*[0.0]])
   set_params[:,:]     = 0.0
   set_params_pos      = np.array(num_angles*[FLAGS.nr_boundary_params*[0.0]])
@@ -125,26 +112,33 @@ def evaluate():
 
     # Make placeholder for flow computed by lattice boltzmann solver
     solver_boundary, solver_flow = flow_net.inputs_flow(1, shape, FLAGS.dims)
+    sharp_boundary, blaa = flow_net.inputs_flow(batch_size*set_params.shape[0], shape, FLAGS.dims)
 
     # Make boundary
     boundary = flow_net.inference_boundary(batch_size*set_params.shape[0], FLAGS.dims*[FLAGS.obj_size], params_op, full_shape=shape)
 
     # predict steady flow on boundary
     predicted_flow = flow_net.inference_flow(boundary, 1.0)
+    sharp_predicted_flow = flow_net.inference_flow(sharp_boundary, 1.0)
 
     # quantities to optimize
     force = calc_force(boundary, predicted_flow[:,:,:,2:3])
+    sharp_force = calc_force(sharp_boundary, sharp_predicted_flow[:,:,:,2:3])
     solver_force = calc_force(solver_boundary, solver_flow[:,:,:,2:3])
     drag_x = tf.reduce_sum(force[:,:,:,0], axis=[1,2])/batch_size
     drag_y = tf.reduce_sum(force[:,:,:,1], axis=[1,2])/batch_size
+    sharp_drag_x = tf.reduce_sum(sharp_force[:,:,:,0], axis=[1,2])/batch_size
+    sharp_drag_y = tf.reduce_sum(sharp_force[:,:,:,1], axis=[1,2])/batch_size
     solver_drag_x = tf.reduce_sum(solver_force[:,:,:,0], axis=[1,2])/batch_size
     solver_drag_y = tf.reduce_sum(solver_force[:,:,:,1], axis=[1,2])/batch_size
     
     drag_lift_ratio        = (drag_x/drag_y)
+    sharp_drag_lift_ratio  = (sharp_drag_x/sharp_drag_y)
     solver_drag_lift_ratio = (solver_drag_x/solver_drag_y)
 
     # loss
     loss = -tf.reduce_sum(drag_lift_ratio)
+    #loss = -tf.reduce_sum(drag_x)
     loss += squeeze_loss
 
     # train_op
@@ -190,9 +184,20 @@ def evaluate():
       plot_error[i] = np.sum(l)
       plot_drag_x[i] = np.sum(d_x[fig_pos])
       plot_drag_y[i] = np.sum(d_y[fig_pos])
-      if ((i+1) % 100 == 0) or i == run_time-1:
+      if ((i+1) % 5 == 0) or i == run_time-1:
         # make video with opencv
-        p_flow, p_boundary, d_l_ratio = sess.run([predicted_flow, boundary, drag_lift_ratio],feed_dict={})
+        s_params = sess.run(params_op)
+        wing_boundary = []
+        for p in xrange(s_params.shape[0]):
+          wing_boundary.append(wing_boundary_2d(s_params[p,0], s_params[p,1], s_params[p,2],
+                                           s_params[p,3:int((FLAGS.nr_boundary_params-4)/2)],
+                                           s_params[p,int((FLAGS.nr_boundary_params-4)/2):-1],
+                                           s_params[p,-1], FLAGS.dims*[FLAGS.obj_size]))
+        wing_boundary = np.stack(wing_boundary)
+        wing_boundary = np.pad(wing_boundary, [[0,0],[128,128],[128,128],[0,0]], 'constant', constant_values=0.0)
+        #print(sharp_boundary.get_shape())
+        #print(wing_boundary.shape)
+        p_flow, p_boundary, d_l_ratio, sharp_d_l_ratio = sess.run([sharp_predicted_flow, boundary, drag_lift_ratio, sharp_drag_lift_ratio],feed_dict={sharp_boundary: wing_boundary})
     
         # save plot image to make video
         p_pressure = p_flow[fig_pos,:,:,2]
@@ -214,6 +219,7 @@ def evaluate():
         plt.legend()
         a = fig.add_subplot(1,5,5)
         plt.plot(-set_params[:,0], d_l_ratio, 'bo', label="lift/drag Network")
+        plt.plot(-set_params[:,0], sharp_d_l_ratio, 'ro', label="lift/drag Sharp")
         if i == run_time-1:
           solver_d_l_ratio = run_flow_solver(sess.run(params_op), solver_boundary, solver_flow, sess, solver_drag_lift_ratio)
           plt.plot(-set_params[:,0], solver_d_l_ratio, 'ro', label="lift/drag Solver")
@@ -225,6 +231,7 @@ def evaluate():
         if run_time - i <= 100:
           plt.savefig("./figs/" + FLAGS.boundary_learn_loss + "_plot.png")
         if i == run_time - 1:
+          plt.savefig("./figs/learn_gradient_decent.jpeg")
           plt.show()
         plt.close(fig)
 

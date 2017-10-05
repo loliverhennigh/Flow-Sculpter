@@ -17,17 +17,15 @@ import sys
 sys.path.append('../')
 
 import model.flow_net as flow_net 
-from model.velocity_norm import calc_velocity_norm
-from inputs.flow_data_queue import Sailfish_data
+from inputs.vtk_data import VTK_data
 from utils.experiment_manager import make_checkpoint_path
 
 from tqdm import *
-#import seaborn
 
 FLAGS = tf.app.flags.FLAGS
 
-FLOW_DIR = make_checkpoint_path(FLAGS.base_dir_flow, FLAGS, network="flow")
 
+# video init
 shape = FLAGS.shape.split('x')
 shape = map(int, shape)
 run_steps = 10
@@ -37,30 +35,31 @@ def evaluate():
   """
   with tf.Session() as sess:
     # Make image placeholder
-    boundary, true_flow = flow_net.inputs_flow(batch_size=FLAGS.batch_size, shape=shape, dims=FLAGS.dims)
+    input_dims = FLAGS.nr_boundary_params
+    input_vector, true_boundary = flow_net.inputs_boundary(input_dims, batch_size=FLAGS.batch_size, shape=shape)
 
-    # inference model.
-    predicted_flow = flow_net.inference_flow(boundary, 1.0)
+    # Build a Graph that computes the logits predictions from the
+    predicted_boundary = flow_net.inference_boundary(FLAGS.batch_size, FLAGS.dims*[FLAGS.obj_size], input_vector, full_shape=shape) 
 
     # Restore for eval
     init = tf.global_variables_initializer()
     sess.run(init)
-   
-    # make graph def 
+    
     graph_def = tf.get_default_graph().as_graph_def(add_shapes=True)
 
-    # make fake data
-    batch_boundary = np.zeros([FLAGS.batch_size] + shape + [1])
+    # make one input and run on it again and again
+    input_batch, boundary_batch = flow_net.feed_dict_boundary(input_dims, FLAGS.batch_size, shape)
 
     t = time.time()
     for i in tqdm(xrange(run_steps)):
-      # calc flow 
-      sess.run(predicted_flow,feed_dict={boundary: batch_boundary})
+      sess.run(predicted_boundary,feed_dict={input_vector: input_batch} )
     elapsed = time.time() - t
 
-    filename = "./figs/" + FLAGS.flow_model + "_shape_" + FLAGS.shape + "_batch_size_" + str(FLAGS.batch_size) + ".txt"
+    filename = "./figs/boundary_network_shape_" + FLAGS.shape + "_batch_size_" + str(FLAGS.batch_size) + ".txt"
     with open(filename, "w") as f:
       f.write(str(elapsed/float(FLAGS.batch_size*run_steps)))
+
+
 
 def main(argv=None):  # pylint: disable=unused-argument
   evaluate()
