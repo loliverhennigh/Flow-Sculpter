@@ -66,7 +66,7 @@ def res_generator_network(batch_size, shape, inputs=None, full_shape=None, hidde
 
   # fc layer
   x_i = inputs
-  x_i = nn.fc_layer(x_i, pow(factor,len(shape))*filter_size, "decode_layer", nn.set_nonlinearity("relu"))
+  x_i = nn.fc_layer(x_i, pow(factor,len(shape))*filter_size, "decode_layer", nn.set_nonlinearity("elu"))
   x_i = tf.reshape(x_i, [batch_size] + len(shape)*[factor] + [filter_size])
 
   # decoding piece

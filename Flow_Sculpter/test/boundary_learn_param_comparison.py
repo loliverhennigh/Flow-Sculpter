@@ -105,7 +105,7 @@ def evaluate():
     drag_x = tf.reduce_sum(force[:,:,:,0], axis=[1,2])/batch_size
     drag_y = tf.reduce_sum(force[:,:,:,1], axis=[1,2])/batch_size
     
-    drag_lift_ratio = (drag_x/drag_y)
+    drag_lift_ratio = (drag_y/drag_x)
 
     # loss
     loss = -tf.reduce_sum(drag_lift_ratio)

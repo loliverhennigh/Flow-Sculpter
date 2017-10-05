@@ -5,6 +5,7 @@ import time
 from lxml import etree
 from termcolor import colored
 from tqdm import *
+from collections import Counter
 
 class Que:
   def __init__(self, availible_gpus=[0,1]):
@@ -35,7 +36,7 @@ class Que:
     for i in xrange(len(self.pl)):
       if self.pl[i].get_status() == "Running":
         used_gpus.append(self.pl[i].get_gpu())
-    free_gpus = list(set(self.availible_gpus) - set(used_gpus)) 
+    free_gpus = list(Counter(self.availible_gpus) - Counter(used_gpus)) 
     return free_gpus
 
   def num_finished_processes(self):

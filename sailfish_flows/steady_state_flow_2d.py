@@ -61,8 +61,9 @@ def clean_files(filename, size):
   pressure_array[np.where(np.isnan(pressure_array))] = 1.0
   pressure_array = pressure_array - 1.0
   steady_flow_array = np.concatenate([velocity_array, pressure_array], axis=0)
-  steady_flow_array = np.swapaxes(steady_flow_array, 0, -1)
-  steady_flow_array = steady_flow_array[size/2:5*size/2]
+  steady_flow_array = np.swapaxes(steady_flow_array, 0, 1)
+  steady_flow_array = np.swapaxes(steady_flow_array, 1, 2)
+  steady_flow_array = steady_flow_array[:,size/2:5*size/2]
   np.nan_to_num(steady_flow_array, False)
   steady_flow_array = steady_flow_array.astype(np.float32)
   np.save(filename + "_steady_flow", steady_flow_array) 
@@ -97,8 +98,7 @@ class BoxSubdomain(Subdomain2D):
 
     # save boundary
     geometry_array = model.astype(np.uint8)
-    geometry_array = np.swapaxes(geometry_array, 0, -1)
-    geometry_array = geometry_array[L/2+1:5*L/2+1,1:-1]
+    geometry_array = geometry_array[1:-1,L/2+1:5*L/2+1]
     geometry_array = np.expand_dims(geometry_array, axis=-1)
     np.save(self.config.output + "_boundary", geometry_array)
 

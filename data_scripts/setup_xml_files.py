@@ -23,10 +23,10 @@ np.random.seed(0)
 # params to run
 #base_path = os.path.abspath("../data/") + "/"
 base_path = os.path.abspath("../data/") + "/"
-num_wingfoil_sim = 100
+num_wingfoil_sim = 5000
 num_wingfoil_params = 46
-sizes_2d = [64, 128, 256]
-sizes_3d = [32, 64, 96]
+sizes_2d = [64, 128]
+sizes_3d = []
 nr_threads = 10
 
 # helper for saving xml

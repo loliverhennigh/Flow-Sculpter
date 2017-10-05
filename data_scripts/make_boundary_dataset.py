@@ -24,13 +24,14 @@ np.random.seed(0)
 # params to run
 num_wingfoil_designs = 50000
 base_path = os.path.abspath("../data/") + "/"
-num_wingfoil_params_2d = [16, 26, 36, 46]
-num_wingfoil_params_3d = [46]
-#num_wingfoil_params_3d = []
+#num_wingfoil_params_2d = [16, 26, 36, 46]
+num_wingfoil_params_2d = [46]
+#num_wingfoil_params_3d = [46]
+num_wingfoil_params_3d = []
 #sizes_2d = [64, 128, 256]
 #sizes_2d = [64]
-sizes_2d = []
-sizes_3d = [32]
+sizes_2d = [64]
+sizes_3d = []
 #sizes_3d = [32, 64, 96]
 nr_threads = 30
 
