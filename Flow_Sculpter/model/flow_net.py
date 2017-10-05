@@ -37,11 +37,11 @@ tf.app.flags.DEFINE_float('keep_prob', 1.0,
                             """ keep probability for dropout """)
 tf.app.flags.DEFINE_float('lr', 1e-4,
                             """ r dropout """)
-tf.app.flags.DEFINE_string('shape', '512x512',
+tf.app.flags.DEFINE_string('shape', '256x256',
                             """ shape of flow """)
 tf.app.flags.DEFINE_integer('dims', 2,
                             """ dims of flow """)
-tf.app.flags.DEFINE_integer('obj_size', 256,
+tf.app.flags.DEFINE_integer('obj_size', 128,
                             """ max size of voxel object """)
 
 
@@ -50,9 +50,9 @@ tf.app.flags.DEFINE_string('flow_model', 'residual_network',
                            """ model name to train """)
 tf.app.flags.DEFINE_integer('filter_size', 8,
                            """ filter size of first res block (preceding layers have double the filter size) """)
-tf.app.flags.DEFINE_integer('nr_downsamples', 7,
+tf.app.flags.DEFINE_integer('nr_downsamples', 6,
                            """ number of downsamples in u network """)
-tf.app.flags.DEFINE_integer('nr_residual_blocks', 4,
+tf.app.flags.DEFINE_integer('nr_residual_blocks', 3,
                            """ number of res blocks after each downsample """)
 tf.app.flags.DEFINE_bool('gated', True,
                            """ gated resnet or not """)

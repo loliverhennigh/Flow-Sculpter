@@ -40,9 +40,9 @@ def voxel_plot(voxel):
   fig = plt.figure()
   ax = fig.add_subplot(111, projection='3d')
   ax.scatter(X, Y, Z)
-  ax.set_xlim3d((0,128))
-  ax.set_ylim3d((0,128))
-  ax.set_zlim3d((0,128))
+  ax.set_xlim3d((0,96))
+  ax.set_ylim3d((0,96))
+  ax.set_zlim3d((0,96))
   plt.show()
  
 def rotateImage(image, angle):
@@ -113,7 +113,7 @@ def wing_boundary_3d(angle_1, angle_2, N_1, N_2, sweep_slope, end_length, A_1, A
 
   # make lines for upper and lower wing profile
   old_shape = shape
-  new_shape = (5*shape[0], 5*shape[1], 5*shape[2])
+  new_shape = (3*shape[0], 3*shape[1], 3*shape[2])
   if boundary is None:
     boundary = np.zeros(new_shape)
 
@@ -135,7 +135,6 @@ def wing_boundary_3d(angle_1, angle_2, N_1, N_2, sweep_slope, end_length, A_1, A
 
   z_1_store = 0.0
   z_2_store = 0.0
-  t = time.time()
   for i in xrange(len(A_1)):
     for j in xrange(len(B)):
       constant =   (np.power(phi_1,float(i))*np.power((1.0-phi_1),float(len(A_1)-i))
@@ -148,35 +147,40 @@ def wing_boundary_3d(angle_1, angle_2, N_1, N_2, sweep_slope, end_length, A_1, A
                    *binomial(len(A_2), i)*binomial(len(B), j)
                    *constant
                    )
-  z_1 = z_1*z_1_store + phi_1 * d_t
-  z_2 = z_2*z_2_store - phi_2 * d_t
+  z_1 = z_1*z_1_store + phi_1 * (d_t + 0.05/old_shape[0])
+  z_2 = z_2*z_2_store - phi_2 * (d_t - 0.05/old_shape[0])
+  #z_1 = z_1*z_1_store + phi_1 * (d_t)
+  #z_2 = z_2*z_2_store - phi_2 * (d_t)
   z_2 = -z_2
-  elapsed = time.time() - t
 
   for i in xrange(new_shape[0]):
     for j in xrange(new_shape[1]/2):
+      if phi[j,i] == 0:
+        continue
+      if phi[j,i] > 1.0:
+        continue
       z_upper = int(round(np.max(10.0*z_1[j,i]) * new_shape[2] + new_shape[2]/2))
       z_lower = int(round(np.min(10.0*z_2[j,i]) * new_shape[2] + new_shape[2]/2))
+      if z_lower >= z_upper:
+        continue
       boundary[i, j+new_shape[1]/2-1, z_lower:z_upper] = 1.0
       boundary[i, -j+new_shape[1]/2-1, z_lower:z_upper] = 1.0
 
   # Danger Danger, High Voltage, Usin 2d cv2 functions on 3d shapes
-  t = time.time()
   boundary = np.swapaxes(boundary, 1, 2)
-  boundary = rotateImage(boundary, 0.2)
+  boundary = rotateImage(boundary, 0.0)
   boundary = np.swapaxes(boundary, 1, 2)
 
   boundary = cv2.resize(boundary, (old_shape[0], old_shape[1]))
   boundary = np.swapaxes(boundary, 1, 2)
   boundary = cv2.resize(boundary, (old_shape[0], old_shape[1]))
   boundary = np.swapaxes(boundary, 1, 2)
-  print(time.time() - t)
 
   boundary = np.round(boundary)
   #plt.imshow(boundary[:,:,old_shape[0]/2])
   #plt.imshow(boundary[old_shape[0]/2,:,:])
   #plt.show()
-  voxel_plot(boundary)
+  #voxel_plot(boundary)
 
   boundary = boundary.reshape(shape + [1])
 
@@ -207,16 +211,16 @@ def wing_boundary_batch(nr_params, batch_size, shape, dims):
 
 """
 t = time.time()
-_, boundary_batch = wing_boundary_batch(49, 2, [96,96,96], 3)
+_, boundary_batch = wing_boundary_batch(37, 4, [96,96,96], 3)
 print(time.time() - t)
 #_, boundary_batch = wing_boundary_batch(25, 32, [256,256], 2)
 print(boundary_batch.shape)
 for i in xrange(32):
   #plt.imshow(boundary_batch[i,:,:,0])
   #plt.show()
-  plt.imshow(boundary_batch[i,:,:,64,0])
+  plt.imshow(boundary_batch[i,:,:,48,0])
   plt.show()
-  plt.imshow(boundary_batch[i,:,64,:,0])
+  plt.imshow(boundary_batch[i,:,48,:,0])
   plt.show()
-  plt.imshow(boundary_batch[i,:,:,32,0])
+  plt.imshow(boundary_batch[i,48,:,:,0])
 """
