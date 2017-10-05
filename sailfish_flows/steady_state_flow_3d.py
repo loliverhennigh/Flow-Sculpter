@@ -108,6 +108,7 @@ class DuctSubdomain(Subdomain3D):
     self.set_node(model, self.wall_bc)
 
     # convert boundary
+    print("making boundary")
     geometry_array = model.astype(np.uint8)
     geometry_array = geometry_array[L/4+1:7*L/4+1,1:-1,1:-1]
     geometry_array = np.expand_dims(geometry_array, axis=-1)
@@ -159,14 +160,7 @@ class DuctSubdomain(Subdomain3D):
     elif vox_filename[-3:] == "npy":
       model = np.load(vox_filename)
       model = model[...,0]
-    #model = np.array(model, dtype=np.int)
-    model = np.pad(model, ((1,1,),(1,1),(1,1)), 'constant', constant_values=0)
-    #floodfill(model, 0, 0, 0)
-    plt.imshow(model[:,:,48])
-    plt.show()
-    model = np.greater(model, 0.1)
-    plt.imshow(model[:,:,48])
-    plt.show()
+    model = np.pad(model, ((1,1,),(1,1),(1,1)), 'constant', constant_values=False)
     return model
 
 class DuctSim(LBFluidSim):

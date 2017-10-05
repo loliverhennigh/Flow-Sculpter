@@ -67,16 +67,6 @@ def clean_files(filename, size):
   steady_flow_array = steady_flow_array.astype(np.float32)
   np.save(filename + "_steady_flow", steady_flow_array) 
 
-  """
-  # convert boundary
-  geometry_array = np.load(filename + "_boundary.npy")
-  geometry_array = geometry_array.astype(np.uint8)
-  geometry_array = np.swapaxes(geometry_array, 0, -1)
-  geometry_array = geometry_array[size/2+1:5*size/2+1,1:-1]
-  geometry_array = np.expand_dims(geometry_array, axis=-1)
-  np.save(filename + "_boundary", geometry_array)
-  """
-
   # clean files
   rm_files = files
   for f in rm_files:
@@ -131,10 +121,7 @@ class BoxSubdomain(Subdomain2D):
     elif vox_filename[-3:] == "npy":
       model = np.load(vox_filename)
       model = model[...,0]
-      print(model.shape)
-    model = np.pad(model, ((1,1),(1, 1)), 'constant', constant_values=0)
-    floodfill(model, 0, 0)
-    model = np.greater(model, -0.1)
+    model = np.pad(model, ((1,1),(1, 1)), 'constant', constant_values=False)
     return model
 
 class BoxSimulation(LBFluidSim):

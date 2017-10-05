@@ -23,6 +23,7 @@ class Sailfish_data:
     self.dim = dim
 
     # lists to store the datasets
+    self.solo_geometries    = []
     self.geometries    = []
     self.steady_flows = []
     self.drag_vectors = []

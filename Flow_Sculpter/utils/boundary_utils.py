@@ -113,7 +113,7 @@ def wing_boundary_3d(angle_1, angle_2, N_1, N_2, sweep_slope, end_length, A_1, A
 
   # make lines for upper and lower wing profile
   old_shape = shape
-  new_shape = (3*shape[0], 3*shape[1], 3*shape[2])
+  new_shape = (4*shape[0], 4*shape[1], 4*shape[2])
   if boundary is None:
     boundary = np.zeros(new_shape)
 
@@ -177,6 +177,8 @@ def wing_boundary_3d(angle_1, angle_2, N_1, N_2, sweep_slope, end_length, A_1, A
   boundary = np.swapaxes(boundary, 1, 2)
 
   boundary = np.round(boundary)
+  boundary[np.greater(boundary,2)] = 0 
+  boundary[np.greater(-2, boundary)] = 0 
   #plt.imshow(boundary[:,:,old_shape[0]/2])
   #plt.imshow(boundary[old_shape[0]/2,:,:])
   #plt.show()

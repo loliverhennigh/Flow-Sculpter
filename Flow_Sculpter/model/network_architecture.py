@@ -76,7 +76,6 @@ def res_generator_network(batch_size, shape, inputs=None, full_shape=None, hidde
     for j in xrange(nr_residual_blocks):
       x_i = nn.res_block(x_i, filter_size=filter_size, gated=gated, nonlinearity=nonlinearity, name="res_decode_" + str(i) + "_block_" + str(j))
   x_i = nn.conv_layer(x_i, 3, 1, 1, "final_conv")
-  print(x_i.get_shape())
   #x_i = tf.sigmoid(x_i)
 
   if full_shape is not None:

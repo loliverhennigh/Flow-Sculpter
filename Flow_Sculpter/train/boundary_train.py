@@ -9,6 +9,7 @@ import sys
 sys.path.append('../')
 import model.flow_net as flow_net
 from inputs.vtk_data import VTK_data
+from inputs.boundary_data_queue import Boundary_data
 from utils.experiment_manager import make_checkpoint_path
 
 import matplotlib.pyplot as plt
@@ -77,18 +78,18 @@ def train():
     graph_def = sess.graph.as_graph_def(add_shapes=True)
     summary_writer = tf.summary.FileWriter(TRAIN_DIR, graph_def=graph_def)
 
+    # make boundary dataset
+    dataset = Boundary_data("../../data/", size=FLAGS.obj_size, dim=FLAGS.dims, num_params=input_dims)
+    dataset.parse_data()
+
     # calc number of steps left to run
     run_steps = FLAGS.max_steps - int(sess.run(global_step))
     print(sess.run(global_step))
     for step in xrange(run_steps):
       current_step = sess.run(global_step)
       t = time.time()
-      input_batch, boundary_batch = flow_net.feed_dict_boundary(input_dims, FLAGS.batch_size, shape)
-      #plt.imshow(boundary_batch[0,:,:,FLAGS.obj_size/2,0])
-      #plt.show()
-      _ , loss_value, gen_boundary = sess.run([train_op, error, predicted_boundary],feed_dict={inputs_vector: input_batch, true_boundary: boundary_batch})
-      #plt.imshow(gen_boundary[0,:,:,FLAGS.obj_size/2,0])
-      #plt.show()
+      batch_params, batch_boundary = dataset.minibatch(batch_size=FLAGS.batch_size, signed_distance_function=FLAGS.sdf)
+      _ , loss_value, gen_boundary = sess.run([train_op, error, predicted_boundary],feed_dict={inputs_vector: batch_params, true_boundary: batch_boundary})
       elapsed = time.time() - t
 
       assert not np.isnan(loss_value), 'Model diverged with loss = NaN'
@@ -98,7 +99,7 @@ def train():
         print("time per batch is " + str(elapsed))
 
       if current_step%1000 == 0:
-        summary_str = sess.run(summary_op, feed_dict={inputs_vector: input_batch, true_boundary: boundary_batch})
+        summary_str = sess.run(summary_op, feed_dict={inputs_vector: batch_params, true_boundary: batch_boundary})
         summary_writer.add_summary(summary_str, current_step) 
         checkpoint_path = os.path.join(TRAIN_DIR, 'model.ckpt')
         saver.save(sess, checkpoint_path, global_step=global_step)  

@@ -64,7 +64,7 @@ tf.app.flags.DEFINE_bool('sdf', False,
 # model params boundary
 tf.app.flags.DEFINE_string('boundary_model', 'fc_conv',
                            """ model name to train boundary network on """)
-tf.app.flags.DEFINE_integer('nr_boundary_params', 42,
+tf.app.flags.DEFINE_integer('nr_boundary_params', 46,
                             """ number of boundary paramiters """)
 
 # params boundary learn

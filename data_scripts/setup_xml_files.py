@@ -23,12 +23,10 @@ np.random.seed(0)
 # params to run
 #base_path = os.path.abspath("../data/") + "/"
 base_path = os.path.abspath("../data/") + "/"
-num_flips_per_type = 4
-num_samples_per_type = 0
-num_wingfoil_sim = 5000
+num_wingfoil_sim = 100
 num_wingfoil_params = 46
 sizes_2d = [64, 128, 256]
-sizes_3d = [96]
+sizes_3d = [32, 64, 96]
 nr_threads = 10
 
 # helper for saving xml
@@ -119,7 +117,6 @@ except:
 ids = 0
 for i in tqdm(xrange(num_wingfoil_sim)):
   ids += 1
-  #for dim in [2]:
   for dim in [2,3]:
     if dim == 2:
       sizes = sizes_2d
@@ -128,6 +125,8 @@ for i in tqdm(xrange(num_wingfoil_sim)):
     for k in xrange(len(sizes)):
       # put on worker thread
       queue.put((ids, dim, k, sizes))
+
+queue.join()
       
 # save main xml file
 tree = etree.ElementTree(main_root)
