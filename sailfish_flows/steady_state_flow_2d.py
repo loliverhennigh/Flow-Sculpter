@@ -130,6 +130,7 @@ class BoxSubdomain(Subdomain2D):
     # if the file is .npy assume that it is 2D 0s and 1s
     elif vox_filename[-3:] == "npy":
       model = np.load(vox_filename)
+      model = model[...,0]
       print(model.shape)
     model = np.pad(model, ((1,1),(1, 1)), 'constant', constant_values=0)
     floodfill(model, 0, 0)
@@ -161,7 +162,7 @@ class BoxSimulation(LBFluidSim):
   def modify_config(cls, config):
     config.lat_nx = config.vox_size*8
     config.lat_ny = config.vox_size*2
-    config.visc   = 0.10 * (config.lat_ny/100.0)
+    config.visc   = 0.03 * (config.lat_ny/100.0)
     print(config.visc)
 
   def __init__(self, *args, **kwargs):

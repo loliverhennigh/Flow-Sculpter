@@ -1,6 +1,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.mlab as mlab
 from lxml import etree
 import glob
 from tqdm import *
@@ -14,7 +15,7 @@ from Queue import Queue
 import threading
 
 class Sailfish_data:
-  def __init__(self, base_dir, size, dim, train_test_split=.8, max_queue=150, nr_threads=2):
+  def __init__(self, base_dir, size, dim, train_test_split=.8, max_queue=20, nr_threads=2):
 
     # base dir where all the xml files are
     self.base_dir = base_dir
@@ -145,11 +146,19 @@ class Sailfish_data:
     """
     return batch_boundary, batch_data
 
-#dataset = Sailfish_data("../../data/", size=32, dim=3)
+dataset = Sailfish_data("../../data/", size=96, dim=3)
+dataset.parse_data()
+max_x = []
+for i in xrange(100):
+  batch_boundary, batch_data = dataset.minibatch(batch_size=1)
+  max_x.append(np.max(np.abs(batch_data[0,:-1,:,:,0] - batch_data[0,1:,:,:,0])))
+max_x = np.array(max_x)
+print(max_x)
+n, bins, patches = plt.hist(max_x, 50, normed=1, facecolor='green')
+plt.show()
 """
 dataset = Sailfish_data("../../data/", size=256, dim=2)
 dataset.parse_data()
-batch_boundary, batch_data = dataset.minibatch(batch_size=100)
 for i in xrange(100):
   batch_boundary, batch_data = dataset.minibatch(batch_size=100)
   print(batch_data.shape)
