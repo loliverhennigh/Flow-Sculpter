@@ -25,7 +25,7 @@ np.random.seed(0)
 base_path = os.path.abspath("../data/") + "/"
 num_wingfoil_sim = 5000
 num_wingfoil_params = 46
-sizes_2d = [64, 128]
+sizes_2d = [64, 128, 256]
 sizes_3d = []
 nr_threads = 10
 

@@ -9,19 +9,12 @@ import glob
 import subprocess
 
 dim = 2
-size = 64
+size = 256
 #dim = 3
 #size = 32
 
 def initialize_script(xml_file):
-  tree = etree.parse(xml_file)
-  root = tree.getroot()
-  base_path = root.find("save_path").text
-  with open(os.devnull, 'w') as devnull:
-    try:
-      subprocess.check_call(("rm -r " + base_path).split(' '), stdout=devnull, stderr=devnull)
-    except:
-      pass
+  pass
 
 def finish_script(xml_file):
   tree = etree.parse(xml_file)
@@ -51,7 +44,7 @@ def should_run(root):
   else:
     return True
   
-q = que.Que([0,0,1,1])
+q = que.Que([0,1])
 q.enque_file("../data/experiment_runs_master.xml", should_run, initialize_script, finish_script)
 q.start_que_runner()
 

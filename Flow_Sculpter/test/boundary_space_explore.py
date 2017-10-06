@@ -84,7 +84,7 @@ def evaluate():
     force = calc_force(boundary, predicted_flow[:,:,:,2:3])
     drag_x = tf.reduce_sum(force[:,:,:,0])
     drag_y = tf.reduce_sum(force[:,:,:,1])
-    drag_ratio = (drag_x/drag_y)
+    drag_ratio = (drag_y/drag_x)
 
     # init graph
     init = tf.global_variables_initializer()

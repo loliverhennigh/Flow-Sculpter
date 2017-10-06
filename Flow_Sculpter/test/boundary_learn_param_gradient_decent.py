@@ -45,10 +45,11 @@ def run_flow_solver(params, boundary, flow, sess, drag_lift_ratio_op):
                                   params[i,3:int((FLAGS.nr_boundary_params-4)/2)],
                                   params[i,int((FLAGS.nr_boundary_params-4)/2):-1],
                                   params[i,-1], FLAGS.dims*[FLAGS.obj_size])
-    wing_image = np.array(wing_image[:,:,0], dtype=np.int)
+    wing_image = np.greater(wing_image, 0.5)
+    
+
     print("wing image")
     print(wing_image.shape)
-    wing_image = np.swapaxes(wing_image, 0, -1)
     #wing_image = np.rot90(wing_image, 1)
     np.save(wing_filename,wing_image)
 
@@ -67,6 +68,8 @@ def run_flow_solver(params, boundary, flow, sess, drag_lift_ratio_op):
     wing_flow = np.load("./figs/flow_simulation_store/param_"  + str(i) + "/step_steady_flow.npy")
     wing_flow = np.expand_dims(wing_flow, axis=0)
     wing_flow = wing_flow.astype(np.float32)
+    print(wing_boundary.shape)
+    print(wing_flow.shape)
 
     #plt.imshow(wing_flow[0,:,:,2])
     #plt.show()
@@ -132,9 +135,9 @@ def evaluate():
     solver_drag_x = tf.reduce_sum(solver_force[:,:,:,0], axis=[1,2])/batch_size
     solver_drag_y = tf.reduce_sum(solver_force[:,:,:,1], axis=[1,2])/batch_size
     
-    drag_lift_ratio        = (drag_x/drag_y)
-    sharp_drag_lift_ratio  = (sharp_drag_x/sharp_drag_y)
-    solver_drag_lift_ratio = (solver_drag_x/solver_drag_y)
+    drag_lift_ratio        = -(drag_y/drag_x)
+    sharp_drag_lift_ratio  = -(sharp_drag_y/sharp_drag_x)
+    solver_drag_lift_ratio = -(solver_drag_y/solver_drag_x)
 
     # loss
     loss = -tf.reduce_sum(drag_lift_ratio)
@@ -184,7 +187,7 @@ def evaluate():
       plot_error[i] = np.sum(l)
       plot_drag_x[i] = np.sum(d_x[fig_pos])
       plot_drag_y[i] = np.sum(d_y[fig_pos])
-      if ((i+1) % 5 == 0) or i == run_time-1:
+      if ((i+1) % 10 == 0) or i == run_time-1:
         # make video with opencv
         s_params = sess.run(params_op)
         wing_boundary = []
@@ -194,7 +197,7 @@ def evaluate():
                                            s_params[p,int((FLAGS.nr_boundary_params-4)/2):-1],
                                            s_params[p,-1], FLAGS.dims*[FLAGS.obj_size]))
         wing_boundary = np.stack(wing_boundary)
-        wing_boundary = np.pad(wing_boundary, [[0,0],[128,128],[128,128],[0,0]], 'constant', constant_values=0.0)
+        wing_boundary = np.pad(wing_boundary, [[0,0],[32,32],[32,32],[0,0]], 'constant', constant_values=0.0)
         #print(sharp_boundary.get_shape())
         #print(wing_boundary.shape)
         p_flow, p_boundary, d_l_ratio, sharp_d_l_ratio = sess.run([sharp_predicted_flow, boundary, drag_lift_ratio, sharp_drag_lift_ratio],feed_dict={sharp_boundary: wing_boundary})
@@ -218,13 +221,13 @@ def evaluate():
         plt.xlabel("step")
         plt.legend()
         a = fig.add_subplot(1,5,5)
-        plt.plot(-set_params[:,0], d_l_ratio, 'bo', label="lift/drag Network")
-        plt.plot(-set_params[:,0], sharp_d_l_ratio, 'ro', label="lift/drag Sharp")
+        plt.plot(-np.degrees(set_params[:,0]), d_l_ratio, 'bo', label="lift/drag Network")
+        plt.plot(-np.degrees(set_params[:,0]), sharp_d_l_ratio, 'ro', label="lift/drag Sharp")
         if i == run_time-1:
           solver_d_l_ratio = run_flow_solver(sess.run(params_op), solver_boundary, solver_flow, sess, solver_drag_lift_ratio)
-          plt.plot(-set_params[:,0], solver_d_l_ratio, 'ro', label="lift/drag Solver")
-        plt.xlabel("angle of attack")
-        plt.xlim(min(-set_params[:,0])-0.03, max(-set_params[:,0])+0.03)
+          plt.plot(-np.degrees(set_params[:,0]), solver_d_l_ratio, 'go', label="lift/drag Solver")
+        plt.xlabel("Angle of Attack Degrees")
+        plt.xlim(min(-np.degrees(set_params[:,0]))-3, max(-np.degrees(set_params[:,0]))+3)
         plt.legend()
         plt.suptitle("Using Gradient Decent")
         plt.savefig("./figs/boundary_learn_image_store/plot_" + str(i).zfill(5) + ".png")

@@ -142,11 +142,13 @@ class Sailfish_data:
     batch_data = np.stack(batch_data, axis=0)
    
     # maybe flip batch 
+    """
     flip = np.random.randint(0,2)
     if flip == 1:
       batch_data = np.flip(batch_data, axis=2)
       batch_data[...,1] = -batch_data[...,1]
       batch_boundary = np.flip(batch_boundary, axis=2)
+    """
    
     return batch_boundary, batch_data
 

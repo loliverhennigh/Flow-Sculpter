@@ -95,9 +95,9 @@ def evaluate():
     t_max_vel_y_data = []
  
     #for run in filenames:
-    for i in tqdm(xrange(600)):
+    for i in tqdm(xrange(60)):
       # read in boundary
-      batch_boundary, batch_flow = dataset.minibatch(train=True, batch_size=batch_size, signed_distance_function=FLAGS.sdf)
+      batch_boundary, batch_flow = dataset.minibatch(train=False, batch_size=batch_size, signed_distance_function=FLAGS.sdf)
 
       # calc flow 
       p_drag_x, t_drag_x, p_drag_y, t_drag_y, p_max_vel_x, t_max_vel_x, p_max_vel_y, t_max_vel_y = sess.run([predicted_drag_x, true_drag_x, predicted_drag_y, true_drag_y, predicted_max_vel_x, true_max_vel_x, predicted_max_vel_y, true_max_vel_y],feed_dict={boundary: batch_boundary, true_flow: batch_flow})

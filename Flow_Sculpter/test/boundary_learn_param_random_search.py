@@ -102,7 +102,8 @@ def evaluate():
     drag_x = tf.reduce_sum(force[:,:,:,0], axis=[0,1,2])
     drag_y = tf.reduce_sum(force[:,:,:,1], axis=[0,1,2])
     #drag_ratio = -(drag_x/drag_y)
-    drag_ratio = drag_x
+    #drag_ratio = (drag_y/drag_x)
+    drag_ratio = drag_y
 
     # init graph
     init = tf.global_variables_initializer()
@@ -146,7 +147,7 @@ def evaluate():
         best_boundary = boundary_batch
         best_input = input_batch
       max_d_ratio[i] = np.max(np.array(d_ratio_store))
-      if i % 10 == 0:
+      if i % 100 == 0:
         # make video with opencv
         sess.run(params_op_init, feed_dict={params_op_set: best_input})
         velocity_norm_g = sess.run(predicted_flow)
