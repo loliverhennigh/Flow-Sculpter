@@ -200,7 +200,7 @@ class BoxSimulation(LBFluidSim):
           diff = np.abs(f - self.prev_f) / (np.abs(f) + 0.001)
 
           print(diff)
-          if np.all(diff < 3e-4) or (self.config.max_iters < self.iteration + 501):
+          if np.all(diff < 7e-4) or (self.config.max_iters < self.iteration + 501):
             clean_files(self.config.output, self.config.vox_size)
             runner._quit_event.set()
           self.prev_f = f

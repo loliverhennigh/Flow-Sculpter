@@ -50,15 +50,19 @@ class Sailfish_data:
     while True:
       geometry_file, steady_flow_file = self.queue.get()
 
-      # load geometry file
-      geometry_array = np.load(geometry_file)
+      try:
+        # load geometry file
+        geometry_array = np.load(geometry_file)
 
-      # load flow file
-      steady_flow_array = np.load(steady_flow_file)
+        # load flow file
+        steady_flow_array = np.load(steady_flow_file)
   
-      # add to que
-      self.queue_batches.append((geometry_array, steady_flow_array))
-      self.queue.task_done()
+        # add to que
+        self.queue_batches.append((geometry_array, steady_flow_array))
+        self.queue.task_done()
+
+      except:
+        self.queue.task_done()
   
   def parse_data(self): 
     # reads in all xml data into lists
