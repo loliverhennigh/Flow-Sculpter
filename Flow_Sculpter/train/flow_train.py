@@ -42,12 +42,12 @@ def train():
         # make inputs
         boundary, true_flow = flow_net.inputs_flow(FLAGS.batch_size, shape, FLAGS.dims) 
         # create and unrap network
-        predicted_flow = flow_net.inference_flow(boundary, FLAGS.keep_prob) 
+        predicted_flow = flow_net.inference_network(boundary, network_type="heat", keep_prob=FLAGS.keep_prob) 
         # if i is one then get variables to store all trainable params and 
         if i == 0:
           all_params = tf.trainable_variables()
         # calc error
-        error = flow_net.loss_flow(true_flow, predicted_flow)
+        error = flow_net.loss_flow(true_flow, predicted_flow, boundary)
         loss_gen.append(error)
         # store grads
         grads.append(tf.gradients(loss_gen[i], all_params))

@@ -23,10 +23,8 @@ class Sailfish_data:
     self.dim = dim
 
     # lists to store the datasets
-    self.solo_geometries    = []
     self.geometries    = []
     self.steady_flows = []
-    self.drag_vectors = []
 
     # train vs test split (numbers under this value are in train, over in test)
     self.train_test_split = train_test_split

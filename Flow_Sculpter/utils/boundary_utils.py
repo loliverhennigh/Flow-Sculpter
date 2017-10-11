@@ -69,6 +69,18 @@ def get_random_params(nr_params, dims):
   params = (params * params_range_upper) + params_range_lower
   return params
 
+def get_params_range_heat_sink(nr_params):
+  params_range_lower = np.array(nr_params*[0.0])
+  params_range_upper = np.array(nr_params*[1.0])
+  return params_range_lower, params_range_upper
+ 
+def get_random_params_heat_sink(nr_params):
+  params = np.random.rand((nr_params))
+  params_range_lower, params_range_upper = get_params_range_heat_sink(nr_params)
+  params_range_upper = params_range_upper - params_range_lower
+  params = (params * params_range_upper) + params_range_lower
+  return params
+
 def wing_boundary_2d(angle, N_1, N_2, A_1, A_2, d_t, shape, boundary=None):
 
   # make lines for upper and lower wing profile
@@ -183,6 +195,30 @@ def wing_boundary_3d(angle_1, angle_2, N_1, N_2, sweep_slope, end_length, A_1, A
   #plt.imshow(boundary[old_shape[0]/2,:,:])
   #plt.show()
   #voxel_plot(boundary)
+
+  boundary = boundary.reshape(shape + [1])
+
+  return boundary
+
+def heat_sink_boundary_2d(params, shape, boundary=None):
+
+  if boundary is None:
+    boundary = np.zeros(shape) + 1.0
+
+  # set aluminum piece
+  radius = shape[0]/8
+  pos = (shape[0]/2, shape[1])
+  pos_1 = (1*shape[0]/8, shape[1]-(shape[0]/16))
+  pos_2 = (7*shape[0]/8, shape[1])
+  cv2.rectangle(boundary, pos_1, pos_2, (0.0), -1)
+
+  # set fins
+  params = len(params)*params/np.sum(params)
+  for i in xrange(len(params)):
+    x_pos = i*3*shape[0]/(4*len(params)) + (shape[0]/8) + 3
+    pos_1 = (x_pos, shape[1] - shape[0]/16)
+    pos_2 = (x_pos, shape[1] - int(1*shape[1]/4 * params[i]))
+    cv2.line(boundary, pos_1, pos_2, (0.0), 2)
 
   boundary = boundary.reshape(shape + [1])
 

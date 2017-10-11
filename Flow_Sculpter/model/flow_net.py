@@ -12,7 +12,6 @@ Summary of available functions:
 import tensorflow as tf
 import numpy as np
 import network_architecture
-import inputs.flow_input as flow_input
 import model.loss as loss
 import utils.boundary_utils as boundary_utils
 import model.nn as nn
@@ -25,7 +24,11 @@ FLAGS = tf.app.flags.FLAGS
 # Training params
 tf.app.flags.DEFINE_string('base_dir_flow', '../checkpoints_flow',
                             """dir to store trained flow net """)
-tf.app.flags.DEFINE_string('base_dir_boundary', '../checkpoints_boundary',
+tf.app.flags.DEFINE_string('base_dir_heat', '../checkpoints_heat',
+                            """dir to store trained flow net """)
+tf.app.flags.DEFINE_string('base_dir_boundary_flow', '../checkpoints_boundary_flow',
+                            """dir to store trained net boundary """)
+tf.app.flags.DEFINE_string('base_dir_boundary_heat', '../checkpoints_boundary_heat',
                             """dir to store trained net boundary """)
 tf.app.flags.DEFINE_integer('batch_size', 4,
                             """ training batch size """)
@@ -35,7 +38,7 @@ tf.app.flags.DEFINE_integer('max_steps',  3000000,
                             """ max number of steps to train """)
 tf.app.flags.DEFINE_float('keep_prob', 1.0,
                             """ keep probability for dropout """)
-tf.app.flags.DEFINE_float('lr', 1e-4,
+tf.app.flags.DEFINE_float('lr', 2e-5,
                             """ r dropout """)
 tf.app.flags.DEFINE_string('shape', '512x512',
                             """ shape of flow """)
@@ -89,6 +92,16 @@ def inputs_flow(batch_size, shape, dims):
   image_summary('boundarys', boundary)
   return boundary, true_flow
 
+def inputs_heat(batch_size, shape, dims):
+  """makes input vector
+  Return:
+    x: input vector, may be filled 
+  """
+  boundary  = tf.placeholder(tf.float32, [batch_size] + shape + [1])
+  true_flow = tf.placeholder(tf.float32, [batch_size] + shape + [1])
+  image_summary('boundarys', boundary)
+  return boundary, true_flow
+
 def inputs_boundary(input_dims, batch_size, shape):
   """makes input vector
   Return:
@@ -99,7 +112,7 @@ def inputs_boundary(input_dims, batch_size, shape):
   image_summary('boundarys', boundary)
   return inputs, boundary
 
-def inputs_boundary_learn(batch_size=1, set_params=None, set_params_pos=None, noise_std=None):
+def inputs_boundary_learn(batch_size=1, network_type="flow", set_params=None, set_params_pos=None, noise_std=None):
   
   # make params
   params_op_set = tf.placeholder(tf.float32, [batch_size, FLAGS.nr_boundary_params])
@@ -114,7 +127,10 @@ def inputs_boundary_learn(batch_size=1, set_params=None, set_params_pos=None, no
   params_op = nn.hard_sigmoid(params_op)
 
   # Now bound params to appropriote variable ranges
-  params_range_lower, params_range_upper = boundary_utils.get_params_range(FLAGS.nr_boundary_params, FLAGS.dims)
+  if network_type == "flow":
+    params_range_lower, params_range_upper = boundary_utils.get_params_range(FLAGS.nr_boundary_params, FLAGS.dims)
+  elif network_type == "heat":
+    params_range_lower, params_range_upper = boundary_utils.get_params_range_heat_sink(FLAGS.nr_boundary_params)
   params_range_upper = np.expand_dims(params_range_upper, axis=0)
   params_range_lower = np.expand_dims(params_range_lower, axis=0)
   params_range_upper = params_range_upper - params_range_lower
@@ -139,41 +155,50 @@ def inputs_boundary_learn(batch_size=1, set_params=None, set_params_pos=None, no
 
   return params_op, params_op_init, params_op_set, squeeze_loss
 
-def feed_dict_boundary(input_dims, batch_size, shape, set_params=None):
-  #input_batch, boundary_batch = boundary_utils.wing_boundary_batch_2d(input_dims, batch_size, shape, set_angle=set_angle)
-  input_batch, boundary_batch = boundary_utils.wing_boundary_batch(input_dims, batch_size, shape, FLAGS.dims)
-  return input_batch, boundary_batch
-
-def inference_flow(boundary, keep_prob=FLAGS.keep_prob):
+def inference_network(boundary, network_type="flow", keep_prob=FLAGS.keep_prob):
   """Builds network.
   Args:
     inputs: input to network 
     keep_prob: dropout layer
   """
-  with tf.variable_scope("flow_network") as scope:
-    if FLAGS.flow_model == 'residual_network':
-      predicted_flow = network_architecture.res_u_template(boundary, 
-                                                           keep_prob=1.0,
-                                                           filter_size=FLAGS.filter_size,
-                                                           nr_downsamples=FLAGS.nr_downsamples,
-                                                           nr_residual_blocks=FLAGS.nr_residual_blocks,
-                                                           gated=FLAGS.gated, 
-                                                           nonlinearity=FLAGS.nonlinearity)
-    if FLAGS.flow_model == 'xiao_network':
-      predicted_flow = network_architecture.xiao_template(boundary)
-  return predicted_flow
+  if network_type == "flow":
+    with tf.variable_scope("flow_network") as scope:
+      if FLAGS.flow_model == 'residual_network':
+        prediction = network_architecture.res_u_template(boundary, 
+                                                         output_dim=len(boundary.get_shape())-1,
+                                                         keep_prob=1.0,
+                                                         filter_size=FLAGS.filter_size,
+                                                         nr_downsamples=FLAGS.nr_downsamples,
+                                                         nr_residual_blocks=FLAGS.nr_residual_blocks,
+                                                         gated=FLAGS.gated, 
+                                                         nonlinearity=FLAGS.nonlinearity)
+      if FLAGS.flow_model == 'xiao_network':
+        prediction = network_architecture.xiao_template(boundary)
+  elif network_type == "heat":
+    with tf.variable_scope("heat_network") as scope:
+        prediction = network_architecture.res_u_template(boundary, 
+                                                         output_dim=1,
+                                                         keep_prob=1.0,
+                                                         filter_size=FLAGS.filter_size,
+                                                         nr_downsamples=FLAGS.nr_downsamples,
+                                                         nr_residual_blocks=FLAGS.nr_residual_blocks,
+                                                         gated=FLAGS.gated, 
+                                                         nonlinearity=FLAGS.nonlinearity)
+
+  return prediction
 
 def inference_boundary(batch_size, shape, inputs, full_shape=None):
   with tf.variable_scope("boundary_network") as scope:
     boundary_gen = network_architecture.res_generator_template(batch_size, shape, inputs, full_shape)
   return boundary_gen
 
-def loss_flow(true_flow, predicted_flow):
+def loss_flow(true_flow, predicted_flow, boundary):
   loss_total = 0 
   loss_mse  = tf.nn.l2_loss(true_flow - predicted_flow)/(FLAGS.batch_size*FLAGS.nr_gpus)
-  loss_grad = loss.loss_gradient_difference(true_flow, predicted_flow)/(FLAGS.batch_size*FLAGS.nr_gpus)
+  loss_force = 100.0*loss.loss_pressure_difference(true_flow, predicted_flow, boundary)/(FLAGS.batch_size*FLAGS.nr_gpus)
+  #loss_grad = loss.loss_gradient_difference(true_flow, predicted_flow)/(FLAGS.batch_size*FLAGS.nr_gpus)
   #loss_total = loss_mse + loss_grad
-  loss_total = loss_mse
+  loss_total = loss_mse + loss_force
 
   # image summary
   difference_i = tf.abs(true_flow - predicted_flow)
@@ -192,7 +217,25 @@ def loss_flow(true_flow, predicted_flow):
   # loss summary
   with tf.device('/cpu:0'):
     tf.summary.scalar('loss_mse', loss_mse)
-    tf.summary.scalar('loss_grad', loss_grad)
+    tf.summary.scalar('loss_force', loss_force)
+
+  return loss_total
+
+def loss_heat(true_heat, predicted_heat):
+  loss_total = 0 
+  loss_mse  = tf.nn.l2_loss(true_heat - predicted_heat)/(FLAGS.batch_size*FLAGS.nr_gpus)
+  loss_total = loss_mse
+
+  # image summary
+  difference_i = tf.abs(true_heat - predicted_heat)
+  difference_i = tf.expand_dims(tf.reduce_sum(difference_i, axis=3), axis=3)
+  image_summary('difference', difference_i)
+  image_summary('heat_true', true_heat)
+  image_summary('heat_predicted', predicted_heat)
+
+  # loss summary
+  with tf.device('/cpu:0'):
+    tf.summary.scalar('loss_mse', loss_mse)
 
   return loss_total
 
@@ -216,7 +259,7 @@ def loss_boundary(true_boundary, generated_boundary):
   return loss_total
 
 def train(total_loss, lr, train_type="flow_network", global_step=None, variables=None):
-   if train_type == "flow_network" or train_type == "boundary_network":
+   if train_type == "flow_network" or train_type == "boundary_network" or train_type == "heat_network":
      train_op = tf.train.AdamOptimizer(lr).minimize(total_loss, global_step)
    elif train_type == "boundary_params":
      train_op = tf.train.MomentumOptimizer(lr, 0.9).minimize(total_loss, var_list=variables)

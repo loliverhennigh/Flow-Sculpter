@@ -5,6 +5,7 @@
 import tensorflow as tf
 import numpy as np
 from divergence import *
+from pressure import calc_force
 
 
 FLAGS = tf.app.flags.FLAGS
@@ -14,7 +15,12 @@ def loss_mse(true, generated):
   loss = tf.nn.l2_loss(true - generated)
   return loss
 
-""" 
+def loss_pressure_difference(true, generated, boundary):
+  true_force = calc_force(boundary, true[...,-1:])
+  generated_force = calc_force(boundary, generated[...,-1:])
+  loss = tf.nn.l2_loss(true_force - generated_force)
+  return loss
+
 def loss_divergence(true_field, generated_field):
   if len(true_field.get_shape()) == 5:
     true_field_div = spatial_divergence_2d(true_field)
@@ -24,7 +30,6 @@ def loss_divergence(true_field, generated_field):
     generated_field_div = spatial_divergence_3d(generated_field)
   loss = tf.abs(tf.nn.l2_loss(true_field_div) - tf.nn.l2_loss(generated_field_div))
   return loss
-"""
 
 def loss_gradient_difference(true, generated):
   # seen in here https://arxiv.org/abs/1511.05440

@@ -9,7 +9,9 @@ import glob
 import subprocess
 
 dim = 2
-size = 256
+size = 128
+#sim_name = "wing"
+sim_name = "heat_sink"
 #dim = 3
 #size = 32
 

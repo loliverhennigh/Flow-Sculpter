@@ -3,7 +3,7 @@ import tensorflow as tf
 import numpy as np
 import nn
 
-def res_u_network(inputs, keep_prob=1.0, filter_size=8, nr_downsamples=4, nr_residual_blocks=3, gated=True, nonlinearity="concat_elu"):
+def res_u_network(inputs, output_dim=3, keep_prob=1.0, filter_size=8, nr_downsamples=4, nr_residual_blocks=3, gated=True, nonlinearity="concat_elu"):
   # store for as
   a = []
   # set nonlinearity
@@ -25,7 +25,7 @@ def res_u_network(inputs, keep_prob=1.0, filter_size=8, nr_downsamples=4, nr_res
     for j in xrange(nr_residual_blocks-1):
       x_i = nn.res_block(x_i, filter_size=filter_size, keep_p=keep_prob, gated=gated, nonlinearity=nonlinearity, name="res_decode_" + str(i) + "_block_" + str(j+1))
 
-  x_i = nn.conv_layer(x_i, 3, 1, len(inputs.get_shape())-1, "final_conv")
+  x_i = nn.conv_layer(x_i, 3, 1, output_dim, "final_conv")
   x_i = tf.tanh(x_i)
   return x_i
 
