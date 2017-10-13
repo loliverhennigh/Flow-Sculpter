@@ -42,7 +42,7 @@ def train():
         # make inputs
         boundary, true_flow = flow_net.inputs_flow(FLAGS.batch_size, shape, FLAGS.dims) 
         # create and unrap network
-        predicted_flow = flow_net.inference_network(boundary, network_type="heat", keep_prob=FLAGS.keep_prob) 
+        predicted_flow = flow_net.inference_network(boundary, network_type="flow", keep_prob=FLAGS.keep_prob) 
         # if i is one then get variables to store all trainable params and 
         if i == 0:
           all_params = tf.trainable_variables()
@@ -75,9 +75,6 @@ def train():
 
     # Build a saver
     saver = tf.train.Saver(tf.global_variables())   
-    #for i, variable in enumerate(variables):
-    #  print '----------------------------------------------'
-    #  print variable.name[:variable.name.index(':')]
 
     # Summary op
     summary_op = tf.summary.merge_all()
@@ -92,9 +89,8 @@ def train():
     sess.run(init)
  
     # init from checkpoint
-    variables_to_restore = tf.all_variables()
-    variables_to_restore_flow = [variable for i, variable in enumerate(variables_to_restore) if ("flow_network" in variable.name[:variable.name.index(':')]) or ("global_step" in variable.name[:variable.name.index(':')])]
-    saver_restore = tf.train.Saver(variables_to_restore_flow)
+    variables_to_restore = ema.variables_to_restore(tf.moving_average_variables())
+    saver_restore = tf.train.Saver(variables_to_restore)
     ckpt = tf.train.get_checkpoint_state(TRAIN_DIR)
     if ckpt is not None:
       print("init from " + TRAIN_DIR)
@@ -130,7 +126,7 @@ def train():
 
       assert not np.isnan(loss_value), 'Model diverged with loss = NaN'
 
-      if current_step%100 == 0:
+      if current_step%10 == 0:
         print("loss value at " + str(loss_value))
         print("time per batch is " + str(elapsed))
 

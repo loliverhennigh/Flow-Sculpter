@@ -42,7 +42,7 @@ success = video.open('figs/' + FLAGS.boundary_learn_loss + '_video.mov', fourcc,
 
 
 FLOW_DIR = make_checkpoint_path(FLAGS.base_dir_flow, FLAGS, network="flow")
-BOUNDARY_DIR = make_checkpoint_path(FLAGS.base_dir_boundary, FLAGS, network="boundary")
+BOUNDARY_DIR = make_checkpoint_path(FLAGS.base_dir_boundary_flow, FLAGS, network="boundary")
 print("flow dir is " + FLOW_DIR)
 print("boundary dir is " + BOUNDARY_DIR)
 
@@ -95,7 +95,7 @@ def evaluate():
 
     # Build a Graph that computes the logits predictions from the
     # inference model.
-    predicted_flow = flow_net.inference_flow(boundary, 1.0)
+    predicted_flow = flow_net.inference_network(boundary)
 
     # quantities to optimize
     force = calc_force(boundary, predicted_flow[:,:,:,2:3])

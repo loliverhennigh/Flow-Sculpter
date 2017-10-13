@@ -27,9 +27,11 @@ import matplotlib.pyplot as plt
 FLAGS = tf.app.flags.FLAGS
 
 # video init
-shape = [128, 128]
-dims = 2
-obj_size = 64
+shape = FLAGS.shape.split('x')
+shape = map(int, shape)
+batch_size= 1
+fig_pos = 0
+
 batch_size=1
 std = 0.05
 
@@ -39,7 +41,7 @@ video = cv2.VideoWriter()
 success = video.open('figs/' + FLAGS.boundary_learn_loss + '_video.mov', fourcc, 10, (2*shape[1], shape[0]), True)
 
 FLOW_DIR = make_checkpoint_path(FLAGS.base_dir_flow, FLAGS, network="flow")
-BOUNDARY_DIR = make_checkpoint_path(FLAGS.base_dir_boundary, FLAGS, network="boundary")
+BOUNDARY_DIR = make_checkpoint_path(FLAGS.base_dir_boundary_flow, FLAGS, network="boundary")
 print("flow dir is " + FLOW_DIR)
 print("boundary dir is " + BOUNDARY_DIR)
 
@@ -100,12 +102,12 @@ def evaluate():
     params_op, params_op_init, params_op_set, squeeze_loss = flow_net.inputs_boundary_learn(batch_size, set_params=set_params, set_params_pos=set_params_pos, noise_std=0.001)
 
     # Make boundary
-    boundary = flow_net.inference_boundary(batch_size*set_params.shape[0], [obj_size,obj_size], params_op, full_shape=shape)
+    boundary = flow_net.inference_boundary(batch_size*set_params.shape[0], FLAGS.dims*[FLAGS.obj_size], params_op, full_shape=shape)
     sharp_boundary = tf.round(boundary)
 
     # predict steady flow on boundary
-    predicted_flow = flow_net.inference_flow(boundary, 1.0)
-    predicted_sharp_flow = flow_net.inference_flow(sharp_boundary, 1.0)
+    predicted_flow = flow_net.inference_network(boundary)
+    predicted_sharp_flow = flow_net.inference_network(sharp_boundary)
 
     # quantities to optimize
     force = calc_force(boundary, predicted_flow[:,:,:,2:3])

@@ -51,7 +51,7 @@ def evaluate():
 
     # Build a Graph that computes the logits predictions from the
     # inference model.
-    predicted_flow = flow_net.inference_flow(boundary, 1.0)
+    predicted_flow = flow_net.inference_network(boundary, network_type="flow", keep_prob=FLAGS.keep_prob)
 
     # predict force
     predicted_force = calc_force(boundary, predicted_flow[...,2:3])

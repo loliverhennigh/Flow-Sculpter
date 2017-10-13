@@ -27,13 +27,15 @@ def res_u_network(inputs, output_dim=3, keep_prob=1.0, filter_size=8, nr_downsam
 
   x_i = nn.conv_layer(x_i, 3, 1, output_dim, "final_conv")
   x_i = tf.tanh(x_i)
+  if output_dim > 1:
+    x_i = x_i * (-inputs + 1.0)
   return x_i
 
 # res u net template
 res_u_template = tf.make_template('mini_res_u_template', res_u_network)
 
 def xiao_network(inputs):
-  # this network should never be used and only works of 256x256
+  # this network should never be used and only works of 512x512
   x_i = inputs
   nonlinearity = nn.set_nonlinearity("relu")
   x_i = nn.conv_layer(x_i, 8, 8, 128, "conv_1", nonlinearity)
@@ -41,17 +43,19 @@ def xiao_network(inputs):
   x_i = nn.fc_layer(x_i, 1024, "fc", nonlinearity, flat=True)
   x_i = tf.expand_dims(x_i, axis=1)
   x_i = tf.expand_dims(x_i, axis=1)
-  x_i = nn.transpose_conv_layer(x_i, 4, 4, 512, "trans_conv_1", nonlinearity)
+  x_i = nn.transpose_conv_layer(x_i, 8, 8, 512, "trans_conv_1", nonlinearity)
   x_i = nn.transpose_conv_layer(x_i, 8, 8, 256, "trans_conv_2", nonlinearity)
-  x_i = nn.transpose_conv_layer(x_i, 2, 2,  32, "trans_conv_3", nonlinearity)
-  x_i = nn.transpose_conv_layer(x_i, 2, 2,   3, "trans_conv_4")
+  x_i = nn.transpose_conv_layer(x_i, 2, 2,  64, "trans_conv_4", nonlinearity)
+  x_i = nn.transpose_conv_layer(x_i, 2, 2,  32, "trans_conv_5", nonlinearity)
+  x_i = nn.transpose_conv_layer(x_i, 2, 2,   3, "trans_conv_6")
+  x_i = x_i * (-inputs + 1.0)
   #x_i = x_i * inputs
   return x_i
 
 # xiao template
 xiao_template = tf.make_template('xiao_template', xiao_network)
 
-def res_generator_network(batch_size, shape, inputs=None, full_shape=None, hidden_size=100, filter_size=8, nr_residual_blocks=2, gated=True, nonlinearity="concat_elu"):
+def res_generator_network(batch_size, shape, inputs=None, full_shape=None, hidden_size=512, filter_size=4, nr_residual_blocks=1, gated=True, nonlinearity="concat_elu"):
 
   # new shape
   if shape[0] % 3 == 0:

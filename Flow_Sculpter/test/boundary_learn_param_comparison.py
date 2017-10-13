@@ -27,14 +27,15 @@ import matplotlib.pyplot as plt
 FLAGS = tf.app.flags.FLAGS
 
 FLOW_DIR = make_checkpoint_path(FLAGS.base_dir_flow, FLAGS, network="flow")
-BOUNDARY_DIR = make_checkpoint_path(FLAGS.base_dir_boundary, FLAGS, network="boundary")
+BOUNDARY_DIR = make_checkpoint_path(FLAGS.base_dir_boundary_flow, FLAGS, network="boundary")
 
 shape = FLAGS.shape.split('x')
 shape = map(int, shape)
 batch_size=1
-num_runs = 5
+num_runs = 1
 std = 0.05
-temps=[.08, .02]
+#temps=[.08, .02]
+temps=[0.01, 0.04, .08, .02]
 
 # 2d or not
 def calc_mean_and_std(values):
@@ -68,9 +69,9 @@ def evaluate():
     summary_op: Summary op.
   """
 
-  num_angles = 4
+  num_angles = 9
   max_angle =  0.2
-  min_angle = -0.1
+  min_angle = -0.15
   set_params          = np.array(num_angles*[FLAGS.nr_boundary_params*[0.0]])
   set_params[:,:]     = 0.0
   set_params_pos      = np.array(num_angles*[FLAGS.nr_boundary_params*[0.0]])
@@ -91,21 +92,21 @@ def evaluate():
 
   with tf.Graph().as_default():
     # Make image placeholder
-    params_op, params_op_init, params_op_set, squeeze_loss = flow_net.inputs_boundary_learn(batch_size, set_params=set_params, set_params_pos=set_params_pos, noise_std=0.003)
+    params_op, params_op_init, params_op_set, squeeze_loss = flow_net.inputs_boundary_learn(batch_size, set_params=set_params, set_params_pos=set_params_pos, noise_std=0.01)
 
     # Make boundary
     boundary = flow_net.inference_boundary(batch_size*set_params.shape[0], FLAGS.dims*[FLAGS.obj_size], params_op, full_shape=shape)
     sharp_boundary = tf.round(boundary)
 
     # predict steady flow on boundary
-    predicted_flow = flow_net.inference_flow(boundary, 1.0)
+    predicted_flow = flow_net.inference_network(boundary)
 
     # quantities to optimize
     force = calc_force(boundary, predicted_flow[:,:,:,2:3])
     drag_x = tf.reduce_sum(force[:,:,:,0], axis=[1,2])/batch_size
     drag_y = tf.reduce_sum(force[:,:,:,1], axis=[1,2])/batch_size
     
-    drag_lift_ratio = (drag_y/drag_x)
+    drag_lift_ratio = -(drag_y/drag_x)
 
     # loss
     loss = -tf.reduce_sum(drag_lift_ratio)

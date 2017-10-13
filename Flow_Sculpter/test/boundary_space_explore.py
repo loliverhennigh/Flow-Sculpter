@@ -39,7 +39,7 @@ batch_size=1
 nr_frame_saves = 25
 
 FLOW_DIR = make_checkpoint_path(FLAGS.base_dir_flow, FLAGS, network="flow")
-BOUNDARY_DIR = make_checkpoint_path(FLAGS.base_dir_boundary, FLAGS, network="boundary")
+BOUNDARY_DIR = make_checkpoint_path(FLAGS.base_dir_boundary_flow, FLAGS, network="boundary")
 print("flow dir is " + FLOW_DIR)
 print("boundary dir is " + BOUNDARY_DIR)
 
@@ -78,7 +78,7 @@ def evaluate():
     #inputs_vector_noise = inputs_vector + tf.random_normal(shape=tf.shape(inputs_vector), mean=0.0, stddev=0.0001, dtype=tf.float32) 
     boundary = flow_net.inference_boundary(1, FLAGS.dims*[FLAGS.obj_size], inputs=inputs_vector, full_shape=shape)
     #boundary = tf.round(boundary)
-    predicted_flow = flow_net.inference_flow(boundary, 1.0)
+    predicted_flow = flow_net.inference_network(boundary, keep_prob=1.0)
 
     # quantities to optimize
     force = calc_force(boundary, predicted_flow[:,:,:,2:3])
@@ -111,7 +111,7 @@ def evaluate():
     params_np[0,0] = 0.0
     params_np[0,1] = 0.5
     params_np[0,2] = 1.0
-    params_np[0,5] = 0.0
+    params_np[0,3] = 0.0
 
     # make store vectors for values
     resolution = 1000
@@ -123,7 +123,7 @@ def evaluate():
 
     # make store dir
     for i in tqdm(xrange(resolution)):
-      params_np[0,5] += (0.3)/resolution
+      params_np[0,3] += (0.3)/resolution
       velocity_norm_g = sess.run(drag_ratio,feed_dict={inputs_vector: np.concatenate(batch_size*[params_np], axis=0)})
       if i % store_freq == 0:
         boundary_frame_store.append(sess.run(boundary,feed_dict={inputs_vector: np.concatenate(batch_size*[params_np], axis=0)})[0,int(FLAGS.obj_size/2):int(3*FLAGS.obj_size/2),int(FLAGS.obj_size/2):int(3*FLAGS.obj_size/2),0])

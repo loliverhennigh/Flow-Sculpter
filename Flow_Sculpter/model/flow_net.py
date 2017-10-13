@@ -194,11 +194,14 @@ def inference_boundary(batch_size, shape, inputs, full_shape=None):
 
 def loss_flow(true_flow, predicted_flow, boundary):
   loss_total = 0 
-  loss_mse  = tf.nn.l2_loss(true_flow - predicted_flow)/(FLAGS.batch_size*FLAGS.nr_gpus)
-  loss_force = 100.0*loss.loss_pressure_difference(true_flow, predicted_flow, boundary)/(FLAGS.batch_size*FLAGS.nr_gpus)
+  loss_pressure_mse  = tf.nn.l2_loss(true_flow[...,-1] - predicted_flow[...,-1])/(FLAGS.batch_size*FLAGS.nr_gpus)
+  loss_velocity_mse  = tf.nn.l2_loss(true_flow[...,:-1] - predicted_flow[...,:-1])/(FLAGS.batch_size*FLAGS.nr_gpus)
+  loss_force = loss.loss_pressure_difference(true_flow, predicted_flow, boundary)/(FLAGS.batch_size*FLAGS.nr_gpus)
   #loss_grad = loss.loss_gradient_difference(true_flow, predicted_flow)/(FLAGS.batch_size*FLAGS.nr_gpus)
   #loss_total = loss_mse + loss_grad
-  loss_total = loss_mse + loss_force
+  #loss_total = loss_mse + loss_force
+  #loss_total = loss_pressure_mse + loss_velocity_mse
+  loss_total = 30.0 * loss_pressure_mse + loss_velocity_mse + 300.0 * loss_force
 
   # image summary
   difference_i = tf.abs(true_flow - predicted_flow)
@@ -216,8 +219,11 @@ def loss_flow(true_flow, predicted_flow, boundary):
 
   # loss summary
   with tf.device('/cpu:0'):
-    tf.summary.scalar('loss_mse', loss_mse)
+    tf.summary.scalar('loss_total', loss_total)
+    tf.summary.scalar('loss_pressure_mse', loss_pressure_mse)
+    tf.summary.scalar('loss_velocity_mse', loss_pressure_mse)
     tf.summary.scalar('loss_force', loss_force)
+    #tf.summary.scalar('loss_force', loss_force)
 
   return loss_total
 

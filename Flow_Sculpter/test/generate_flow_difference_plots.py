@@ -41,7 +41,7 @@ def evaluate():
     boundary, true_flow = flow_net.inputs_flow(batch_size=1, shape=shape, dims=FLAGS.dims)
 
     # inference model.
-    predicted_flow = flow_net.inference_flow(boundary, 1.0)
+    predicted_flow = flow_net.inference_network(boundary, network_type="flow", keep_prob=FLAGS.keep_prob)
 
     # calc velocity norms
     predicted_flow_norm = calc_velocity_norm(predicted_flow)

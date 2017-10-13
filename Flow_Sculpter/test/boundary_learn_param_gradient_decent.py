@@ -30,7 +30,7 @@ FLAGS = tf.app.flags.FLAGS
 
 
 FLOW_DIR = make_checkpoint_path(FLAGS.base_dir_flow, FLAGS, network="flow")
-BOUNDARY_DIR = make_checkpoint_path(FLAGS.base_dir_boundary, FLAGS, network="boundary")
+BOUNDARY_DIR = make_checkpoint_path(FLAGS.base_dir_boundary_flow, FLAGS, network="boundary")
 
 shape = FLAGS.shape.split('x')
 shape = map(int, shape)
@@ -111,7 +111,7 @@ def evaluate():
 
   with tf.Graph().as_default():
     # Make image placeholder
-    params_op, params_op_init, params_op_set, squeeze_loss = flow_net.inputs_boundary_learn(batch_size, set_params=set_params, set_params_pos=set_params_pos, noise_std=0.001)
+    params_op, params_op_init, params_op_set, squeeze_loss = flow_net.inputs_boundary_learn(batch_size, set_params=set_params, set_params_pos=set_params_pos, noise_std=0.01)
 
     # Make placeholder for flow computed by lattice boltzmann solver
     solver_boundary, solver_flow = flow_net.inputs_flow(1, shape, FLAGS.dims)
@@ -121,8 +121,8 @@ def evaluate():
     boundary = flow_net.inference_boundary(batch_size*set_params.shape[0], FLAGS.dims*[FLAGS.obj_size], params_op, full_shape=shape)
 
     # predict steady flow on boundary
-    predicted_flow = flow_net.inference_flow(boundary, 1.0)
-    sharp_predicted_flow = flow_net.inference_flow(sharp_boundary, 1.0)
+    predicted_flow = flow_net.inference_network(boundary, network_type="flow", keep_prob=FLAGS.keep_prob)
+    sharp_predicted_flow = flow_net.inference_network(sharp_boundary, network_type="flow", keep_prob=FLAGS.keep_prob)
 
     # quantities to optimize
     force = calc_force(boundary, predicted_flow[:,:,:,2:3])
@@ -197,7 +197,7 @@ def evaluate():
                                            s_params[p,int((FLAGS.nr_boundary_params-4)/2):-1],
                                            s_params[p,-1], FLAGS.dims*[FLAGS.obj_size]))
         wing_boundary = np.stack(wing_boundary)
-        wing_boundary = np.pad(wing_boundary, [[0,0],[32,32],[32,32],[0,0]], 'constant', constant_values=0.0)
+        wing_boundary = np.pad(wing_boundary, [[0,0],[128,128],[128,128],[0,0]], 'constant', constant_values=0.0)
         #print(sharp_boundary.get_shape())
         #print(wing_boundary.shape)
         p_flow, p_boundary, d_l_ratio, sharp_d_l_ratio = sess.run([sharp_predicted_flow, boundary, drag_lift_ratio, sharp_drag_lift_ratio],feed_dict={sharp_boundary: wing_boundary})
