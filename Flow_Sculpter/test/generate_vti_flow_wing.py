@@ -28,7 +28,7 @@ import matplotlib.pyplot as plt
 FLAGS = tf.app.flags.FLAGS
 
 FLOW_DIR = make_checkpoint_path(FLAGS.base_dir_flow, FLAGS, network="flow")
-BOUNDARY_DIR = make_checkpoint_path(FLAGS.base_dir_boundary, FLAGS, network="boundary")
+BOUNDARY_DIR = make_checkpoint_path(FLAGS.base_dir_boundary_flow, FLAGS, network="boundary")
 
 shape = FLAGS.shape.split('x')
 shape = map(int, shape)
@@ -45,7 +45,7 @@ def evaluate():
     boundary = tf.round(boundary)
 
     # inference model.
-    predicted_flow = flow_net.inference_flow(boundary, 1.0)
+    predicted_flow = flow_net.inference_network(boundary)
 
     # init graph
     init = tf.global_variables_initializer()
