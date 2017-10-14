@@ -66,7 +66,7 @@ def _variable(name, shape, initializer):
     Variable Tensor
   """
   # getting rid of stddev for xavier ## testing this for faster convergence
-  #initializer = tf.random_normal_initializer(stddev=0.001)
+  #initializer = tf.random_normal_initializer(stddev=0.0000001)
   var = tf.get_variable(name, shape, initializer=initializer)
   _activation_summary(var)
   return var

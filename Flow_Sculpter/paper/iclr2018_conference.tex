@@ -3,6 +3,8 @@
 \usepackage{hyperref}
 \usepackage{url}
 \usepackage[pdftex]{graphicx}
+\usepackage{subfigure}
+\usepackage{wrapfig}
 \usepackage{amssymb}
 
 
@@ -99,6 +101,16 @@ A Universal Parametric Geometry Representation Method –
 
 \section{Gradient Decent on Parameter Space}
 
+\begin{figure}[h]
+\begin{center}
+%\framebox[4.0in]{$\;$}
+\includegraphics[scale=0.34]{./gradient_descent_optimization.pdf}
+%\fbox{\rule[-.5cm]{0cm}{4cm} \rule[-.5cm]{4cm}{0cm}}
+\end{center}
+\caption{Illustration of Proposed Gradient Decent Method}
+\end{figure}
+
+
 Our automated design optimization problem can be viewed in concrete terms as maximing some desired fitness function $F(x)$ where $F:X \rightarrow \mathbb{R}$ for some space $X$ of design parameters.
 
 \begin{equation}
@@ -121,6 +133,24 @@ In the following sections we subject our method and model to a variety of test. 
 
 \subsection{Heat Sink Optimization}
 
+\begin{figure}[!t]
+%\begin{center}
+\includegraphics[scale=0.30]{../test/figs/heat_learn_gradient_decent.jpeg}
+%\subfigure{\includegraphics[scale=0.35]{../test/figs/heat_learn_gradient_decent.jpeg}}
+%\subfigure{\includegraphics[scale=0.25]{../test/figs/heat_learn_comparison.jpeg}}
+%\end{center}
+\caption{Flow}
+\end{figure}
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[scale=0.35]{../test/figs/heat_learn_comparison.jpeg}
+\end{center}
+\caption{Flow}
+\end{figure}
+
+
+
 
 
 \subsection{Flow Prediction Accuracy}
@@ -129,36 +159,56 @@ Steady state heat diffusion proved to be an extremely simple problem for our net
 
 As mentioned before, our model significantly out performs priour work predicting steady state fluid flow. 
 
-\begin{figure}[h]
+\begin{figure}[!t]
 \begin{center}
 %\framebox[4.0in]{$\;$}
-\includegraphics[scale=0.15]{../test/figs/generated_flow_difference.jpeg}
+\includegraphics[scale=0.35]{../test/figs/generated_flow_difference.jpeg}
 %\fbox{\rule[-.5cm]{0cm}{4cm} \rule[-.5cm]{4cm}{0cm}}
 \end{center}
-\caption{Flow}
+\caption{Flow Accuracy}
+\label{flow_accuracy}
 \end{figure}
 
 \begin{figure}[h]
 \begin{center}
 %\framebox[4.0in]{$\;$}
-\includegraphics[scale=0.14]{../test/figs/flow_accuracy_2d.jpeg}
+\includegraphics[scale=0.34]{../test/figs/flow_accuracy_2d.jpeg}
 %\fbox{\rule[-.5cm]{0cm}{4cm} \rule[-.5cm]{4cm}{0cm}}
 \end{center}
 \caption{Flow}
 \end{figure}
-
-\begin{figure}[h]
-\begin{center}
-%\framebox[4.0in]{$\;$}
-\includegraphics[scale=0.45]{./appendix_flow_net.pdf}
-%\fbox{\rule[-.5cm]{0cm}{4cm} \rule[-.5cm]{4cm}{0cm}}
-\end{center}
-\caption{Flow}
-\end{figure}
-
-
 
 \subsection{Automated Design of 2D and 3D Airfoils}
+
+\begin{figure}[h]
+\begin{center}
+%\framebox[4.0in]{$\;$}
+\includegraphics[scale=0.34]{../test/figs/boundary_space_explore.jpeg}
+%\fbox{\rule[-.5cm]{0cm}{4cm} \rule[-.5cm]{4cm}{0cm}}
+\end{center}
+\caption{Flow}
+\end{figure}
+
+\begin{figure}[h]
+\begin{center}
+%\framebox[4.0in]{$\;$}
+\includegraphics[scale=0.34]{../test/figs/learn_gradient_descent.jpeg}
+%\fbox{\rule[-.5cm]{0cm}{4cm} \rule[-.5cm]{4cm}{0cm}}
+\end{center}
+\caption{Flow}
+\end{figure}
+
+\begin{figure}[h]
+\begin{center}
+%\framebox[4.0in]{$\;$}
+\includegraphics[scale=0.34]{../test/figs/learn_comparsion.jpeg}
+%\fbox{\rule[-.5cm]{0cm}{4cm} \rule[-.5cm]{4cm}{0cm}}
+\end{center}
+\caption{Flow}
+\end{figure}
+
+
+
 
 
 \section{Conclusion}
@@ -191,5 +241,24 @@ This work was made possible through the \url{http://aigrant.org} run by Nat Frie
 
 \bibliography{iclr2018_conference}
 \bibliographystyle{iclr2018_conference}
+
+\section{Appendix}
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[scale=0.15]{../test/figs/heat_accuracy.jpeg}
+\end{center}
+\caption{Flow}
+\end{figure}
+
+
+\begin{figure}[h]
+\begin{center}
+%\framebox[4.0in]{$\;$}
+\includegraphics[scale=0.45]{./appendix_flow_net.pdf}
+%\fbox{\rule[-.5cm]{0cm}{4cm} \rule[-.5cm]{4cm}{0cm}}
+\end{center}
+\caption{Flow}
+\end{figure}
 
 \end{document}

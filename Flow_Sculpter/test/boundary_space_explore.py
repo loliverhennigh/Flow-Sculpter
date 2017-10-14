@@ -45,19 +45,13 @@ print("boundary dir is " + BOUNDARY_DIR)
 
 def tile_frames(frames):
 
-  print(frames[0].shape)
   nr_frames = len(frames)
-  print(nr_frames)
   height = int(np.sqrt(nr_frames))
-  print(height)
   width  = int(np.sqrt(nr_frames))
   new_frames = []
   for i in xrange(height):
-    new_frames.append(np.concatenate(frames[i*height:(i+1)*height], axis=0))
-    print(np.concatenate(frames[i*height:(i+1)*height], axis=0).shape)
-  print(new_frames[0].shape)
-  new_frames = np.concatenate(new_frames, axis=1)
-  print(new_frames.shape)
+    new_frames.append(np.concatenate(frames[i*height:(i+1)*height], axis=1))
+  new_frames = np.concatenate(new_frames, axis=0)
   return new_frames
 
 def evaluate():
@@ -139,10 +133,10 @@ def evaluate():
     a = fig.add_subplot(1,2,2)
     #plt.imshow(np.concatenate(boundary_frame_store, axis = 0))
     plt.plot(np.arange(resolution)/float(resolution) - .5, loss_val)
-    plt.ylabel("Loss")
+    plt.ylabel("Lift/Drag")
     plt.xlabel("Parameter Value")
     plt.title("Loss vs Parameter Value")
-    plt.savefig("./figs/boundary_space_explort.jpeg")
+    plt.savefig("./figs/boundary_space_explore.jpeg")
     plt.show() 
 
 

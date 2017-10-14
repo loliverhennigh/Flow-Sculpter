@@ -183,6 +183,7 @@ def evaluate():
     plt.ylabel('Loss', fontsize="x-large")
     plt.title("Optimization")
     plt.legend(loc="upper_left")
+    plt.savefig("./figs/learn_comparison.jpeg")
     plt.show()
 
 

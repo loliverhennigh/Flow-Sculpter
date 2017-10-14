@@ -70,7 +70,7 @@ def evaluate():
    
     for i in xrange(10):
       # make plot
-      fig = plt.figure(figsize = (13, 6))
+      fig = plt.figure(figsize = (20, 10))
       gs1 = gridspec.GridSpec(2, 3)
       gs1.update(wspace=0.025, hspace=0.025)
 

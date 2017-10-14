@@ -196,7 +196,8 @@ def loss_flow(true_flow, predicted_flow, boundary):
   loss_total = 0 
   loss_pressure_mse  = tf.nn.l2_loss(true_flow[...,-1] - predicted_flow[...,-1])/(FLAGS.batch_size*FLAGS.nr_gpus)
   loss_velocity_mse  = tf.nn.l2_loss(true_flow[...,:-1] - predicted_flow[...,:-1])/(FLAGS.batch_size*FLAGS.nr_gpus)
-  loss_force = loss.loss_pressure_difference(true_flow, predicted_flow, boundary)/(FLAGS.batch_size*FLAGS.nr_gpus)
+  #loss_force = loss.loss_pressure_difference(true_flow, predicted_flow, boundary)/(FLAGS.batch_size*FLAGS.nr_gpus)
+  loss_force = 0.0
   #loss_grad = loss.loss_gradient_difference(true_flow, predicted_flow)/(FLAGS.batch_size*FLAGS.nr_gpus)
   #loss_total = loss_mse + loss_grad
   #loss_total = loss_mse + loss_force
