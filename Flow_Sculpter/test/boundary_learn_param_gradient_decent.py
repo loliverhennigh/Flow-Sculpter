@@ -125,15 +125,15 @@ def evaluate():
     sharp_predicted_flow = flow_net.inference_network(sharp_boundary, network_type="flow", keep_prob=FLAGS.keep_prob)
 
     # quantities to optimize
-    force = calc_force(boundary, predicted_flow[:,:,:,2:3])
-    sharp_force = calc_force(sharp_boundary, sharp_predicted_flow[:,:,:,2:3])
-    solver_force = calc_force(solver_boundary, solver_flow[:,:,:,2:3])
-    drag_x = tf.reduce_sum(force[:,:,:,0], axis=[1,2])/batch_size
-    drag_y = tf.reduce_sum(force[:,:,:,1], axis=[1,2])/batch_size
-    sharp_drag_x = tf.reduce_sum(sharp_force[:,:,:,0], axis=[1,2])/batch_size
-    sharp_drag_y = tf.reduce_sum(sharp_force[:,:,:,1], axis=[1,2])/batch_size
-    solver_drag_x = tf.reduce_sum(solver_force[:,:,:,0], axis=[1,2])/batch_size
-    solver_drag_y = tf.reduce_sum(solver_force[:,:,:,1], axis=[1,2])/batch_size
+    force = calc_force(boundary, predicted_flow[...,-1:])
+    sharp_force = calc_force(sharp_boundary, sharp_predicted_flow[...,-1:])
+    solver_force = calc_force(solver_boundary, solver_flow[...,-1:])
+    drag_x = tf.reduce_sum(force[...,0], axis=[1,2])/batch_size
+    drag_y = tf.reduce_sum(force[...,1], axis=[1,2])/batch_size
+    sharp_drag_x = tf.reduce_sum(sharp_force[...,0], axis=[1,2])/batch_size
+    sharp_drag_y = tf.reduce_sum(sharp_force[...,1], axis=[1,2])/batch_size
+    solver_drag_x = tf.reduce_sum(solver_force[...,0], axis=[1,2])/batch_size
+    solver_drag_y = tf.reduce_sum(solver_force[...,1], axis=[1,2])/batch_size
     
     drag_lift_ratio        = -(drag_y/drag_x)
     sharp_drag_lift_ratio  = -(sharp_drag_y/sharp_drag_x)

@@ -56,9 +56,9 @@ def get_params_range(nr_params, dims):
     params_range_lower = np.array([-0.5, 0.0, 0.0] + (nr_params-4)*[0.0] + [-0.05] )
     params_range_upper = np.array([ 0.5, 1.0, 2.0] + (nr_params-4)*[0.3] + [ 0.05] )
   elif dims == 3:
-    params_range_lower = np.array([ 0.0,  0.0, 0.0, 0.0, 0.0, 0.0] 
+    params_range_lower = np.array([-0.5,  0.0, 0.5, 1.0, 0.0, 0.0] 
                                 + (nr_params-7)*[0.0] + [ 0.0] )
-    params_range_upper = np.array([ 0.0,  0.0, 1.0, 2.0, 0.5, 0.5]
+    params_range_upper = np.array([ 0.5,  0.0, 0.5, 1.0, 0.5, 0.5]
                                 + (nr_params-7)*[0.3] + [ 0.0] )
   return params_range_lower, params_range_upper
  
@@ -180,7 +180,7 @@ def wing_boundary_3d(angle_1, angle_2, N_1, N_2, sweep_slope, end_length, A_1, A
 
   # Danger Danger, High Voltage, Usin 2d cv2 functions on 3d shapes
   boundary = np.swapaxes(boundary, 1, 2)
-  boundary = rotateImage(boundary, 0.0)
+  boundary = rotateImage(boundary, angle_1)
   boundary = np.swapaxes(boundary, 1, 2)
 
   boundary = cv2.resize(boundary, (old_shape[0], old_shape[1]))
@@ -249,7 +249,7 @@ def wing_boundary_batch(nr_params, batch_size, shape, dims):
 
 """
 t = time.time()
-_, boundary_batch = wing_boundary_batch(37, 4, [96,96,96], 3)
+_, boundary_batch = wing_boundary_batch(46, 4, [96,96,96], 3)
 print(time.time() - t)
 #_, boundary_batch = wing_boundary_batch(25, 32, [256,256], 2)
 print(boundary_batch.shape)

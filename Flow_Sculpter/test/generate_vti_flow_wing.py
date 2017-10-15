@@ -29,6 +29,8 @@ FLAGS = tf.app.flags.FLAGS
 
 FLOW_DIR = make_checkpoint_path(FLAGS.base_dir_flow, FLAGS, network="flow")
 BOUNDARY_DIR = make_checkpoint_path(FLAGS.base_dir_boundary_flow, FLAGS, network="boundary")
+print(BOUNDARY_DIR)
+print(FLOW_DIR)
 
 shape = FLAGS.shape.split('x')
 shape = map(int, shape)
@@ -70,6 +72,10 @@ def evaluate():
     for i in xrange(10):
       # random params
       rand_param = np.expand_dims(get_random_params(FLAGS.nr_boundary_params, 3), axis=0)
+      rand_param[:,0] = 0
+      rand_param[:,1] = 0
+      rand_param[:,2] = 0.5
+      rand_param[:,3] = 1.0
 
       # calc flow 
       p_flow, p_boundary = sess.run([predicted_flow, boundary],feed_dict={param_inputs: rand_param})
@@ -77,8 +83,8 @@ def evaluate():
       dim=3
 
       # plt boundary
-      #plt.imshow(p_boundary[0,:,:,24,0])
-      #plt.show()
+      plt.imshow(p_boundary[0,:,:,72,0])
+      plt.show()
 
       # save vtk file of it
       image_vtk = tvtk.ImageData(spacing=(1, 1, 1), origin=(0, 0, 0))
