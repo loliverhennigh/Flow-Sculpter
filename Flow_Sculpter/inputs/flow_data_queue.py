@@ -84,6 +84,8 @@ class Sailfish_data:
 
       # parse xml file
       xml_file = run_root.find("xml_filename").text
+      if not os.path.isfile(xml_file):
+        continue
       tree = etree.parse(xml_file)
       root = tree.getroot()
 
