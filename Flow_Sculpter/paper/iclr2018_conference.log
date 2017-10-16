@@ -1,15 +1,15 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015/Debian) (preloaded format=pdflatex 2017.8.23)  14 OCT 2017 18:16
+This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013/Debian) (format=pdflatex 2016.8.20)  16 OCT 2017 16:44
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
 **iclr2018_conference.tex
 (./iclr2018_conference.tex
-LaTeX2e <2016/02/01>
-Babel <3.9q> and hyphenation patterns for 81 language(s) loaded.
+LaTeX2e <2011/06/27>
+Babel <3.9h> and hyphenation patterns for 4 languages loaded.
 (/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2014/09/29 v1.4h Standard LaTeX document class
+Document Class: article 2007/10/19 v1.4h Standard LaTeX document class
 (/usr/share/texlive/texmf-dist/tex/latex/base/size10.clo
-File: size10.clo 2014/09/29 v1.4h Standard LaTeX file (size option)
+File: size10.clo 2007/10/19 v1.4h Standard LaTeX file (size option)
 )
 \c@part=\count79
 \c@section=\count80
@@ -25,7 +25,7 @@ File: size10.clo 2014/09/29 v1.4h Standard LaTeX file (size option)
 )
 (./iclr2018_conference.sty
 (/usr/share/texlive/texmf-dist/tex/latex/eso-pic/eso-pic.sty
-Package: eso-pic 2015/07/21 v2.0g eso-pic (RN)
+Package: eso-pic 2013/10/06 v2.0d eso-pic (RN)
 
 (/usr/share/texlive/texmf-dist/tex/generic/oberdiek/atbegshi.sty
 Package: atbegshi 2011/10/05 v1.16 At begin shipout hook (HO)
@@ -41,10 +41,10 @@ Package: ifpdf 2011/01/30 v2.3 Provides the ifpdf switch (HO)
 Package ifpdf Info: pdfTeX in PDF mode is detected.
 ))
 (/usr/share/texlive/texmf-dist/tex/latex/graphics/keyval.sty
-Package: keyval 2014/10/28 v1.15 key=value parser (DPC)
+Package: keyval 1999/03/16 v1.13 key=value parser (DPC)
 \KV@toks@=\toks14
 )
-(/usr/share/texlive/texmf-dist/tex/latex/xcolor/xcolor.sty
+(/usr/share/texmf/tex/latex/xcolor/xcolor.sty
 Package: xcolor 2007/01/21 v2.11 LaTeX color extensions (UK)
 
 (/usr/share/texlive/texmf-dist/tex/latex/latexconfig/color.cfg
@@ -201,18 +201,18 @@ Package uniquecounter Info: New unique counter `rerunfilecheck' on input line 2
 \Hy@SectionHShift=\skip54
 )
 (/usr/share/texlive/texmf-dist/tex/latex/graphics/graphicx.sty
-Package: graphicx 2014/10/28 v1.0g Enhanced LaTeX Graphics (DPC,SPQR)
+Package: graphicx 1999/02/16 v1.0f Enhanced LaTeX Graphics (DPC,SPQR)
 
 (/usr/share/texlive/texmf-dist/tex/latex/graphics/graphics.sty
-Package: graphics 2016/01/03 v1.0q Standard LaTeX Graphics (DPC,SPQR)
+Package: graphics 2009/02/05 v1.0o Standard LaTeX Graphics (DPC,SPQR)
 
 (/usr/share/texlive/texmf-dist/tex/latex/graphics/trig.sty
-Package: trig 2016/01/03 v1.10 sin cos tan (DPC)
+Package: trig 1999/03/16 v1.09 sin cos tan (DPC)
 )
 (/usr/share/texlive/texmf-dist/tex/latex/latexconfig/graphics.cfg
 File: graphics.cfg 2010/04/23 v1.9 graphics configuration of TeX Live
 )
-Package graphics Info: Driver file: pdftex.def on input line 95.
+Package graphics Info: Driver file: pdftex.def on input line 91.
 )
 \Gin@req@height=\dimen107
 \Gin@req@width=\dimen108
@@ -356,6 +356,7 @@ File: omsptm.fd
 )
 LaTeX Font Info:    Font shape `OMS/ptm/m/n' in size <10> not available
 (Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 64.
+ [2]
 Missing character: There is no â in font ptmr7t!
 Missing character: There is no ˜ in font ptmr7t!
 Missing character: There is no † in font ptmr7t!
@@ -366,89 +367,94 @@ Missing character: There is no â in font ptmr7t!
 Missing character: There is no € in font ptmr7t!
 Missing character: There is no œ in font ptmr7t!
 
-<./gradient_descent_optimization.pdf, id=66, 1192.455pt x 324.21124pt>
+<./gradient_descent_optimization.pdf, id=84, 1192.455pt x 324.21124pt>
 File: ./gradient_descent_optimization.pdf Graphic file (type pdf)
 
 <use ./gradient_descent_optimization.pdf>
 Package pdftex.def Info: ./gradient_descent_optimization.pdf used on input line
- 107.
+ 110.
 (pdftex.def)             Requested size: 405.42934pt x 110.23036pt.
 
-Overfull \hbox (7.94435pt too wide) in paragraph at lines 107--109
+Overfull \hbox (7.94435pt too wide) in paragraph at lines 110--112
  [] 
  []
 
-[2] [3 <./gradient_descent_optimization.pdf>]
-<../test/figs/heat_learn_gradient_decent.jpeg, id=95, 1505.625pt x 501.875pt>
+[3 <./gradient_descent_optimization.pdf>] [4]
+
+LaTeX Warning: Reference `heat_sink_optimization' on page 5 undefined on input 
+line 155.
+
+
+<../test/figs/heat_learn_gradient_decent.jpeg, id=111, 1505.625pt x 501.875pt>
 File: ../test/figs/heat_learn_gradient_decent.jpeg Graphic file (type jpg)
 
 <use ../test/figs/heat_learn_gradient_decent.jpeg>
 Package pdftex.def Info: ../test/figs/heat_learn_gradient_decent.jpeg used on i
-nput line 138.
+nput line 162.
 (pdftex.def)             Requested size: 451.691pt x 150.56366pt.
 
-Overfull \hbox (54.20601pt too wide) in paragraph at lines 138--142
-[][] 
+Overfull \hbox (54.20601pt too wide) in paragraph at lines 162--163
+ [] 
  []
 
-<../test/figs/heat_learn_comparison.jpeg, id=96, 642.4pt x 481.8pt>
+<../test/figs/heat_learn_comparison.jpeg, id=112, 642.4pt x 481.8pt>
 File: ../test/figs/heat_learn_comparison.jpeg Graphic file (type jpg)
 
 <use ../test/figs/heat_learn_comparison.jpeg>
 Package pdftex.def Info: ../test/figs/heat_learn_comparison.jpeg used on input 
-line 147.
-(pdftex.def)             Requested size: 224.84337pt x 168.63252pt.
+line 172.
+(pdftex.def)             Requested size: 192.72148pt x 144.5411pt.
 
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-<../test/figs/generated_flow_difference.jpeg, id=97, 2007.5pt x 1003.75pt>
+<../test/figs/generated_flow_difference.jpeg, id=113, 2007.5pt x 1003.75pt>
 File: ../test/figs/generated_flow_difference.jpeg Graphic file (type jpg)
 
 <use ../test/figs/generated_flow_difference.jpeg>
 Package pdftex.def Info: ../test/figs/generated_flow_difference.jpeg used on in
-put line 165.
-(pdftex.def)             Requested size: 702.63553pt x 351.31776pt.
+put line 184.
+(pdftex.def)             Requested size: 602.25465pt x 301.12732pt.
 
-Overfull \hbox (305.15054pt too wide) in paragraph at lines 165--167
+Overfull \hbox (204.76967pt too wide) in paragraph at lines 184--185
  [] 
  []
 
-<../test/figs/flow_accuracy_2d.jpeg, id=98, 2007.5pt x 501.875pt>
+<../test/figs/flow_accuracy_2d.jpeg, id=114, 2007.5pt x 501.875pt>
 File: ../test/figs/flow_accuracy_2d.jpeg Graphic file (type jpg)
 
 <use ../test/figs/flow_accuracy_2d.jpeg>
 Package pdftex.def Info: ../test/figs/flow_accuracy_2d.jpeg used on input line 
-175.
-(pdftex.def)             Requested size: 682.54099pt x 170.63524pt.
+192.
+(pdftex.def)             Requested size: 602.25465pt x 150.56366pt.
 
-Overfull \hbox (285.056pt too wide) in paragraph at lines 175--177
+Overfull \hbox (204.76967pt too wide) in paragraph at lines 192--193
  [] 
  []
 
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-<../test/figs/boundary_space_explore.jpeg, id=99, 1003.75pt x 501.875pt>
+<../test/figs/boundary_space_explore.jpeg, id=115, 1003.75pt x 501.875pt>
 File: ../test/figs/boundary_space_explore.jpeg Graphic file (type jpg)
 
 <use ../test/figs/boundary_space_explore.jpeg>
 Package pdftex.def Info: ../test/figs/boundary_space_explore.jpeg used on input
- line 186.
-(pdftex.def)             Requested size: 341.2705pt x 170.63524pt.
+ line 201.
+(pdftex.def)             Requested size: 301.12732pt x 150.56366pt.
 
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-<../test/figs/learn_gradient_descent.jpeg, id=100, 1555.8125pt x 752.8125pt>
+<../test/figs/learn_gradient_descent.jpeg, id=116, 1555.8125pt x 752.8125pt>
 File: ../test/figs/learn_gradient_descent.jpeg Graphic file (type jpg)
 
 <use ../test/figs/learn_gradient_descent.jpeg>
 Package pdftex.def Info: ../test/figs/learn_gradient_descent.jpeg used on input
- line 195.
-(pdftex.def)             Requested size: 528.96925pt x 255.95285pt.
+ line 208.
+(pdftex.def)             Requested size: 466.74736pt x 225.84549pt.
 
-Overfull \hbox (131.48427pt too wide) in paragraph at lines 195--197
+Overfull \hbox (69.26237pt too wide) in paragraph at lines 208--209
  [] 
  []
 
@@ -457,7 +463,7 @@ LaTeX Warning: `h' float specifier changed to `ht'.
 
 
 LaTeX Warning: File `../test/figs/learn_comparsion.jpeg' not found on input lin
-e 204.
+e 215.
 
 
 ! Package pdftex.def Error: File `../test/figs/learn_comparsion.jpeg' not found
@@ -467,64 +473,75 @@ See the pdftex.def package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.204 ...0.34]{../test/figs/learn_comparsion.jpeg}
+l.215 ...0.30]{../test/figs/learn_comparsion.jpeg}
                                                   
 ? 
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-(./iclr2018_conference.bbl
-Underfull \vbox (badness 4726) has occurred while \output is active []
-
- [4 <../test/figs/heat_learn_gradient_decent.jpeg>]
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [5 <../test/figs/heat_learn_comparison.jpeg> <../test/figs/generated_flow_diff
-erence.jpeg>]) <../test/figs/heat_accuracy.jpeg, id=113, 501.875pt x 501.875pt>
+(./iclr2018_conference.bbl [5 <../test/figs/heat_learn_gradient_decent.jpeg>])
+<../test/figs/heat_accuracy.jpeg, id=125, 501.875pt x 501.875pt>
 File: ../test/figs/heat_accuracy.jpeg Graphic file (type jpg)
 
 <use ../test/figs/heat_accuracy.jpeg>
-Package pdftex.def Info: ../test/figs/heat_accuracy.jpeg used on input line 249
+Package pdftex.def Info: ../test/figs/heat_accuracy.jpeg used on input line 259
 .
 (pdftex.def)             Requested size: 75.278pt x 75.278pt.
 
+Underfull \vbox (badness 6493) has occurred while \output is active []
+
+ [6 <../test/figs/heat_learn_comparison.jpeg> <../test/figs/generated_flow_diff
+erence.jpeg>]
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-<./appendix_flow_net.pdf, id=114, 994.71625pt x 313.17pt>
+<./appendix_flow_net.pdf, id=134, 994.71625pt x 313.17pt>
 File: ./appendix_flow_net.pdf Graphic file (type pdf)
 
 <use ./appendix_flow_net.pdf>
-Package pdftex.def Info: ./appendix_flow_net.pdf used on input line 258.
+Package pdftex.def Info: ./appendix_flow_net.pdf used on input line 268.
 (pdftex.def)             Requested size: 447.61818pt x 140.92519pt.
 
-Overfull \hbox (50.1332pt too wide) in paragraph at lines 258--260
+Overfull \hbox (50.1332pt too wide) in paragraph at lines 268--270
  [] 
  []
 
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 264.
-[6 <../test/figs/flow_accuracy_2d.jpeg> <../test/figs/boundary_space_explore.jp
-eg>] [7 <../test/figs/learn_gradient_descent.jpeg> <../test/figs/heat_accuracy.
-jpeg>] [8 <./appendix_flow_net.pdf>]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 264.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 274.
+[7 <../test/figs/flow_accuracy_2d.jpeg> <../test/figs/boundary_space_explore.jp
+eg>] [8 <../test/figs/learn_gradient_descent.jpeg> <../test/figs/heat_accuracy.
+jpeg>] [9 <./appendix_flow_net.pdf>]
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 274.
  (./iclr2018_conference.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 264.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 264.
-Package rerunfilecheck Info: File `iclr2018_conference.out' has not changed.
-(rerunfilecheck)             Checksum: B4C8B72A95FC525AA4801C741F15DB2B;828.
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 264.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 274.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 274.
+
+
+Package rerunfilecheck Warning: File `iclr2018_conference.out' has changed.
+(rerunfilecheck)                Rerun to get outlines right
+(rerunfilecheck)                or use package `bookmark'.
+
+Package rerunfilecheck Info: Checksums for `iclr2018_conference.out':
+(rerunfilecheck)             Before: 2035286179534E1FCF3C5C57E6370BE1;1028
+(rerunfilecheck)             After:  056EF8EE178252A0E28C95DACBFD36F2;1114.
+
+LaTeX Warning: There were undefined references.
+
+
+LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 274.
  ) 
 Here is how much of TeX's memory you used:
- 6761 strings out of 493029
- 97065 string characters out of 6136234
- 186440 words of memory out of 5000000
- 10161 multiletter control sequences out of 15000+600000
+ 6764 strings out of 494985
+ 97065 string characters out of 6180356
+ 182181 words of memory out of 5000000
+ 9840 multiletter control sequences out of 15000+600000
  19642 words of font info for 41 fonts, out of 8000000 for 9000
- 1141 hyphenation exceptions out of 8191
- 37i,11n,45p,1932b,353s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 36 hyphenation exceptions out of 8191
+ 37i,12n,45p,1932b,430s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/share/texliv
 e/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/texm
 f-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/share/texlive/texmf-dist/
@@ -536,10 +553,10 @@ symbols/msbm10.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/courier/ucrr8
 a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/sha
 re/texlive/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/share/texlive/texm
 f-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on iclr2018_conference.pdf (8 pages, 990611 bytes).
+Output written on iclr2018_conference.pdf (9 pages, 1019345 bytes).
 PDF statistics:
- 198 PDF objects out of 1000 (max. 8388607)
- 159 compressed objects within 2 object streams
- 37 named destinations out of 1000 (max. 500000)
- 150 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 215 PDF objects out of 1000 (max. 8388607)
+ 175 compressed objects within 2 object streams
+ 42 named destinations out of 1000 (max. 500000)
+ 174 words of extra memory for PDF output out of 10000 (max. 10000000)
 

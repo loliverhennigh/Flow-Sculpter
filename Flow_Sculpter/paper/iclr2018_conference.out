@@ -1,13 +1,17 @@
 \BOOKMARK [1][-]{section.1}{Introduction}{}% 1
 \BOOKMARK [1][-]{section.2}{Related Work}{}% 2
-\BOOKMARK [2][-]{subsection.2.1}{Neural Network based Surragate models}{section.2}% 3
-\BOOKMARK [2][-]{subsection.2.2}{Automated Design Optimization of Airfoils}{section.2}% 4
-\BOOKMARK [1][-]{section.3}{Gradient Decent on Parameter Space}{}% 5
-\BOOKMARK [2][-]{subsection.3.1}{Flow Prediction Network}{section.3}% 6
-\BOOKMARK [1][-]{section.4}{Experiments}{}% 7
-\BOOKMARK [2][-]{subsection.4.1}{Heat Sink Optimization}{section.4}% 8
-\BOOKMARK [2][-]{subsection.4.2}{Flow Prediction Accuracy}{section.4}% 9
-\BOOKMARK [2][-]{subsection.4.3}{Automated Design of 2D and 3D Airfoils}{section.4}% 10
-\BOOKMARK [1][-]{section.5}{Conclusion}{}% 11
-\BOOKMARK [1][-]{section.6}{Sample Tables}{}% 12
-\BOOKMARK [1][-]{section.7}{Appendix}{}% 13
+\BOOKMARK [1][-]{section.3}{Speeding up Computational Physics with Neural Networks}{}% 3
+\BOOKMARK [2][-]{subsection.3.1}{Automated Design Optimization of Airfoils}{section.3}% 4
+\BOOKMARK [1][-]{section.4}{Gradient Decent on Parameter Space}{}% 5
+\BOOKMARK [2][-]{subsection.4.1}{Flow Prediction Network}{section.4}% 6
+\BOOKMARK [1][-]{section.5}{Experiments}{}% 7
+\BOOKMARK [2][-]{subsection.5.1}{Datasets}{section.5}% 8
+\BOOKMARK [2][-]{subsection.5.2}{Training}{section.5}% 9
+\BOOKMARK [2][-]{subsection.5.3}{Gradient Decent Optimization Details}{section.5}% 10
+\BOOKMARK [2][-]{subsection.5.4}{Heat Sink Optimization}{section.5}% 11
+\BOOKMARK [2][-]{subsection.5.5}{Flow Prediction Accuracy}{section.5}% 12
+\BOOKMARK [2][-]{subsection.5.6}{Automated Design of 2D and 3D Airfoils}{section.5}% 13
+\BOOKMARK [2][-]{subsection.5.7}{Comparison of Computation Times}{section.5}% 14
+\BOOKMARK [1][-]{section.6}{Conclusion}{}% 15
+\BOOKMARK [1][-]{section.7}{Sample Tables}{}% 16
+\BOOKMARK [1][-]{section.8}{Appendix}{}% 17
