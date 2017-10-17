@@ -188,9 +188,10 @@ def wing_boundary_3d(angle_1, angle_2, N_1, N_2, sweep_slope, end_length, A_1, A
   boundary = cv2.resize(boundary, (old_shape[0], old_shape[1]))
   boundary = np.swapaxes(boundary, 1, 2)
 
+  boundary[np.greater(boundary,1.1)] = 0 
+  boundary[np.greater(-0.1, boundary)] = 0 
+  boundary = np.nan_to_num(boundary)
   boundary = np.round(boundary)
-  boundary[np.greater(boundary,2)] = 0 
-  boundary[np.greater(-2, boundary)] = 0 
   #plt.imshow(boundary[:,:,old_shape[0]/2])
   #plt.imshow(boundary[old_shape[0]/2,:,:])
   #plt.show()
