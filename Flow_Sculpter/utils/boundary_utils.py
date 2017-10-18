@@ -218,7 +218,7 @@ def heat_sink_boundary_2d(params, shape, boundary=None):
   for i in xrange(len(params)):
     x_pos = i*3*shape[0]/(4*len(params)) + (shape[0]/8) + 3
     pos_1 = (x_pos, shape[1] - shape[0]/16)
-    pos_2 = (x_pos, shape[1] - int(1*shape[1]/4 * params[i]))
+    pos_2 = (x_pos, shape[1] - int(1*shape[1]/4 * params[i]) - shape[0]/16)
     cv2.line(boundary, pos_1, pos_2, (0.0), 2)
 
   boundary = boundary.reshape(shape + [1])

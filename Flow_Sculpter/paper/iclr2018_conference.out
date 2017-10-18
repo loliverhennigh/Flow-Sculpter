@@ -7,7 +7,7 @@
 \BOOKMARK [1][-]{section.5}{Experiments}{}% 7
 \BOOKMARK [2][-]{subsection.5.1}{Datasets}{section.5}% 8
 \BOOKMARK [2][-]{subsection.5.2}{Training}{section.5}% 9
-\BOOKMARK [2][-]{subsection.5.3}{Gradient Decent Optimization Details}{section.5}% 10
+\BOOKMARK [2][-]{subsection.5.3}{Gradient Decent Design Optimization Details}{section.5}% 10
 \BOOKMARK [2][-]{subsection.5.4}{Heat Sink Optimization}{section.5}% 11
 \BOOKMARK [2][-]{subsection.5.5}{Flow Prediction Accuracy}{section.5}% 12
 \BOOKMARK [2][-]{subsection.5.6}{Automated Design of 2D and 3D Airfoils}{section.5}% 13

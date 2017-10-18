@@ -19,6 +19,7 @@ import sys
 sys.path.append('../')
 
 import model.flow_net as flow_net 
+from utils.boundary_utils import heat_sink_boundary_2d
 from utils.experiment_manager import make_checkpoint_path
 
 import matplotlib
@@ -39,11 +40,91 @@ BOUNDARY_DIR = make_checkpoint_path(FLAGS.base_dir_boundary_heat, FLAGS, network
 shape = FLAGS.shape.split('x')
 shape = map(int, shape)
 batch_size=1
-num_runs = 40
+num_runs = 1
 std = 0.05
 #temps=[.08, .02]
 #temps=[0.0005, 0.001, 0.0025, 0.005, 0.01, .02]
-temps=[0.00025, 0.0005, 0.001]
+temps=[0.0025]
+
+def run_heat_sink_simulation(params):
+  params = params + 0.5 # get back to same range
+  
+  boundary = heat_sink_boundary_2d(params[0], [128,128])
+  print(boundary.shape)
+  u = diffusion_simulation(boundary[...,0])
+  return np.max(u)
+
+def diffusion_simulation(boundary):
+  # plate size, mm
+  w = h = boundary.shape[0]/10.0
+  # intervals in x-, y- directions, mm
+  dx = 0.1
+  # Thermal diffusivity of steel, mm2.s-1
+  D_copper   = 400.0
+  D_aluminum = 400.0
+  D_air      = 1.0
+
+  nx, ny = int(w/dx), int(h/dx)
+
+  dx2, dx2 = dx*dx, dx*dx
+  dt = dx2 * dx2 / (2 * D_copper * (dx2 + dx2))
+
+  u0 = np.ones((nx, ny))
+  u = np.empty((nx, ny))
+ 
+  # make diffusion coef matrix 
+  diffusion_coef = (D_aluminum - D_air) * (-boundary + 1.0) + D_air
+
+  # place copper pipes
+  pos_1 = (4*boundary.shape[0]/8, 15*boundary.shape[1]/16)
+  #pos_2 = (5*boundary.shape[0]/8, 15*boundary.shape[1]/16)
+  radius = boundary.shape[0]/24
+  #cv2.circle(diffusion_coef, pos_1, radius, (D_copper), -1)
+  #cv2.circle(diffusion_coef, pos_2, radius, (D_copper), -1)
+
+  ave_px_diffusion_coef = np.minimum(diffusion_coef[1:-1,1:-1], diffusion_coef[2:,  1:-1])
+  ave_nx_diffusion_coef = np.minimum(diffusion_coef[1:-1,1:-1], diffusion_coef[ :-2,1:-1])
+  ave_py_diffusion_coef = np.minimum(diffusion_coef[1:-1,1:-1], diffusion_coef[1:-1,2:  ])
+  ave_ny_diffusion_coef = np.minimum(diffusion_coef[1:-1,1:-1], diffusion_coef[1:-1, :-2])
+  ave_all_diffusion_coef = (ave_px_diffusion_coef
+                           +ave_nx_diffusion_coef
+                           +ave_py_diffusion_coef
+                           +ave_ny_diffusion_coef)/4.0
+
+  def do_timestep(u0, u):
+      # Propagate with forward-difference in time, central-difference in space
+   
+      u[1:-1, 1:-1] = u0[1:-1, 1:-1] +  dt * (
+             ave_px_diffusion_coef * u0[2:,  1:-1] 
+           + ave_nx_diffusion_coef * u0[ :-2,1:-1]
+           + ave_py_diffusion_coef * u0[1:-1,2:  ] 
+           + ave_ny_diffusion_coef * u0[1:-1, :-2]
+           - 4 * ave_all_diffusion_coef * u0[1:-1, 1:-1])/dx2
+      u0 = u.copy()
+      return u0, u
+
+  def apply_boundary(u0):
+
+    u0[boundary.shape[0]-2, int(7*boundary.shape[1]/16):int(9*boundary.shape[1]/16)] += 1000.0*dt
+
+    u0[boundary.shape[0]-1, int(1*boundary.shape[1]/8):int(7*boundary.shape[1]/8+1)] = u0[boundary.shape[0]-2, int(1*boundary.shape[1]/8):int(7*boundary.shape[1]/8+1)]
+
+    u0[np.greater(boundary, 0.5)] = 0.0
+
+
+  # Number of timesteps
+  t = time.time()
+  temp_prev = np.max(u0)
+  while True:
+    u0, u = do_timestep(u0, u)
+    apply_boundary(u0)
+    if np.abs(np.max(u0) - temp_prev) < .000000001:
+      break
+    temp_prev = np.max(u0)
+  #plt.imshow(u0)
+  #plt.show()
+  return u0
+
 
 # 2d or not
 def calc_mean_and_std(values):
@@ -64,7 +145,7 @@ def simulated_annealing_step(param_old, fittness_old, param_new, fittness_new, t
 
 def distort_param(param, std):
   param_new = param + np.random.normal(loc=0.0, scale=std, size=param.shape)
-  param_new = np.minimum(np.maximum(param_new, -0.5), 0.5)
+  param_new = np.minimum(np.maximum(param_new, -0.45), 0.45)
   return param_new
 
 def evaluate():
@@ -130,34 +211,41 @@ def evaluate():
       for i in tqdm(xrange(run_time)):
         l, _ = sess.run([loss, train_step], feed_dict={})
         plot_error_gradient_decent[sim, i] = np.sum(l)
+    gradient_descent_boundary = heat_sink_boundary_2d(sess.run(params_op)[0], [128,128])
 
     # simulated annealing
     plot_error_simulated_annealing = np.zeros((len(temps), num_runs, run_time))
     for t in tqdm(xrange(len(temps))):
       for sim in tqdm(xrange(num_runs)):
-        sess.run(params_op_init, feed_dict={params_op_set: start_params_np})
         temp = temps[t]
         param_old = start_params_np 
         param_new = distort_param(start_params_np, std)
-        fittness_old = sess.run(loss)
+        fittness_old = run_heat_sink_simulation(param_old)
         fittness_new = 0.0
         for i in tqdm(xrange(run_time)):
           plot_error_simulated_annealing[t, sim, i] = fittness_old
-          sess.run(params_op_init, feed_dict={params_op_set: param_new})
-          fittness_new = sess.run(loss)
+          fittness_new = run_heat_sink_simulation(param_new)
           param_old, fittness_old, temp = simulated_annealing_step(param_old, fittness_old, param_new, fittness_new, temp=temp)
           param_new = distort_param(param_old, std)
+
+    simulated_annealing_boundary = heat_sink_boundary_2d(param_old[0] + .5, [128,128])
 
     x = np.arange(run_time)
 
     plot_error_gradient_decent_mean, plot_error_gradient_decent_std = calc_mean_and_std(plot_error_gradient_decent)
-    plt.errorbar(x, plot_error_gradient_decent_mean, yerr=plot_error_gradient_decent_std, lw=1.0, label="Gradient Descent")
 
+
+
+    fig = plt.figure()
+    fig.set_size_inches(10, 5)
+    a = fig.add_subplot(1,2,1)
+    plt.imshow((simulated_annealing_boundary - .5*gradient_descent_boundary)[:,:,0])
+    plt.title("Difference Between Gradient Descent and Simulated Annealing Design")
+    a = fig.add_subplot(1,2,2)
+    plt.errorbar(x, plot_error_gradient_decent_mean, yerr=plot_error_gradient_decent_std, lw=1.0, label="Gradient Descent")
     for t in tqdm(xrange(len(temps))):
       plot_error_simulated_annealing_mean, plot_error_simulated_annealing_std = calc_mean_and_std(plot_error_simulated_annealing[t])
-      #plt.errorbar(x, plot_error_simulated_annealing_mean, yerr=plot_error_simulated_annealing_std, c='g', lw=1.0, label="Simulated Annealing temp = " + str(temps[t]))
       plt.errorbar(x, plot_error_simulated_annealing_mean, yerr=plot_error_simulated_annealing_std, lw=1.0, label="Simulated Annealing temp = " + str(temps[t]))
-
     plt.xlabel('Step')
     plt.ylabel('Temp at Source')
     plt.title("Comparison of Gradient Descent and Simulated Annealing")
