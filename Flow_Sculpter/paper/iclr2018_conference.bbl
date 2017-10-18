@@ -1,14 +1,71 @@
-\begin{thebibliography}{1}
+\begin{thebibliography}{10}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
   \providecommand{\doi}[1]{doi: #1}\else
   \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
 
-\bibitem[Guo et~al.(2016)Guo, Li, and Iorio]{guo2016convolutional}
-Xiaoxiao Guo, Wei Li, and Francesco Iorio.
-\newblock Convolutional neural networks for steady flow approximation.
-\newblock In \emph{Proceedings of the 22nd ACM SIGKDD International Conference
-  on Knowledge Discovery and Data Mining}, pp.\  481--490. ACM, 2016.
+\bibitem[Ando et~al.(2010)Ando, Takamura, and Saito]{ando2010automotive}
+Kenichi Ando, Akio Takamura, and Isao Saito.
+\newblock Automotive aerodynamic design exploration employing new optimization
+  methodology based on cfd.
+\newblock \emph{SAE International Journal of Passenger Cars-Mechanical
+  Systems}, 3\penalty0 (2010-01-0513):\penalty0 398--406, 2010.
+
+\bibitem[Drela(1998)]{drela1998pros}
+Mark Drela.
+\newblock Pros and cons of airfoil optimization.
+\newblock \emph{Frontiers of computational fluid dynamics}, 1998, 1998.
+
+\bibitem[Dyck \& Lowther(1996)Dyck and Lowther]{dyck1996automated}
+Derek~N Dyck and David~A Lowther.
+\newblock Automated design of magnetic devices by optimizing material
+  distribution.
+\newblock \emph{IEEE Transactions on Magnetics}, 32\penalty0 (3):\penalty0
+  1188--1193, 1996.
+
+\bibitem[{Hennigh}(2017)]{2017arXiv170509036H}
+O.~{Hennigh}.
+\newblock {Lat-Net: Compressing Lattice Boltzmann Flow Simulations using Deep
+  Neural Networks}.
+\newblock \emph{ArXiv e-prints}, May 2017.
+
+\bibitem[Hornby et~al.()Hornby, Globus, Linden, and Lohn]{hornbyautomated}
+Gregory~S Hornby, Al~Globus, Derek~S Linden, and Jason~D Lohn.
+\newblock Automated antenna design with evolutionary algorithms.
+
+\bibitem[Mills et~al.(2017)Mills, Spanner, and Tamblyn]{mills2017deep}
+K~Mills, M~Spanner, and I~Tamblyn.
+\newblock Deep learning and the schr$\backslash$" odinger equation.
+\newblock \emph{arXiv preprint arXiv:1702.01361}, 2017.
+
+\bibitem[Mukesh et~al.(2012)Mukesh, Lingadurai, and
+  Selvakumar]{mukesh2012application}
+R~Mukesh, K~Lingadurai, and U~Selvakumar.
+\newblock Application of nontraditional optimization techniques for airfoil
+  shape optimization.
+\newblock \emph{Modelling and Simulation in Engineering}, 2012:\penalty0 46,
+  2012.
+
+\bibitem[{Paganini} et~al.(2017){Paganini}, {de Oliveira}, and
+  {Nachman}]{2017arXiv170502355P}
+M.~{Paganini}, L.~{de Oliveira}, and B.~{Nachman}.
+\newblock {CaloGAN: Simulating 3D High Energy Particle Showers in Multi-Layer
+  Electromagnetic Calorimeters with Generative Adversarial Networks}.
+\newblock \emph{ArXiv e-prints}, May 2017.
+
+\bibitem[Piggott et~al.(2015)Piggott, Lu, Lagoudakis, Petykiewicz, Babinec, and
+  Vu{\v{c}}kovi{\'c}]{piggott2015inverse}
+Alexander~Y Piggott, Jesse Lu, Konstantinos~G Lagoudakis, Jan Petykiewicz,
+  Thomas~M Babinec, and Jelena Vu{\v{c}}kovi{\'c}.
+\newblock Inverse design and demonstration of a compact and broadband on-chip
+  wavelength demultiplexer.
+\newblock \emph{Nature Photonics}, 9\penalty0 (6):\penalty0 374--377, 2015.
+
+\bibitem[Tompson et~al.(2016)Tompson, Schlachter, Sprechmann, and
+  Perlin]{tompson2016accelerating}
+Jonathan Tompson, Kristofer Schlachter, Pablo Sprechmann, and Ken Perlin.
+\newblock Accelerating eulerian fluid simulation with convolutional networks.
+\newblock \emph{arXiv preprint arXiv:1607.03597}, 2016.
 
 \end{thebibliography}

@@ -1,46 +1,52 @@
-This is BibTeX, Version 0.99d (TeX Live 2015/Debian)
+This is BibTeX, Version 0.99d (TeX Live 2013/Debian)
 Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
 The top-level auxiliary file: iclr2018_conference.aux
 The style file: iclr2018_conference.bst
 Database file #1: iclr2018_conference.bib
-You've used 1 entry,
+Warning--I didn't find a database entry for "demultiplexera"
+Warning--I didn't find a database entry for "demultiplexer"
+Warning--empty journal in hornbyautomated
+Warning--empty year in hornbyautomated
+Warning--empty year in hornbyautomated
+You've used 10 entries,
             2773 wiz_defined-function locations,
-            598 strings with 5081 characters,
-and the built_in function-call counts, 669 in all, are:
-= -- 63
-> -- 30
-< -- 1
-+ -- 10
-- -- 9
-* -- 49
-:= -- 96
-add.period$ -- 4
-call.type$ -- 1
-change.case$ -- 6
-chr.to.int$ -- 1
-cite$ -- 2
-duplicate$ -- 33
-empty$ -- 55
-format.name$ -- 10
-if$ -- 147
+            652 strings with 6794 characters,
+and the built_in function-call counts, 4466 in all, are:
+= -- 376
+> -- 296
+< -- 3
++ -- 100
+- -- 90
+* -- 382
+:= -- 714
+add.period$ -- 29
+call.type$ -- 10
+change.case$ -- 60
+chr.to.int$ -- 10
+cite$ -- 23
+duplicate$ -- 201
+empty$ -- 344
+format.name$ -- 102
+if$ -- 903
 int.to.chr$ -- 1
 int.to.str$ -- 1
-missing$ -- 1
-newline$ -- 13
-num.names$ -- 4
-pop$ -- 15
+missing$ -- 10
+newline$ -- 57
+num.names$ -- 40
+pop$ -- 118
 preamble$ -- 1
-purify$ -- 5
+purify$ -- 50
 quote$ -- 0
-skip$ -- 27
+skip$ -- 148
 stack$ -- 0
-substring$ -- 34
+substring$ -- 107
 swap$ -- 11
-text.length$ -- 1
+text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 11
-warning$ -- 0
-while$ -- 6
+type$ -- 110
+warning$ -- 3
+while$ -- 37
 width$ -- 0
-write$ -- 21
+write$ -- 129
+(There were 5 warnings)
