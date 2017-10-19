@@ -70,7 +70,7 @@ def evaluate():
    
     for i in xrange(10):
       # make plot
-      fig = plt.figure(figsize = (20, 10))
+      fig = plt.figure(figsize = (10, 5))
       gs1 = gridspec.GridSpec(2, 3)
       gs1.update(wspace=0.025, hspace=0.025)
 
@@ -115,7 +115,7 @@ def evaluate():
       axarr.get_yaxis().set_ticks([])
       fig.colorbar(im, ax=axarr)
 
-      plt.suptitle("Predicted vs True Steady State Flows", fontsize="x-large", y=0.94)
+      plt.suptitle("Predicted vs True Steady State Flows", fontsize=20, y=0.98)
       plt.savefig("./figs/generated_flow_difference.jpeg")
       plt.show()
 

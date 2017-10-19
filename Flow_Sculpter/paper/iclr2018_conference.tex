@@ -60,7 +60,7 @@ As we will go into more detail in later sections, in order to perform our flow o
 This work has the following contributions.
 \begin{itemize}
   \item We demonstrate a novel way to use neural networks to greatly accelerate automated design.
-  \item We present this method in such a way that it can ready applied to many other automated design problems.
+  \item We present this method in such a way that it can ready applied to many other automated design problems by demonstrating its use on two vastly diffrent design tasks.
   \item We provide a new network architeture for predicting steady state fluid flow that vastly out performs previous models.
 \end{itemize}
 
@@ -130,11 +130,11 @@ One expected difficulty in optimizing the parameters is falling into local optim
 
 As discussed above, the heat sink optimization task is to find a set of fin heights that maximaly cool a constant heat source given a fixed total lenght of the fins. The set up roughly corrisponds to an aluminum heat sink placed placed on a cpu where the heat source is treated as addition of tempurature. There is no heat disipation between the underside of the heat sink but all other areas not on the heat sink are kept at a constant tempurature. The heat diffusion constant in the heat sink is kept at 1000 and the diffusion constant at the boundarys is 10. The intuative solution to this optimization problem is to place long fins near the heat source and shorter fins farther away. Balancing this is a difficult task though because changing the length of any fin has a global effect on how much heat is disipaed by all the other fins. 
 
-After training our networks $P^{heat}_{net}$ and $S^{heat}_{net}$ we perform our proposed gradient optimization on the 15 fin heights to minizize the tempurature at the source. In figure \ref{heat_sink_optimization} we see the optimized heat sink and see that the design resebles what our intuition tells us. We also not the extremely smooth optimization that occurs with only small bumps caused by the small addition of noise noted above. A natural question to ask is how this compares to other search techniques and how closely this optimized design resemboles the true best design. In order to answer these questions we use simulated annealing to search designs and use the original heat diffusion solver to evaluate their performance. In figure blank we see that the heat optimized heat sink design produced by the neural network closely resembols that produces by a simulated annealing. There are some minute diffreneces however the total effectivness in cooling the system are almost identical. We also note the incredable speed difference between the two methods. The gradient decent approach required roughly 300 iterations to converge where as the simulated annealling aproach needed 600. In real time the gradient decent required approach took 2.3 seconds on a nvidia 1070 gpus and the simulated annealing took 3600 seconds on a single thread of a 3.2 ghz cpu. Even given a 100 speed increase with a gpu diffusion implementation this still represents a significant speed increase and a sucessful first test of our method.
+After training our networks $P^{heat}_{net}$ and $S^{heat}_{net}$ we perform our proposed gradient optimization on the 15 fin heights to minizize the tempurature at the source. In figure \ref{heat_sink_optimization} we see the optimized heat sink and see that the design resebles what our intuition tells us. We also not the extremely smooth optimization that occurs with only small bumps caused by the small addition of noise noted above. A natural question to ask is how this compares to other search techniques and how closely this optimized design resemboles the true best design. In order to answer these questions we use simulated annealing to search designs and use the original heat diffusion solver to evaluate their performance. In figure blank we see that the heat optimized heat sink design produced by the neural network closely resembols that produces by a simulated annealing. There are some minute diffreneces however the total effectivness in cooling the system are almost identical. We also note the incredable speed difference between the two methods. The gradient decent approach required roughly 300 iterations to converge where as the simulated annealling aproach needed 600. In real time the gradient decent required approach took 2.3 seconds on a nvidia 1070 gpus and the simulated annealing took 3600 seconds on a single thread of a 3.2 ghz cpu. While we did not test our simulation on the a GPU, even given a 100 speed increase with a gpu diffusion implementation this still represents a significant speed increase and a sucessful first test of our method.
 
 \begin{figure}[!t]
 \begin{center}
-\includegraphics[scale=0.30]{../test/figs/heat_learn_gradient_decent.jpeg}
+\includegraphics[scale=0.27]{../test/figs/heat_learn_gradient_decent.jpeg}
 \end{center}
 \caption{Optimization of heat sink using our gradient decent method.}
 \label{heat_sink_optimization}
@@ -142,7 +142,7 @@ After training our networks $P^{heat}_{net}$ and $S^{heat}_{net}$ we perform our
 
 \begin{figure}[h]
 \begin{center}
-\includegraphics[scale=0.30]{../test/figs/heat_learn_comparison.jpeg}
+\includegraphics[scale=0.27]{../test/figs/heat_learn_comparison.jpeg}
 \end{center}
 \caption{A comparison of our gradient decent based method and simulated annealing in optimizing the design of a heat sink. Several starting tempurature for the simulated annealing algorithm are provided. Each optimization was performed 40 times from the same starting design and the bars show the standard deviation over these runs.}
 \end{figure}
@@ -152,11 +152,12 @@ After training our networks $P^{heat}_{net}$ and $S^{heat}_{net}$ we perform our
 
 Before we move to our final test of designing 2D and 3D wingfoils it is worth looking at how accuratley our model can predict steady state fluid flow. Our models ability to create designs is dependent on this so testing this is important in understanding its properties. We can also verify our claim of a suppieour network architecture over previous works and show results indicating this. We omited this discussion of accuracy from the heat sink problem because we found our model predicted steady state heat distrobution so accuratly that there was vertualy no difference between the simulation and network prediction. In fact the percentage error in predicting the tempurature at source was only 0.06 percent diffrent. A figure showing this and other calculations can be found here in the appendix.
 
-The quantities of most interest in our predictions are the forces on the object. These are the values being optimized so being able to predict them accuratly is of crusial importance. The forces are calculated from the pressure field by doing a surface integral over the wing foil. This can be done in Tensorflow in a differentiable way by using a 3 by 3 transpose convolution on the binary boundary to determine the surface and surface normals of the object. Then multiplying this with the pressure field and suming to produce the total force. viscus forces are left out from this calculation as they are relatively small for airfoils. In figure \ref{flow_accuracy} and \ref{flow_accuracy} we see that our model is remarkably accurate in predicting the forces on the wing. We also see similar accuracy in predicting maximume velocity. While these values are not much use in our problem we found them to be a strong indecator of how well our model was performing. The reason being that if the network was not learning the flow well it would tend to underestimate these values and average out these values making the flow more uniform. When comparing our network to the previous model we see a clear increase in accuracy. We also visualy inspect the flow here and see that predicted flow is very sharp and doesnt have any bluring effects. We also see that the areas the network incorrectly predicts are spread around the 
+The quantities of most interest in our predictions are the forces on the object. These are the values being optimized so being able to predict them accuratly is of crusial importance. The forces are calculated from the pressure field by doing a surface integral over the wing foil. This can be done in Tensorflow in a differentiable way by using a 3 by 3 transpose convolution on the binary boundary to determine the surface and surface normals of the object. Then multiplying this with the pressure field and suming to produce the total force. viscus forces are left out from this calculation as they are relatively small for airfoils. In figure \ref{flow_accuracy} and \ref{flow_accuracy} we see that our model is remarkably accurate in predicting the forces on the wing. We also see similar accuracy in predicting maximume velocity. While these values are not much use in our problem we found them to be a strong indecator of how well our model was performing. The reason being that if the network was not learning the flow well it would tend to underestimate these values and average out these values making the flow more uniform. When comparing our network to the previous model we see a clear increase in accuracy. We also visualy inspect the flow here and see that predicted flow is very sharp and doesnt have any bluring effects.
 
 \begin{figure}[!t]
 \begin{center}
-\includegraphics[scale=0.30]{../test/figs/generated_flow_difference.jpeg}
+\subfigure{\includegraphics[scale=0.25]{../test/figs/generated_flow_difference.jpeg}}
+\subfigure{\includegraphics[scale=0.10]{../test/figs/flow_accuracy_2d.jpeg}}
 \end{center}
 \caption{Comparison of steady state flow predicted by neural network and the lattice boltzmann flow solver.}
 \label{flow_accuracy}
@@ -164,7 +165,6 @@ The quantities of most interest in our predictions are the forces on the object.
 
 \begin{figure}[h]
 \begin{center}
-\includegraphics[scale=0.30]{../test/figs/flow_accuracy_2d.jpeg}
 \end{center}
 \caption{Accuracy of the neural network in predicted various quantities.}
 \end{figure}
@@ -173,32 +173,37 @@ The quantities of most interest in our predictions are the forces on the object.
 
 \begin{figure}[h]
 \begin{center}
-\includegraphics[scale=0.30]{../test/figs/boundary_space_explore.jpeg}
+\includegraphics[scale=0.27]{../test/figs/boundary_space_explore.jpeg}
 \end{center}
 \caption{A look at the design }
 \end{figure}
 
 \begin{figure}[h]
 \begin{center}
-\includegraphics[scale=0.30]{../test/figs/learn_gradient_descent.jpeg}
+\includegraphics[scale=0.20]{../test/figs/learn_gradient_descent.jpeg}
 \end{center}
 \caption{Flow}
 \end{figure}
 
 \begin{figure}[h]
 \begin{center}
-\includegraphics[scale=0.30]{../test/figs/learn_comparsion.jpeg}
+\includegraphics[scale=0.20]{../test/figs/learn_comparsion.jpeg}
 \end{center}
 \caption{Flow}
 \end{figure}
 
 \subsection{Comparison of Computation Times}
 
-The centeral purpose of our approach is to accelerate the automated design process and in this section we attempt to quantify this in real time. The most important quantities are the time to perform a gradient update on the desing parameters and the time needed to perform a simulation. In 
+The centeral purpose of our approach is to accelerate the automated design process and in this section we attempt to quantify this in real time. The most important quantities are the time to perform a gradient update on the desing parameters and the time needed to perform a simulation. We have already breifly discussed the computation time of the heat sink problem and leave this section for the wing design problems.
+
+The first comparison we look at is the raw speed of the fluid solver vursues the neural network. We found that our flow solver converged to steady state in an average of 60 seconds for the 2d simulation and 300 seconds for the 3D simulation on a Nvidia 1070 gpu. We used the Sailfish library \cite{januszewski2014sailfish} for these simulations as it performed much faster then every other non proprietary lattice boltzmann based fluid flow library. In particular, we found it supperior in speed compared with OpenLB, Palabos, Mechsys, and ASL where only the latter two have neive GPU support. In comparison to our neural network, approximating the steady state flow required only 0.15 seconds with batch size 1 and 0.058 secods with batch size 16 for the 2D simulation and blaa with batch size 1 and blaa with batch size 10 for the 3D simluation. A more complete list of values can be found in table \ref{computation_table}. While this does represent a significant 1000 times effiecency gain, we do note though that when using the neural network we are only predicting a square box of flow around the object whereas the full simulation works on an area roughly 2 to 4 times larger. There are also methods of accelerating lattice boltzmann steady state flow calculations that are not explored in this work but which may give around a order or two magnatude speed increase \cite{guo2013lattice} \cite{bernaschi2002computing}. It is also fair to say though that there are many techniques such as blaa that could speed up our neural network computations.
+
+The other computation time that needs to be addressed is how long it takes to compute the gradients. In practice we found that computing the gradient required 3 to 4 times the network evaluation.
+
 
 \begin{table}[t]
 \caption{Sample table title}
-\label{sample-table}
+\label{computation_table}
 \begin{center}
 \begin{tabular}{l|lllll}
 Batch Size & 1 & 2 & 4 & 8 & 16 \\ \hline 

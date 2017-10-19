@@ -26,15 +26,17 @@ from utils.experiment_manager import make_checkpoint_path
 
 import matplotlib.pyplot as plt
 
-SMALL_SIZE = 12
-MEDIUM_SIZE = 16
-BIGGER_SIZE = 18
 
-plt.rc('font', size=MEDIUM_SIZE)          # controls default text sizes
-plt.rc('axes', titlesize=MEDIUM_SIZE)    # fontsize of the axes title
-plt.rc('axes', labelsize=MEDIUM_SIZE)    # fontsize of the x and y labels
-plt.rc('legend', fontsize=SMALL_SIZE)    # legend fontsize
-plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
+
+#SMALL_SIZE = 12
+#MEDIUM_SIZE = 16
+#BIGGER_SIZE = 18
+
+#plt.rc('font', size=MEDIUM_SIZE)          # controls default text sizes
+#plt.rc('axes', titlesize=MEDIUM_SIZE)    # fontsize of the axes title
+#plt.rc('axes', labelsize=MEDIUM_SIZE)    # fontsize of the x and y labels
+#plt.rc('legend', fontsize=SMALL_SIZE)    # legend fontsize
+#plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
 
 FLAGS = tf.app.flags.FLAGS
 
@@ -109,25 +111,26 @@ def evaluate():
       l, _, = sess.run([loss, train_step], feed_dict={})
       print(l)
       plot_error[i] = np.sum(l)
-      if ((i+1) % 10 == 0) or i == run_time-1:
+      if ((i+1) % 100 == 0) or i == run_time-1:
         # make video with opencv
         p_heat, p_boundary = sess.run([predicted_heat, boundary])
     
         # save plot image to make video
         fig = plt.figure()
         fig.set_size_inches(15, 5)
-        a = fig.add_subplot(1,3,1)
-        plt.imshow(p_heat[0,:,:,0])
-        plt.title("Heat Dissipation")
         a = fig.add_subplot(1,3,2)
-        plt.imshow(p_boundary[0,:,:,0])
-        plt.title("Heat Sink Geometry")
+        plt.imshow(p_heat[0,:,:,0])
+        #plt.title("Heat Dissipation", fontsize="x-large")
+        plt.title("Heat Dissipation", fontsize=16)
         a = fig.add_subplot(1,3,3)
+        plt.imshow(p_boundary[0,:,:,0])
+        plt.title("Heat Sink Geometry", fontsize=16)
+        a = fig.add_subplot(1,3,1)
         plt.plot(plot_error, label="Temp at Source")
         plt.xlabel("Step")
         plt.ylabel("Temp")
         plt.legend()
-        plt.suptitle("Heat Sink Optimization Using Gradient Decent")
+        plt.suptitle("Heat Sink Optimization Using Gradient Decent", fontsize=20)
         plt.savefig("./figs/boundary_learn_image_store/plot_" + str(i).zfill(5) + ".png")
         if run_time - i <= 100:
           plt.savefig("./figs/" + FLAGS.boundary_learn_loss + "_plot.png")

@@ -20,6 +20,7 @@ import model.flow_net as flow_net
 from inputs.flow_data_queue import Sailfish_data
 from utils.experiment_manager import make_checkpoint_path
 from model.pressure import calc_force
+from model.velocity_norm import calc_velocity_norm
 
 import matplotlib.pyplot as plt
 from tqdm import *
@@ -62,10 +63,10 @@ def evaluate():
     true_drag_y = tf.reduce_sum(true_force[...,1], axis=[1,2])
 
     # predicted max vel
-    predicted_max_vel_x = tf.reduce_max(predicted_flow[...,0], axis=[1,2])
-    predicted_max_vel_y = tf.reduce_max(predicted_flow[...,1], axis=[1,2])
-    true_max_vel_x = tf.reduce_max(true_flow[...,0], axis=[1,2])
-    true_max_vel_y = tf.reduce_max(true_flow[...,1], axis=[1,2])
+    predicted_flow_norm = calc_velocity_norm(predicted_flow)
+    true_flow_norm      = calc_velocity_norm(true_flow)
+    predicted_max_vel = tf.reduce_max(predicted_flow_norm, axis=[1,2])
+    true_max_vel = tf.reduce_max(true_flow_norm, axis=[1,2])
 
     # Restore for eval
     init = tf.global_variables_initializer()
@@ -89,61 +90,47 @@ def evaluate():
     t_drag_x_data = []
     p_drag_y_data = []
     t_drag_y_data = []
-    p_max_vel_x_data = []
-    t_max_vel_x_data = []
-    p_max_vel_y_data = []
-    t_max_vel_y_data = []
+    p_max_vel_data = []
+    t_max_vel_data = []
  
     #for run in filenames:
-    for i in tqdm(xrange(60)):
+    #for i in tqdm(xrange(60)):
+    for i in tqdm(xrange(1)):
       # read in boundary
       batch_boundary, batch_flow = dataset.minibatch(train=False, batch_size=batch_size, signed_distance_function=FLAGS.sdf)
 
       # calc flow 
-      p_drag_x, t_drag_x, p_drag_y, t_drag_y, p_max_vel_x, t_max_vel_x, p_max_vel_y, t_max_vel_y = sess.run([predicted_drag_x, true_drag_x, predicted_drag_y, true_drag_y, predicted_max_vel_x, true_max_vel_x, predicted_max_vel_y, true_max_vel_y],feed_dict={boundary: batch_boundary, true_flow: batch_flow})
+      p_drag_x, t_drag_x, p_drag_y, t_drag_y, p_max_vel, t_max_vel = sess.run([predicted_drag_x, true_drag_x, predicted_drag_y, true_drag_y, predicted_max_vel, true_max_vel],feed_dict={boundary: batch_boundary, true_flow: batch_flow})
       p_drag_x_data.append(p_drag_x)
       t_drag_x_data.append(t_drag_x)
       p_drag_y_data.append(p_drag_y)
       t_drag_y_data.append(t_drag_y)
-      p_max_vel_x_data.append(p_max_vel_x)
-      t_max_vel_x_data.append(t_max_vel_x)
-      p_max_vel_y_data.append(p_max_vel_y)
-      t_max_vel_y_data.append(t_max_vel_y)
+      p_max_vel_data.append(p_max_vel)
+      t_max_vel_data.append(t_max_vel)
 
     # display it
     p_drag_x_data = np.concatenate(p_drag_x_data, axis=0)
     t_drag_x_data = np.concatenate(t_drag_x_data, axis=0)
     p_drag_y_data = np.concatenate(p_drag_y_data, axis=0)
     t_drag_y_data = np.concatenate(t_drag_y_data, axis=0)
-    p_max_vel_x_data = np.concatenate(p_max_vel_x_data, axis=0)
-    t_max_vel_x_data = np.concatenate(t_max_vel_x_data, axis=0)
-    p_max_vel_y_data = np.concatenate(p_max_vel_y_data, axis=0)
-    t_max_vel_y_data = np.concatenate(t_max_vel_y_data, axis=0)
-    fig = plt.figure(figsize = (20,5))
-    a = fig.add_subplot(1,4,1)
+    p_max_vel_data = np.concatenate(p_max_vel_data, axis=0)
+    t_max_vel_data = np.concatenate(t_max_vel_data, axis=0)
+    fig = plt.figure(figsize = (15,15))
+    a = fig.add_subplot(2,2,1)
+    font_size_axis=6
     plt.scatter(p_drag_x_data, t_drag_x_data)
     plt.plot(t_drag_x_data, t_drag_x_data, color="red")
-    plt.title("X Force")
-    plt.xlabel("True")
-    plt.ylabel("Predicted")
-    a = fig.add_subplot(1,4,2)
+    plt.title("X Force", fontsize=18)
+    a = fig.add_subplot(2,2,2)
     plt.scatter(p_drag_y_data, t_drag_y_data)
     plt.plot(t_drag_y_data, t_drag_y_data, color="red")
-    plt.title("Y Force")
-    plt.xlabel("True")
-    plt.ylabel("Predicted")
-    a = fig.add_subplot(1,4,3)
-    plt.scatter(p_max_vel_x_data, t_max_vel_x_data)
-    plt.plot(t_max_vel_x_data, t_max_vel_x_data, color="red")
-    plt.title("Max X Velocity")
-    plt.xlabel("True")
-    plt.ylabel("Predicted")
-    a = fig.add_subplot(1,4,4)
-    plt.scatter(p_max_vel_y_data, t_max_vel_y_data)
-    plt.plot(t_max_vel_y_data, t_max_vel_y_data, color="red")
-    plt.title("Max Y Velocity")
-    plt.xlabel("True")
-    plt.ylabel("Predicted")
+    plt.title("Y Force", fontsize=18)
+    plt.ylabel("Predicted", fontsize=12)
+    plt.xlabel("True", fontsize=12)
+    a = fig.add_subplot(2,2,3)
+    plt.scatter(p_max_vel_data, t_max_vel_data)
+    plt.plot(t_max_vel_data, t_max_vel_data, color="red")
+    plt.title("Max X Velocity", fontsize=18)
     plt.savefig("./figs/flow_accuracy_2d.jpeg")
     plt.show()
 

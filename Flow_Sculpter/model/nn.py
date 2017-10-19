@@ -19,7 +19,7 @@ def concat_elu(x):
   return tf.nn.elu(tf.concat([x, -x], axis))
 
 def hard_sigmoid(x):
-  return tf.minimum(0.95, tf.maximum(0.05, 1.00 * x + 0.5))   
+  return tf.minimum(1.0, tf.maximum(0.00, x + 0.5))   
 
 def triangle_wave(x):
   y = 0.0

@@ -25,13 +25,6 @@ from utils.experiment_manager import make_checkpoint_path
 import matplotlib
 import matplotlib.pyplot as plt
 
-font = {'family' : 'normal',
-        #'weight' : 'bold',
-        'size'   : 18}
-
-matplotlib.rc('font', **font)
-
-
 FLAGS = tf.app.flags.FLAGS
 
 FLOW_DIR = make_checkpoint_path(FLAGS.base_dir_heat, FLAGS, network="heat")
@@ -209,8 +202,8 @@ def evaluate():
     for sim in tqdm(xrange(num_runs)):
       sess.run(params_op_init, feed_dict={params_op_set: start_params_np})
       for i in tqdm(xrange(run_time)):
-        l, _ = sess.run([loss, train_step], feed_dict={})
-        plot_error_gradient_decent[sim, i] = np.sum(l)
+        plot_error_gradient_decent[sim, i] = run_heat_sink_simulation(sess.run(params_op) - 0.5)
+        sess.run(train_step, feed_dict={})
     gradient_descent_boundary = heat_sink_boundary_2d(sess.run(params_op)[0], [128,128])
 
     # simulated annealing
@@ -219,8 +212,8 @@ def evaluate():
       for sim in tqdm(xrange(num_runs)):
         temp = temps[t]
         param_old = start_params_np 
-        param_new = distort_param(start_params_np, std)
         fittness_old = run_heat_sink_simulation(param_old)
+        param_new = distort_param(start_params_np, std)
         fittness_new = 0.0
         for i in tqdm(xrange(run_time)):
           plot_error_simulated_annealing[t, sim, i] = fittness_old
@@ -240,7 +233,7 @@ def evaluate():
     fig.set_size_inches(10, 5)
     a = fig.add_subplot(1,2,1)
     plt.imshow((simulated_annealing_boundary - .5*gradient_descent_boundary)[:,:,0])
-    plt.title("Difference Between Gradient Descent and Simulated Annealing Design")
+    plt.title("Difference in Heat Sink Design", fontsize=16)
     a = fig.add_subplot(1,2,2)
     plt.errorbar(x, plot_error_gradient_decent_mean, yerr=plot_error_gradient_decent_std, lw=1.0, label="Gradient Descent")
     for t in tqdm(xrange(len(temps))):
@@ -248,7 +241,7 @@ def evaluate():
       plt.errorbar(x, plot_error_simulated_annealing_mean, yerr=plot_error_simulated_annealing_std, lw=1.0, label="Simulated Annealing temp = " + str(temps[t]))
     plt.xlabel('Step')
     plt.ylabel('Temp at Source')
-    plt.title("Comparison of Gradient Descent and Simulated Annealing")
+    plt.suptitle("Gradient Descent vs Simulated Annealing", fontsize=20)
     plt.legend(loc="upper_left")
     plt.savefig("./figs/heat_learn_comparison.jpeg")
     plt.show()

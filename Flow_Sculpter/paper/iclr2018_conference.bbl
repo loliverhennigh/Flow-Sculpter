@@ -1,4 +1,4 @@
-\begin{thebibliography}{10}
+\begin{thebibliography}{15}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -12,6 +12,14 @@ Kenichi Ando, Akio Takamura, and Isao Saito.
 \newblock \emph{SAE International Journal of Passenger Cars-Mechanical
   Systems}, 3\penalty0 (2010-01-0513):\penalty0 398--406, 2010.
 
+\bibitem[Bernaschi et~al.(2002)Bernaschi, Succi, Chen, and
+  Zhang]{bernaschi2002computing}
+Massimo Bernaschi, Sauro Succi, Hudong Chen, and Raoyang Zhang.
+\newblock Computing steady state flows with an accelerated lattice boltzmann
+  technique.
+\newblock \emph{International Journal of Modern Physics C}, 13\penalty0
+  (05):\penalty0 675--687, 2002.
+
 \bibitem[Drela(1998)]{drela1998pros}
 Mark Drela.
 \newblock Pros and cons of airfoil optimization.
@@ -24,6 +32,12 @@ Derek~N Dyck and David~A Lowther.
 \newblock \emph{IEEE Transactions on Magnetics}, 32\penalty0 (3):\penalty0
   1188--1193, 1996.
 
+\bibitem[Guo \& Shu(2013)Guo and Shu]{guo2013lattice}
+Zhaoli Guo and Chang Shu.
+\newblock \emph{Lattice Boltzmann method and its applications in engineering},
+  volume~3.
+\newblock World Scientific, 2013.
+
 \bibitem[{Hennigh}(2017)]{2017arXiv170509036H}
 O.~{Hennigh}.
 \newblock {Lat-Net: Compressing Lattice Boltzmann Flow Simulations using Deep
@@ -33,6 +47,19 @@ O.~{Hennigh}.
 \bibitem[Hornby et~al.()Hornby, Globus, Linden, and Lohn]{hornbyautomated}
 Gregory~S Hornby, Al~Globus, Derek~S Linden, and Jason~D Lohn.
 \newblock Automated antenna design with evolutionary algorithms.
+
+\bibitem[Januszewski \& Kostur(2014)Januszewski and
+  Kostur]{januszewski2014sailfish}
+Michal Januszewski and Marcin Kostur.
+\newblock Sailfish: A flexible multi-gpu implementation of the lattice
+  boltzmann method.
+\newblock \emph{Computer Physics Communications}, 185\penalty0 (9):\penalty0
+  2350--2368, 2014.
+
+\bibitem[Kingma \& Ba(2014)Kingma and Ba]{kingma2014adam}
+Diederik Kingma and Jimmy Ba.
+\newblock Adam: A method for stochastic optimization.
+\newblock \emph{arXiv preprint arXiv:1412.6980}, 2014.
 
 \bibitem[Mills et~al.(2017)Mills, Spanner, and Tamblyn]{mills2017deep}
 K~Mills, M~Spanner, and I~Tamblyn.
@@ -61,6 +88,12 @@ Alexander~Y Piggott, Jesse Lu, Konstantinos~G Lagoudakis, Jan Petykiewicz,
 \newblock Inverse design and demonstration of a compact and broadband on-chip
   wavelength demultiplexer.
 \newblock \emph{Nature Photonics}, 9\penalty0 (6):\penalty0 374--377, 2015.
+
+\bibitem[Salunke et~al.(2014)Salunke, RA, and Channiwala]{salunke2014airfoil}
+Nilesh~P Salunke, Juned~Ahamad RA, and SA~Channiwala.
+\newblock Airfoil parameterization techniques: A review.
+\newblock \emph{American Journal of Mechanical Engineering}, 2\penalty0
+  (4):\penalty0 99--102, 2014.
 
 \bibitem[Tompson et~al.(2016)Tompson, Schlachter, Sprechmann, and
   Perlin]{tompson2016accelerating}

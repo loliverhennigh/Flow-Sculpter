@@ -269,6 +269,7 @@ def train(total_loss, lr, train_type="flow_network", global_step=None, variables
    if train_type == "flow_network" or train_type == "boundary_network" or train_type == "heat_network":
      train_op = tf.train.AdamOptimizer(lr).minimize(total_loss, global_step)
    elif train_type == "boundary_params":
+     #train_op = tf.train.AdagradOptimizer(lr).minimize(total_loss, global_step)
      train_op = tf.train.MomentumOptimizer(lr, 0.9).minimize(total_loss, var_list=variables)
      #train_op = tf.train.GradientDescentOptimizer(lr).minimize(total_loss, var_list=variables)
    return train_op
