@@ -1,4 +1,4 @@
-\begin{thebibliography}{15}
+\begin{thebibliography}{18}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -32,6 +32,12 @@ Derek~N Dyck and David~A Lowther.
 \newblock \emph{IEEE Transactions on Magnetics}, 32\penalty0 (3):\penalty0
   1188--1193, 1996.
 
+\bibitem[Guo et~al.(2016)Guo, Li, and Iorio]{guo2016convolutional}
+Xiaoxiao Guo, Wei Li, and Francesco Iorio.
+\newblock Convolutional neural networks for steady flow approximation.
+\newblock In \emph{Proceedings of the 22nd ACM SIGKDD International Conference
+  on Knowledge Discovery and Data Mining}, pp.\  481--490. ACM, 2016.
+
 \bibitem[Guo \& Shu(2013)Guo and Shu]{guo2013lattice}
 Zhaoli Guo and Chang Shu.
 \newblock \emph{Lattice Boltzmann method and its applications in engineering},
@@ -43,6 +49,11 @@ O.~{Hennigh}.
 \newblock {Lat-Net: Compressing Lattice Boltzmann Flow Simulations using Deep
   Neural Networks}.
 \newblock \emph{ArXiv e-prints}, May 2017.
+
+\bibitem[Hilton(2007)]{hilton2007universal}
+Reno Hilton.
+\newblock A universal parametric geometry representation method--“cst”.
+\newblock 2007.
 
 \bibitem[Hornby et~al.()Hornby, Globus, Linden, and Lohn]{hornbyautomated}
 Gregory~S Hornby, Al~Globus, Derek~S Linden, and Jason~D Lohn.
@@ -60,6 +71,12 @@ Michal Januszewski and Marcin Kostur.
 Diederik Kingma and Jimmy Ba.
 \newblock Adam: A method for stochastic optimization.
 \newblock \emph{arXiv preprint arXiv:1412.6980}, 2014.
+
+\bibitem[Lane \& Marshall(2009)Lane and Marshall]{lane2009surface}
+Kevin~A Lane and David~D Marshall.
+\newblock A surface parameterization method for airfoil optimization and high
+  lift 2d geometries utilizing the cst methodology.
+\newblock \emph{AIAA Paper}, 1461:\penalty0 5--8, 2009.
 
 \bibitem[Mills et~al.(2017)Mills, Spanner, and Tamblyn]{mills2017deep}
 K~Mills, M~Spanner, and I~Tamblyn.
