@@ -38,7 +38,7 @@ tf.app.flags.DEFINE_integer('max_steps',  3000000,
                             """ max number of steps to train """)
 tf.app.flags.DEFINE_float('keep_prob', 1.0,
                             """ keep probability for dropout """)
-tf.app.flags.DEFINE_float('lr', 2e-5,
+tf.app.flags.DEFINE_float('lr', 1e-5,
                             """ r dropout """)
 tf.app.flags.DEFINE_string('shape', '512x512',
                             """ shape of flow """)
@@ -55,7 +55,7 @@ tf.app.flags.DEFINE_integer('filter_size', 8,
                            """ filter size of first res block (preceding layers have double the filter size) """)
 tf.app.flags.DEFINE_integer('nr_downsamples', 7,
                            """ number of downsamples in u network """)
-tf.app.flags.DEFINE_integer('nr_residual_blocks', 3,
+tf.app.flags.DEFINE_integer('nr_residual_blocks', 1,
                            """ number of res blocks after each downsample """)
 tf.app.flags.DEFINE_bool('gated', True,
                            """ gated resnet or not """)
@@ -202,7 +202,8 @@ def loss_flow(true_flow, predicted_flow, boundary):
   #loss_total = loss_mse + loss_grad
   #loss_total = loss_mse + loss_force
   #loss_total = loss_pressure_mse + loss_velocity_mse
-  loss_total = 30.0 * loss_pressure_mse + loss_velocity_mse + 300.0 * loss_force
+  #loss_total = 30.0 * loss_pressure_mse + loss_velocity_mse + 300.0 * loss_force
+  loss_total = 10.0 * loss_pressure_mse + loss_velocity_mse
 
   # image summary
   difference_i = tf.abs(true_flow - predicted_flow)
@@ -222,7 +223,7 @@ def loss_flow(true_flow, predicted_flow, boundary):
   with tf.device('/cpu:0'):
     tf.summary.scalar('loss_total', loss_total)
     tf.summary.scalar('loss_pressure_mse', loss_pressure_mse)
-    tf.summary.scalar('loss_velocity_mse', loss_pressure_mse)
+    tf.summary.scalar('loss_velocity_mse', loss_velocity_mse)
     tf.summary.scalar('loss_force', loss_force)
     #tf.summary.scalar('loss_force', loss_force)
 

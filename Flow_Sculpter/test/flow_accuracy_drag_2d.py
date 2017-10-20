@@ -55,10 +55,14 @@ def evaluate():
     predicted_flow = flow_net.inference_network(boundary, network_type="flow", keep_prob=FLAGS.keep_prob)
 
     # predict force
-    predicted_force = calc_force(boundary, predicted_flow[...,2:3])
+    if FLAGS.flow_model == "xiao_network":
+      sharp_boundary = tf.minimum(tf.maximum(tf.round(-boundary+.5), 0.0), 1.0)
+    else:
+      sharp_boundary = boundary
+    predicted_force = calc_force(sharp_boundary, predicted_flow[...,2:3])
     predicted_drag_x = tf.reduce_sum(predicted_force[...,0], axis=[1,2])
     predicted_drag_y = tf.reduce_sum(predicted_force[...,1], axis=[1,2])
-    true_force = calc_force(boundary, true_flow[...,2:3])
+    true_force = calc_force(sharp_boundary, true_flow[...,2:3])
     true_drag_x = tf.reduce_sum(true_force[...,0], axis=[1,2])
     true_drag_y = tf.reduce_sum(true_force[...,1], axis=[1,2])
 
@@ -101,6 +105,9 @@ def evaluate():
 
       # calc flow 
       p_drag_x, t_drag_x, p_drag_y, t_drag_y, p_max_vel, t_max_vel = sess.run([predicted_drag_x, true_drag_x, predicted_drag_y, true_drag_y, predicted_max_vel, true_max_vel],feed_dict={boundary: batch_boundary, true_flow: batch_flow})
+      plt.imshow(sess.run(sharp_boundary, feed_dict={boundary: batch_boundary})[0,:,:,0] - batch_boundary[0,:,:,0])
+      plt.imshow(batch_boundary[0,:,:,0])
+      plt.show()
       p_drag_x_data.append(p_drag_x)
       t_drag_x_data.append(t_drag_x)
       p_drag_y_data.append(p_drag_y)
@@ -115,22 +122,32 @@ def evaluate():
     t_drag_y_data = np.concatenate(t_drag_y_data, axis=0)
     p_max_vel_data = np.concatenate(p_max_vel_data, axis=0)
     t_max_vel_data = np.concatenate(t_max_vel_data, axis=0)
+
+    # save it
+    np.savez("./figs/store_flow_accuracy_values/" + FLAGS.flow_model,
+             p_drag_x_data=p_drag_x_data,
+             t_drag_x_data=t_drag_x_data,
+             p_drag_y_data=p_drag_x_data,
+             t_drag_y_data=t_drag_x_data,
+             p_max_vel_data=p_max_vel_data,
+             t_max_vel_data=t_max_vel_data)
+
     fig = plt.figure(figsize = (15,15))
     a = fig.add_subplot(2,2,1)
     font_size_axis=6
     plt.scatter(p_drag_x_data, t_drag_x_data)
     plt.plot(t_drag_x_data, t_drag_x_data, color="red")
-    plt.title("X Force", fontsize=18)
+    plt.title("X Force", fontsize=38)
     a = fig.add_subplot(2,2,2)
     plt.scatter(p_drag_y_data, t_drag_y_data)
     plt.plot(t_drag_y_data, t_drag_y_data, color="red")
-    plt.title("Y Force", fontsize=18)
-    plt.ylabel("Predicted", fontsize=12)
-    plt.xlabel("True", fontsize=12)
+    plt.title("Y Force", fontsize=38)
     a = fig.add_subplot(2,2,3)
     plt.scatter(p_max_vel_data, t_max_vel_data)
     plt.plot(t_max_vel_data, t_max_vel_data, color="red")
-    plt.title("Max X Velocity", fontsize=18)
+    plt.title("Max X Velocity", fontsize=38)
+    plt.ylabel("Predicted", fontsize=26)
+    plt.xlabel("True", fontsize=26)
     plt.savefig("./figs/flow_accuracy_2d.jpeg")
     plt.show()
 

@@ -133,17 +133,16 @@ After training our networks $P^{heat}_{net}$ and $S^{heat}_{net}$ we perform our
 
 \begin{figure}[!t]
 \begin{center}
-\includegraphics[scale=0.27]{../test/figs/heat_learn_gradient_decent.jpeg}
+\subfigure{\includegraphics[scale=0.27]{../test/figs/heat_learn_gradient_decent.jpeg}}
+\subfigure{\includegraphics[scale=0.27]{../test/figs/heat_learn_comparison.jpeg}}
 \end{center}
-\caption{Optimization of heat sink using our gradient decent method.}
 \label{heat_sink_optimization}
+\caption{A comparison of our gradient decent based method and simulated annealing in optimizing the design of a heat sink. Several starting tempurature for the simulated annealing algorithm are provided. Each optimization was performed 40 times from the same starting design and the bars show the standard deviation over these runs.}
 \end{figure}
 
 \begin{figure}[h]
 \begin{center}
-\includegraphics[scale=0.27]{../test/figs/heat_learn_comparison.jpeg}
 \end{center}
-\caption{A comparison of our gradient decent based method and simulated annealing in optimizing the design of a heat sink. Several starting tempurature for the simulated annealing algorithm are provided. Each optimization was performed 40 times from the same starting design and the bars show the standard deviation over these runs.}
 \end{figure}
 
 
@@ -156,7 +155,7 @@ The quantities of most interest in our predictions are the forces on the object.
 \begin{figure}[!t]
 \begin{center}
 \subfigure{\includegraphics[scale=0.25]{../test/figs/generated_flow_difference.jpeg}}
-\subfigure{\includegraphics[scale=0.10]{../test/figs/flow_accuracy_2d.jpeg}}
+\subfigure{\includegraphics[scale=0.095]{../test/figs/flow_accuracy_2d.jpeg}}
 \end{center}
 \caption{Comparison of steady state flow predicted by neural network and the lattice boltzmann flow solver.}
 \label{flow_accuracy}

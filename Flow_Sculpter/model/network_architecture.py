@@ -48,9 +48,8 @@ def xiao_network(inputs):
   x_i = nn.transpose_conv_layer(x_i, 2, 2,  64, "trans_conv_4", nonlinearity)
   x_i = nn.transpose_conv_layer(x_i, 2, 2,  32, "trans_conv_5", nonlinearity)
   x_i = nn.transpose_conv_layer(x_i, 2, 2,   3, "trans_conv_6")
-  boundary = tf.maximum(inputs, 1.0)
-  boundary = tf.minimum(inputs, 0.0)
-  #x_i = x_i * (-boundary + 1.0)
+  boundary = tf.minimum(tf.maximum(tf.round(-inputs+.5), 0.0), 1.0)
+  x_i = x_i * (-boundary + 1.0)
   #x_i = x_i * inputs
   return x_i
 
