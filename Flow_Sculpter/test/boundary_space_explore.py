@@ -1,4 +1,4 @@
-from __future__ import absolute_import
+
 from __future__ import division
 from __future__ import print_function
 
@@ -36,7 +36,7 @@ shape = map(int, shape)
 batch_size=1
 
 # num_frames_save
-nr_frame_saves = 25
+nr_frame_saves = 16
 
 FLOW_DIR = make_checkpoint_path(FLAGS.base_dir_flow, FLAGS, network="flow")
 BOUNDARY_DIR = make_checkpoint_path(FLAGS.base_dir_boundary_flow, FLAGS, network="boundary")
@@ -108,7 +108,7 @@ def evaluate():
     params_np[0,3] = 0.0
 
     # make store vectors for values
-    resolution = 1000
+    resolution = 320
     loss_val = np.zeros((resolution))
     max_d_ratio = np.zeros((resolution))
     d_ratio_store = None
@@ -125,7 +125,7 @@ def evaluate():
 
     fig = plt.figure(figsize = (10,5))
     a = fig.add_subplot(1,2,1)
-    plt.title("Generated Boundary from Parameter Change")
+    plt.title("Boundary from Parameter Change", fontsize=16)
     boundary_frame_store = tile_frames(boundary_frame_store)
     plt.imshow(boundary_frame_store)
     #plt.tick_params(axis='both', top="off", bottom="off")
@@ -135,7 +135,7 @@ def evaluate():
     plt.plot(np.arange(resolution)/float(resolution) - .5, loss_val)
     plt.ylabel("Lift/Drag")
     plt.xlabel("Parameter Value")
-    plt.title("Loss vs Parameter Value")
+    plt.title("Loss vs Parameter Value", fontsize=16)
     plt.savefig("./figs/boundary_space_explore.jpeg")
     plt.show() 
 

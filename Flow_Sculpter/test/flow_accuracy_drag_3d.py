@@ -27,6 +27,8 @@ from tqdm import *
 FLAGS = tf.app.flags.FLAGS
 
 FLOW_DIR = make_checkpoint_path(FLAGS.base_dir_flow, FLAGS, network="flow")
+print(FLOW_DIR)
+
 
 shape = FLAGS.shape.split('x')
 shape = map(int, shape)
@@ -51,7 +53,7 @@ def evaluate():
 
     # Build a Graph that computes the logits predictions from the
     # inference model.
-    predicted_flow = flow_net.inference_flow(boundary, 1.0)
+    predicted_flow = flow_net.inference_network(boundary)
 
     # predict force
     predicted_force = calc_force(boundary, predicted_flow[...,3:4])

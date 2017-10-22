@@ -99,15 +99,15 @@ def evaluate():
  
     #for run in filenames:
     #for i in tqdm(xrange(60)):
-    for i in tqdm(xrange(1)):
+    for i in tqdm(xrange(20)):
       # read in boundary
       batch_boundary, batch_flow = dataset.minibatch(train=False, batch_size=batch_size, signed_distance_function=FLAGS.sdf)
 
       # calc flow 
       p_drag_x, t_drag_x, p_drag_y, t_drag_y, p_max_vel, t_max_vel = sess.run([predicted_drag_x, true_drag_x, predicted_drag_y, true_drag_y, predicted_max_vel, true_max_vel],feed_dict={boundary: batch_boundary, true_flow: batch_flow})
-      plt.imshow(sess.run(sharp_boundary, feed_dict={boundary: batch_boundary})[0,:,:,0] - batch_boundary[0,:,:,0])
-      plt.imshow(batch_boundary[0,:,:,0])
-      plt.show()
+      #plt.imshow(sess.run(sharp_boundary, feed_dict={boundary: batch_boundary})[0,:,:,0] - batch_boundary[0,:,:,0])
+      #plt.imshow(batch_boundary[0,:,:,0])
+      #plt.show()
       p_drag_x_data.append(p_drag_x)
       t_drag_x_data.append(t_drag_x)
       p_drag_y_data.append(p_drag_y)
