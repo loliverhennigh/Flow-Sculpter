@@ -90,7 +90,7 @@ def evaluate():
 
   num_angles = 9
   max_angle =  0.20
-  min_angle = -0.15
+  min_angle = -0.20
   set_params          = np.array(num_angles*[FLAGS.nr_boundary_params*[0.0]])
   set_params[:,:]     = 0.0
   set_params_pos      = np.array(num_angles*[FLAGS.nr_boundary_params*[0.0]])
@@ -98,7 +98,7 @@ def evaluate():
 
   for i in xrange(num_angles):
     set_params[i,0]      = -i 
-  set_params[:,0] = ((max_angle - min_angle) * (set_params[:,0]/num_angles)) - min_angle
+  set_params[:,0] = ((max_angle - min_angle) * (set_params[:,0]/(num_angles-1))) - min_angle
 
   set_params[:,1]      = 0.5
   set_params[:,2]      = 1.0
@@ -140,7 +140,8 @@ def evaluate():
     solver_drag_lift_ratio = -(solver_drag_y/solver_drag_x)
 
     # loss
-    loss = -tf.reduce_sum(drag_lift_ratio)
+    #loss = -tf.reduce_sum(drag_lift_ratio)
+    loss = -drag_y + drag_x
     #loss = -tf.reduce_sum(drag_x)
     loss += squeeze_loss
 
@@ -187,7 +188,7 @@ def evaluate():
       plot_error[i] = np.sum(l)
       plot_drag_x[i] = np.sum(d_x[fig_pos])
       plot_drag_y[i] = np.sum(d_y[fig_pos])
-      if ((i+1) % 10 == 0) or i == run_time-1:
+      if ((i+1) % 250 == 0) or i == run_time-1:
         # make video with opencv
         s_params = sess.run(params_op)
         wing_boundary = []
@@ -236,6 +237,7 @@ def evaluate():
         if i == run_time - 1:
           plt.savefig("./figs/learn_gradient_descent.jpeg")
           plt.show()
+        plt.show()
         plt.close(fig)
 
 

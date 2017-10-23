@@ -90,9 +90,9 @@ def evaluate():
     summary_op: Summary op.
   """
 
-  num_angles = 3
-  max_angle =  0.30
-  min_angle = -0.25
+  num_angles = 9
+  max_angle =  0.20
+  min_angle = -0.20
   set_params          = np.array(num_angles*[FLAGS.nr_boundary_params*[0.0]])
   set_params[:,:]     = 0.0
   set_params_pos      = np.array(num_angles*[FLAGS.nr_boundary_params*[0.0]])
@@ -121,19 +121,32 @@ def evaluate():
     sharp_boundary, blaa = flow_net.inputs_flow(batch_size*set_params.shape[0], shape, FLAGS.dims)
 
     # Make boundary
-    boundary = flow_net.inference_boundary(batch_size*set_params.shape[0], FLAGS.dims*[FLAGS.obj_size], params_op, full_shape=shape)
+    params_op_0, params_op_1, params_op_2 = tf.split(params_op, 3, axis=0)
+    boundary_0 = flow_net.inference_boundary(batch_size*int(set_params.shape[0]/3), FLAGS.dims*[FLAGS.obj_size], params_op_0, full_shape=shape)
+    boundary_1 = flow_net.inference_boundary(batch_size*int(set_params.shape[0]/3), FLAGS.dims*[FLAGS.obj_size], params_op_1, full_shape=shape)
+    boundary_2 = flow_net.inference_boundary(batch_size*int(set_params.shape[0]/3), FLAGS.dims*[FLAGS.obj_size], params_op_2, full_shape=shape)
 
     # predict steady flow on boundary
-    predicted_flow = flow_net.inference_network(boundary, network_type="flow", keep_prob=FLAGS.keep_prob)
+    predicted_flow_0 = flow_net.inference_network(boundary_0, network_type="flow", keep_prob=FLAGS.keep_prob)
+    predicted_flow_1 = flow_net.inference_network(boundary_1, network_type="flow", keep_prob=FLAGS.keep_prob)
+    predicted_flow_2 = flow_net.inference_network(boundary_2, network_type="flow", keep_prob=FLAGS.keep_prob)
     sharp_predicted_flow = flow_net.inference_network(sharp_boundary, network_type="flow", keep_prob=FLAGS.keep_prob)
 
     # quantities to optimize
-    force = calc_force(boundary, predicted_flow[...,-1:])
+    force_0 = calc_force(boundary_0, predicted_flow_0[...,-1:])
+    force_1 = calc_force(boundary_1, predicted_flow_1[...,-1:])
+    force_2 = calc_force(boundary_2, predicted_flow_2[...,-1:])
     sharp_force = calc_force(sharp_boundary, sharp_predicted_flow[...,-1:])
     solver_force = calc_force(solver_boundary, solver_flow[...,-1:])
-    drag_x = tf.reduce_sum(force[...,0], axis=[1,2,3])/batch_size
-    drag_y = tf.reduce_sum(force[...,1], axis=[1,2,3])/batch_size
-    drag_z = tf.reduce_sum(force[...,2], axis=[1,2,3])/batch_size
+    drag_x_0 = tf.reduce_sum(force_0[...,0], axis=[1,2,3])/batch_size
+    drag_y_0 = tf.reduce_sum(force_0[...,1], axis=[1,2,3])/batch_size
+    drag_z_0 = tf.reduce_sum(force_0[...,2], axis=[1,2,3])/batch_size
+    drag_x_1 = tf.reduce_sum(force_1[...,0], axis=[1,2,3])/batch_size
+    drag_y_1 = tf.reduce_sum(force_1[...,1], axis=[1,2,3])/batch_size
+    drag_z_1 = tf.reduce_sum(force_1[...,2], axis=[1,2,3])/batch_size
+    drag_x_2 = tf.reduce_sum(force_2[...,0], axis=[1,2,3])/batch_size
+    drag_y_2 = tf.reduce_sum(force_2[...,1], axis=[1,2,3])/batch_size
+    drag_z_2 = tf.reduce_sum(force_2[...,2], axis=[1,2,3])/batch_size
     sharp_drag_x = tf.reduce_sum(sharp_force[...,0], axis=[1,2,3])/batch_size
     sharp_drag_y = tf.reduce_sum(sharp_force[...,1], axis=[1,2,3])/batch_size
     sharp_drag_z = tf.reduce_sum(sharp_force[...,2], axis=[1,2,3])/batch_size
@@ -141,19 +154,29 @@ def evaluate():
     solver_drag_y = tf.reduce_sum(solver_force[...,1], axis=[1,2,3])/batch_size
     solver_drag_z = tf.reduce_sum(solver_force[...,2], axis=[1,2,3])/batch_size
     
-    drag_lift_ratio        = -(drag_x/drag_z)
+    drag_lift_ratio_0        = -(drag_x_0/drag_z_0)
+    drag_lift_ratio_1        = -(drag_x_1/drag_z_1)
+    drag_lift_ratio_2        = -(drag_x_2/drag_z_2)
     sharp_drag_lift_ratio  = -(sharp_drag_x/sharp_drag_z)
     solver_drag_lift_ratio = -(solver_drag_x/solver_drag_z)
 
     # loss
-    loss = -tf.reduce_sum(drag_lift_ratio)
+    #loss = - tf.abs(tf.constant([-25.0, 100.0, 200.0]) - drag_x) - drag_z
+    #loss = drag_x - drag_z/2.0
+    loss_0 = -tf.reduce_sum(drag_lift_ratio_0)
+    loss_1 = -tf.reduce_sum(drag_lift_ratio_1)
+    loss_2 = -tf.reduce_sum(drag_lift_ratio_2)
     #loss = -tf.reduce_sum(drag_x)
-    loss += squeeze_loss
+    loss_0 += squeeze_loss
+    loss_1 += squeeze_loss
+    loss_2 += squeeze_loss
 
     # train_op
     variables_to_train = tf.all_variables()
     variables_to_train = [variable for i, variable in enumerate(variables_to_train) if "params" in variable.name[:variable.name.index(':')]]
-    train_step = flow_net.train(loss, FLAGS.boundary_learn_lr, train_type="boundary_params", variables=variables_to_train)
+    train_step_0 = flow_net.train(loss_0, FLAGS.boundary_learn_lr, train_type="boundary_params", variables=variables_to_train)
+    train_step_1 = flow_net.train(loss_1, FLAGS.boundary_learn_lr, train_type="boundary_params", variables=variables_to_train)
+    train_step_2 = flow_net.train(loss_2, FLAGS.boundary_learn_lr, train_type="boundary_params", variables=variables_to_train)
 
     # init graph
     init = tf.global_variables_initializer()
@@ -175,7 +198,8 @@ def evaluate():
     
     graph_def = tf.get_default_graph().as_graph_def(add_shapes=True)
 
-    params_np = (np.random.rand(1,FLAGS.nr_boundary_params) - .5)
+    params_np = (np.random.rand(1,FLAGS.nr_boundary_params) - .5)/2.0 
+    #params_np = (np.random.rand(1,FLAGS.nr_boundary_params) - .5)/2.0
     #params_np = np.zeros((1,FLAGS.nr_boundary_params-1))
  
     sess.run(params_op_init, feed_dict={params_op_set: params_np})
@@ -190,13 +214,16 @@ def evaluate():
     # make store dir
     os.system("mkdir ./figs/boundary_learn_image_store")
     for i in tqdm(xrange(run_time)):
-      l, _, d_x, d_y, d_z = sess.run([loss, train_step, drag_x, drag_y, drag_z], feed_dict={})
-      plot_error[i] = np.sum(l)
+      l_0, _ = sess.run([loss_0, train_step_0], feed_dict={})
+      l_1, _, d_x, d_y, d_z = sess.run([loss_1, train_step_1, drag_x_1, drag_y_1, drag_z_1], feed_dict={})
+      l_2, _ = sess.run([loss_2, train_step_2], feed_dict={})
+      plot_error[i] = np.sum(l_0 + l_1 + l_2)
       plot_drag_x[i] = np.sum(d_x[fig_pos])
       plot_drag_y[i] = np.sum(d_y[fig_pos])
       plot_drag_z[i] = np.sum(d_z[fig_pos])
-      if ((i+1) % 50 == 0) or i == run_time-1:
+      if ((i+1) % 3 == 0) or i == run_time-1:
         # make video with opencv
+        """
         s_params = sess.run(params_op)
         wing_boundary = []
         for p in xrange(s_params.shape[0]):
@@ -211,11 +238,16 @@ def evaluate():
         #print(sharp_boundary.get_shape())
         #print(wing_boundary.shape)
         p_flow, p_boundary, d_l_ratio, sharp_d_l_ratio = sess.run([sharp_predicted_flow, boundary, drag_lift_ratio, sharp_drag_lift_ratio],feed_dict={sharp_boundary: wing_boundary})
+        """
+        p_flow, p_boundary, d_l_ratio, sharp_d_l_ratio = sess.run([predicted_flow_1, boundary_1, drag_lift_ratio_1, drag_lift_ratio_1])
     
         # save plot image to make video
         #p_pressure = p_flow[fig_pos,:,:,72,2]
         p_boundary = np.concatenate([p_boundary[fig_pos,:,76,:,0], p_boundary[fig_pos,:,:,76,0]], axis=0)
         p_pressure = np.concatenate([p_flow[fig_pos,:,76,:,3], p_flow[fig_pos,:,:,76,3]], axis=0)
+        #p_pressure = p_flow[:,:,76,:,3].reshape((p_boundary.shape[0]*p_boundary.shape[1], p_boundary.shape[2]))
+        #p_boundary = p_boundary[:,:,76,:,0].reshape((p_boundary.shape[0]*p_boundary.shape[1], p_boundary.shape[2]))
+
         fig = plt.figure()
         fig.set_size_inches(15.5, 7.5)
         a = fig.add_subplot(1,5,1)
@@ -233,13 +265,13 @@ def evaluate():
         plt.xlabel("Step")
         plt.legend()
         a = fig.add_subplot(1,5,5)
-        plt.plot(-np.degrees(set_params[:,0]), d_l_ratio, 'bo', label="Lift/Drag Network")
-        plt.plot(-np.degrees(set_params[:,0]), sharp_d_l_ratio, 'ro', label="Lift/Drag Sharp")
+        plt.plot(-np.degrees(set_params[3:6,0]), d_l_ratio, 'bo', label="Lift/Drag Network")
+        plt.plot(-np.degrees(set_params[3:6,0]), sharp_d_l_ratio, 'ro', label="Lift/Drag Sharp")
         #if i == run_time-1:
         #  solver_d_l_ratio = run_flow_solver(sess.run(params_op), solver_boundary, solver_flow, sess, solver_drag_lift_ratio)
         #  plt.plot(-np.degrees(set_params[:,0]), solver_d_l_ratio, 'go', label="Lift/Drag Solver")
         plt.xlabel("Angle of Attack (Degrees)")
-        plt.xlim(min(-np.degrees(set_params[:,0]))-3, max(-np.degrees(set_params[:,0]))+3)
+        plt.xlim(min(-np.degrees(set_params[3:6,0]))-3, max(-np.degrees(set_params[3:6,0]))+3)
         plt.legend()
         plt.suptitle("2D Wing Optimization Using Gradient Descent")
         plt.savefig("./figs/boundary_learn_image_store/plot_" + str(i).zfill(5) + ".png")
