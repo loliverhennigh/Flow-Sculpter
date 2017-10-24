@@ -47,9 +47,11 @@ We propose a novel method that makes use of deep neural networks and gradient de
 
 \section{Introduction}
 
-Automated Design is the process by which an object is designed by a computer to meet or maximize some measurable objective. This is typically performed by modeling the system and then exploring the space of designs to maximize some desired property whether that be an automotive car styling with low drag \cite{ando2010automotive} or power and cost efficient magnetic bearings \cite{dyck1996automated} . A notable historic example of this is the 2006 NASA ST5 spacecraft antenna designed by a evolutionary algorithm to create the best radiation pattern \cite{hornbyautomated}. More recently, an extremely compact broadband on-chip wavelength demultiplexer was design to split electromagnetic waves with different frequencies \cite{piggott2015inverse}. While there have been some significant successes in this field the dream of true automated is still far from realized. The main challenges present are heavy computational requirements for accurately modeling the physical system under investigation and often exponentially large search spaces. These two problems negatively complement each other making the computation requirements intractable for even simple problems. For example, in the flow problems explored in this work, a heavily optimized flow solver running on modern GPU requires around 3 minutes to perform each simulation. Given that as many as 3,000 designs may need to be tested to find one with reasonable performance, this results in a total computation time of 9 days. Increasing the resolution of the simulation or expanding the parameter space quickly make this an unrealizable problem without considerable resources.
+Automated Design is the process by which an object is designed by a computer to meet or maximize some measurable objective. This is typically performed by modeling the system and then exploring the space of designs to maximize some desired property whether that be an automotive car styling with low drag \cite{ando2010automotive} or power and cost efficient magnetic bearings \cite{dyck1996automated} . A notable historic example of this is the 2006 NASA ST5 spacecraft antenna designed by a evolutionary algorithm to create the best radiation pattern \cite{hornbyautomated}. More recently, an extremely compact broadband on-chip wavelength demultiplexer was design to split electromagnetic waves with different frequencies \cite{piggott2015inverse}. While there have been some significant successes in this field the dream of true automated is still far from realized. The main challenges present are heavy computational requirements for accurately modeling the physical system under investigation and often exponentially large search spaces. These two problems negatively complement each other making the computation requirements intractable for even simple problems.
 
-Our approach works to solve the current problems of automated design in two ways. First, we learn a computationally efficient representation of the physical system on a neural network. This trained network can be used to evaluate the quality or fitness of the design several orders of magnitude faster. Second, we use the differentiable nature of the trained network to get a gradient on the parameter space when performing optimization. This allows significantly more efficient optimization requiring far fewer iterations then other gradient free methods such as genetic algorithms or simulated annealing. These two strengths of our method overcome the present difficulties with automated design and allow the previous mention 9 day optimization to run in only 10 minutes. 
+%Automated Design is the process by which an object is designed by a computer to meet or maximize some measurable objective. This is typically performed by modeling the system and then exploring the space of designs to maximize some desired property whether that be an automotive car styling with low drag \cite{ando2010automotive} or power and cost efficient magnetic bearings \cite{dyck1996automated} . A notable historic example of this is the 2006 NASA ST5 spacecraft antenna designed by a evolutionary algorithm to create the best radiation pattern \cite{hornbyautomated}. More recently, an extremely compact broadband on-chip wavelength demultiplexer was design to split electromagnetic waves with different frequencies \cite{piggott2015inverse}. While there have been some significant successes in this field the dream of true automated is still far from realized. The main challenges present are heavy computational requirements for accurately modeling the physical system under investigation and often exponentially large search spaces. These two problems negatively complement each other making the computation requirements intractable for even simple problems. For example, in the flow problems explored in this work, a heavily optimized flow solver running on modern GPU requires around 3 minutes to perform each simulation. Given that as many as 3,000 designs may need to be tested to find one with reasonable performance, this results in a total computation time of 9 days. Increasing the resolution of the simulation or expanding the parameter space quickly make this an unrealizable problem without considerable resources.
+
+Our approach works to solve the current problems of automated design in two ways. First, we learn a computationally efficient representation of the physical system on a neural network. This trained network can be used to evaluate the quality or fitness of the design several orders of magnitude faster. Second, we use the differentiable nature of the trained network to get a gradient on the parameter space when performing optimization. This allows significantly more efficient optimization requiring far fewer iterations then other gradient free methods such as genetic algorithms or simulated annealing. These two strengths of our method overcome the present difficulties with automated design and greaty accelerate optimization.
 
 The first problem tackled in this work is designing a simple heat sink to maximize the cooling of a heat source. The setup of our simulation is meant to mimic the conditions seen with an aluminum heat sink on a computer processor. We keep this optimization problem relatively simple and use this only as a first test and introduction to the method. Our second test is on the significantly more difficult task of designing both 2D and 3D airfoils with high lift drag ratios under steady state flow conditions. This problem is of tremendous importance in many engineering areas such as aeronautical, aerospace and automotive engineering. Because this is a particularly challenging problem and often times unintuitive for designers, there has been considerable work using automated design to produce optimized designs. We center much of the discussion in this paper around this problem because of its difficulty and view this as a true test our method. While we only look at these two problems in this work, we emphasize that the ideas behind our method are applicable to a wide variety of automated design problems and present the method with this in mind.
 
@@ -103,31 +105,27 @@ Up until now we have not discussed how to generate data needed to train these ne
 
 \subsection{Flow Prediction Network}
 
-Predicting steady state flow from an objects geometry is a difficult task because each points flow is dependent on the entirety of the geometry. This means that global information is needed for each point in the predicted flow. This is achieved in 
-
-We developed a network architeture tuned to predicting steady state fluid. 
-
-The core component of our method is being able to emulate the physics simulation with a neural network. For the steady state flow problem here has already been work doing just this found here. As mentioned above, we have made some improvements to this network architecture design and training. A figure illustrating our network can be found here. This model resembles the U-network architecture seen here with a series skip after each down sample. The advantages of this style of network are its high performance on image to image type tasks, trainability on small datasets, and fast evaluation time in comparison to networks with large fully connected layers. The trainability on small datasets make this particularly effective on predicting steady state flow because generating simulation data to train on is time consuming. Our network is able to train on relatively small datasets of only 4,000 flow simulation in comparison to the 100,000 required in previous work predicting steady state flow. Other modifications we have used are the use of gated residual blocks blocks that allow the gradient to be propagated extremely efficiently and heavily lowers training time.
+Predicting steady state flow from an objects geometry is a difficult task because each point of flow is dependent on the entirety of the geometry. This global information requirement is met in the previous work \citep{guo2016convolutional} with a fully connected layer. This has a draw back because fully connected layers are often slow, difficult to train, and parameter heavy. Our improved method keeps the entire network convolutional and employs a U-network architecture seen in \citep{DBLP:journals/corr/RonnebergerFB15} with gated residual blocks seen in \citep{salimans2017pixelcnn++}. By making the network deep and using many downsamples and upsamples we can provide global infomation about the boundary when predicting each point of flow. Keeping the network all convolutional also allows the inherint spacial information to be perserved. We found that the U-network style allowed us to train our network on considerably smaller datasets then reported in the previous work. The use of gated residual connections also sped up training considerably. For input into the network we use a simple binary representation of the geometry instead of the Signed Distance Function representation used in the previouse work as we found no benifit in this added complexity. The steady state heat prediction network uses the same basic network architecture and a complete discription of all networks includeing the paramerization networks can be found in the appindex in figure \ref{network_architectures}.
 
 \section{Experiments}
 
-%In the following sections we subject our method and model to a variety of test in order to see its performance. Because our method is centered around gradients oThe goal being first to determine how accuraty and fast our model can predict steady state flow. In particular, what its accuracy in predicting values such a drag and lift as these are important quantitize in our optimization. Second, we investigate how effective our gradient decent optimization is. This line of tests compares our method to other none gradient based search techniques and illustrates what is happening in the optimization processes looks like. For example, what does the gradient surface look like.
+In the following sections we subject our method and model to a variety of test in order to see its performance.
 
 \subsection{Datasets}
 
-To train the parameterization networks we generated a set of 10,000 examples for each system consisting of a parameter vector and their corresponding geometry. To parameterize the
+To train the parameterization networks we generated a set of 10,000 examples for each system consisting of a parameter vector and their corresponding geometry. An example of what a heat sink geometry looks like can be found in figure \ref{heat_sink_optimization}. We use the parameterization found in \cite{lane2009surface} for the 2D and 3D airfoils with 46 parameters that corrispond coefficients of a polynomial describing the upper and lower surface of the foil. A complete description of the parameterization can be found in the appendix.
 
-The heat sink simulations dataset consists of BLANK training examples simulated with implicit finite difference method.
+The simulation datasets consists of 5,000, 5,000, 2,5000 training examples for the heat sink simulation, 2D fluid simulation, and 3D fluid simulation respectively. We use a 80-20 split in making the train and test sets. The geometrys used for the simulations are drawn from the distrobutions used in the parameterization dataset.
 
 \subsection{Training}
 
-For all networks we used the Adam optimizer \cite{kingma2014adam}. For $S^{heat}_{net}$ or $S^{flow}_{net}$ a learning rate of 1e-4 was used until the loss platued and then the learning rate was dropped to 1e-5. Mean Squared Error was used as the loss function however when training the flow prediction network we scaled up the loss from the pressure field by a factor of 30 to roughly match the magnitude of the velocity vector field. Without this modification the network would only learn the pressure field once the velocity vector field was firmly learned. During the course of this work other loss functions were experimented with. In particular, we tried adding a loss term in predicting the fluid flow forces on the object. This had the beneficial effect of higher accuracy in predicting forces but complicated the method and was too specific to fluid flow to justify. The parameterization networks also used Mean Squared Error with a constant learning rate of 1e-4. We found the parameterization networks trained extremely quickly.
+We used the Adam optimizer for all networks \cite{kingma2014adam}. For $S^{heat}_{net}$ and $S^{flow}_{net}$ a learning rate of 1e-4 was used until the loss platued and then the learning rate was dropped to 1e-5. Mean Squared Error was used as the loss function however when training the flow prediction network we scaled up the loss from the pressure field by a factor of 10 to roughly match the magnitude of the velocity vector field. The parameterization networks also used Mean Squared Error with a constant learning rate of 1e-4. We found the parameterization networks trained extremely quickly.
 
 \subsection{Gradient Decent Design Optimization Details}
 
-There are some complexities in how exactly to the design parameters are optimized that need explanation. When training the parameterization network, the raw design parameters are used from there respective ranges and sent through the network. During design optimization however, the trainable design parameters go through a hard sigmoid functions and then are scaled to there appropriate range before being sent through the parameterization network. This is done to ensure the parameters being searched are within the range but also presents a challenge because if the parameters leave the range -1 and 1 the gradient will go to zero and they will be stuck at that value for the duration of the optimization. We overcame this problem by placing a small loss on any parameter greater then 1 or less then -1. This prevents the parameters from getting stuck and allows mobility for the entire optimization process.
+There are some complexities in how exactly the design parameters are optimized that need explanation. The most nieve approach is to scale the computed gradient by some learning rate and add it to the design parameters. We found this approach effective however it was prone to finding local optimum. Our solution to this is to add momentum to the gradient. This reduced the chance for local optimu and in most cases accererated learning. We also found that adding a small amount of noise too the parameters when computing gradients helped jump out of local optimu. We used momentum 0.9 and a learning rate of 0.05 and 0.001 for the heat sink and wingfoil problems respectivly. The noise added to the parameters had mean 0 and standard deviation 0.01.
 
-One expected difficulty in optimizing the parameters is falling into local optima. In later sections we will go into more detail about what the gradients look like in the search space but for right now we will proscribe a simple solution of using gradient decent with momentum. For all the experiments we used this technique with learning rate blaa and momentum blaa. We also found that adding a small amount of noise to the parameters helped get out of bad gradient positions as well. This has the effect of somewhat smoothing the gradient around its space.
+If the above approach is nievely used it can result in parameter values outside of the original range. To solve this problem we scale the input to the parameterization network between 0 and 1 and use a hard sigmoid to inforce this. This does not fix the problem completely though because if the parameters being trained leave the range of -0.5 to 0.5, the gradient will be zero and the parameter will be stuck at its current value. To prevent this we simply add a small loss that pushes any parameters outside the -0.5 to 0.5 range back in.
 
 \subsection{Heat Sink Optimization}
 
@@ -137,11 +135,11 @@ After training our networks $P^{heat}_{net}$ and $S^{heat}_{net}$ we perform our
 
 \begin{figure}[h]
 \begin{center}
-\subfigure{\includegraphics[scale=0.27]{../test/figs/heat_learn_gradient_decent.pdf}}
-\subfigure{\includegraphics[scale=0.27]{../test/figs/heat_learn_comparison.pdf}}
+\subfigure{\includegraphics[scale=0.25]{../test/figs/heat_learn_gradient_decent.pdf}}
+\subfigure{\includegraphics[scale=0.25]{../test/figs/heat_learn_comparison.pdf}}
 \end{center}
 \label{heat_sink_optimization}
-\caption{A comparison of our gradient decent based method and simulated annealing in optimizing the design of a heat sink. Several starting temperature for the simulated annealing algorithm are provided. Each optimization was performed 40 times from the same starting design and the bars show the standard deviation over these runs.}
+\caption{The top plot shows the optimization process and final design using our gradient descent method. The bottom plot shows a comparison of our optimization method to simulated annealing and the diffrences in final designs. As we can see, the gradient descent method converges much faster and finds roughly the same design. }
 \end{figure}
 
 \begin{figure}[h]
@@ -156,44 +154,40 @@ Before we move to our final test of designing 2D and 3D airfoils it is worth loo
 
 The quantities of most interest in our predictions are the forces on the object. These are the values being optimized so being able to predict them accurately is of crushed importance. The forces are calculated from the pressure field by doing a surface integral over the airfoil. This can be done in Tensorflow in a differentiable way by using a 3 by 3 transpose convolution on the binary boundary to determine the surface and surface normals of the object. Then multiplying this with the pressure field and summing to produce the total force. Viscus forces are left out from this calculation as they are relatively small for airfoils. In figure \ref{flow_accuracy} and \ref{flow_accuracy} we see that our model is remarkably accurate in predicting the forces on the airfoil. We also see similar accuracy in predicting maximum velocity. While these values are not much use in our problem we found them to be a strong indicator of how well our model was performing. The reason being that if the network was not learning the flow well it would tend to underestimate these values and average out these values making the flow more uniform. When comparing our network to the previous model we see a clear increase in accuracy. We also visually inspect the flow here and see that predicted flow is very sharp and doesn't have any blurring effects.
 
-\begin{figure}[!t]
+\begin{figure}[h]
 \begin{center}
-\subfigure{\includegraphics[scale=0.25]{../test/figs/generated_flow_difference.pdf}}
-\subfigure{\includegraphics[scale=0.095]{../test/figs/flow_accuracy_2d.pdf}}
+\subfigure{\includegraphics[scale=0.34]{../test/figs/generated_flow_difference.pdf}}
+\subfigure{\includegraphics[scale=0.13]{../test/figs/flow_accuracy_2d.pdf}}
 \end{center}
-\caption{Comparison of steady state flow predicted by neural network and the lattice Boltzmann flow solver.}
+\caption{Comparison of steady state flow predicted by neural network and the Lattice Boltzmann flow solver. The right plot compares our network architeture (blue dots) with \citep{guo2016convolutional} (green dots). As we can see, our network predictes forces and the max velocity more accuratly then the other model. }
 \label{flow_accuracy}
 \end{figure}
 
-\begin{figure}[h]
-\begin{center}
-\end{center}
-\caption{Accuracy of the neural network in predicted various quantities.}
-\end{figure}
 
 \subsection{Automated Design of 2D and 3D Airfoils}
 
 \begin{figure}[h]
 \begin{center}
-\includegraphics[scale=0.27]{../test/figs/boundary_space_explore.pdf}
+\subfigure{\includegraphics[scale=0.25]{../test/figs/boundary_space_explore.pdf}}
+\subfigure{\includegraphics[scale=0.25]{../test/figs/boundary_space_explore.pdf}}
 \end{center}
-\caption{A look at the design }
+\caption{The left plot shows the change in lift drag ratio versus a change in single design parameter. We note the very smooth surface and its benifit to the gradient decent optimization. The right plot shows a comparison of the gradient decent optimization to simulated annealing in the 2D airfoil problem for a variety of starting tempuratures.}
 \end{figure}
 
 \begin{figure}[h]
 \begin{center}
-\includegraphics[scale=0.27]{../test/figs/learn_gradient_descent.pdf}
+\includegraphics[scale=0.25]{../test/figs/learn_gradient_descent.pdf}
 \end{center}
-\caption{A look at the design }
+\caption{A 2D airfoil designed by our gradient descent method. The airfoil works by producing a low pressure area above its surface.}
 \end{figure}
 
 
 \begin{figure}[h]
 \begin{center}
-\subfigure{\includegraphics[scale=0.27]{../test/figs/learn_gradient_descent_3d.pdf}}
-\subfigure{\includegraphics[scale=0.27]{../test/figs/3d_wing_paraview.jpg}}
+\subfigure{\includegraphics[scale=0.25]{../test/figs/learn_gradient_descent_3d.pdf}}
+\subfigure{\includegraphics[scale=0.21]{../test/figs/3d_wing_paraview.jpg}}
 \end{center}
-\caption{Flow}
+\caption{A 3D airfoil designed by our gradient descent method. The cross section of the wing is very similar to that seen in the 2D airfoil.}
 \end{figure}
 
 \subsection{Comparison of Computation Times}
@@ -203,23 +197,6 @@ The central purpose of our approach is to accelerate the automated design proces
 The first comparison we look at is the raw speed of the fluid solver verses the neural network. We found that our flow solver converged to steady state in an average of 60 seconds for the 2D simulation and 300 seconds for the 3D simulation on a Nvidia 1070 GPU. We used the Sailfish library \cite{januszewski2014sailfish} for these simulations as it performed much faster then every other non proprietary lattice Boltzmann based fluid flow library. In particular, we found it superior in speed compared with OpenLB, Palabos, Mechsys, and ASL where only the latter two have naive GPU support. In comparison to our neural network, approximating the steady state flow required only 0.15 seconds with batch size 1 and 0.058 seconds with batch size 16 for the 2D simulation and blaa with batch size 1 and blaa with batch size 10 for the 3D simulation. A more complete list of values can be found in table \ref{computation_table}. While this does represent a significant 1000 times efficiency gain, we do note though that when using the neural network we are only predicting a square box of flow around the object whereas the full simulation works on an area roughly 2 to 4 times larger. There are also methods of accelerating lattice Boltzmann steady state flow calculations that are not explored in this work but which may give around a order or two magnitude speed increase \cite{guo2013lattice} \cite{bernaschi2002computing}. It is also fair to say though that there are many techniques such as blaa that could speed up our neural network computations.
 
 The other computation time that needs to be addressed is how long it takes to compute the gradients. In practice we found that computing the gradient required 3 to 4 times the network evaluation.
-
-
-\begin{table}[t]
-\caption{Sample table title}
-\label{computation_table}
-\begin{center}
-\begin{tabular}{l|lllll}
-Batch Size & 1 & 2 & 4 & 8 & 16 \\ \hline 
-Flow Net $512^2$ & 0.020 sec & 0.017 sec & 0.016 sec & 0.015 sec & 0.015 sec \\ 
-Param Net $512^2$ & 0.004 sec & 0.002 sec & 0.002 sec & 0.002 sec & 0.001 sec \\ 
-Learn Step $512^2$ & 0.080 sec & 0.065 sec & 0.057 sec & 0.053 sec & 0.052 sec \\ 
-Flow Net $144^3$ & 0.192 sec & 0.192 sec & 0.193 sec & 0.197 sec & Nan \\ 
-Param Net $144^3$ & 0.025 sec & 0.024 sec & 0.025 sec & 0.025 sec & 0.025 sec \\ 
-Learn Step $144^3$ & 0.911 sec & 0.711 sec & Nan & Nan & Nan \\ 
-\end{tabular}
-\end{center}
-\end{table}
 
 
 
@@ -237,11 +214,27 @@ This work was made possible through the \url{http://aigrant.org} created by Nat 
 
 \section{Appendix}
 
+\begin{table}[t]
+\caption{Complete list of computation times for diffrent network evaluations with diffrent batch sizes.}
+\label{computation_table}
+\begin{center}
+\begin{tabular}{l|lllll}
+Batch Size & 1 & 2 & 4 & 8 & 16 \\ \hline 
+Flow Net $512^2$ & 0.020 sec & 0.017 sec & 0.016 sec & 0.015 sec & 0.015 sec \\ 
+Param Net $512^2$ & 0.004 sec & 0.002 sec & 0.002 sec & 0.002 sec & 0.001 sec \\ 
+Learn Step $512^2$ & 0.080 sec & 0.065 sec & 0.057 sec & 0.053 sec & 0.052 sec \\ 
+Flow Net $144^3$ & 0.192 sec & 0.192 sec & 0.193 sec & 0.197 sec & Nan \\ 
+Param Net $144^3$ & 0.025 sec & 0.024 sec & 0.025 sec & 0.025 sec & 0.025 sec \\ 
+Learn Step $144^3$ & 0.911 sec & 0.711 sec & Nan & Nan & Nan \\ 
+\end{tabular}
+\end{center}
+\end{table}
+
 \begin{figure}[h]
 \begin{center}
-\includegraphics[scale=0.15]{../test/figs/heat_accuracy.pdf}
+\includegraphics[scale=0.40]{../test/figs/heat_accuracy.pdf}
 \end{center}
-\caption{Flow}
+\caption{Diffrence between predicted heat at source of heat sink for our network and the original solver.}
 \end{figure}
 
 
@@ -249,7 +242,8 @@ This work was made possible through the \url{http://aigrant.org} created by Nat 
 \begin{center}
 \includegraphics[scale=0.45]{./appendix_flow_net.pdf}
 \end{center}
-\caption{Flow}
+\caption{Complete network architectures for all problems}
+\label{network_architectures}
 \end{figure}
 
 \end{document}
