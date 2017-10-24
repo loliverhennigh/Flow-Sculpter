@@ -116,7 +116,7 @@ def evaluate():
       fig.colorbar(im, ax=axarr)
 
       plt.suptitle("Predicted vs True Steady State Flows", fontsize=20, y=0.98)
-      plt.savefig("./figs/generated_flow_difference.jpeg")
+      plt.savefig("./figs/generated_flow_difference.pdf")
       plt.show()
 
 def main(argv=None):  # pylint: disable=unused-argument

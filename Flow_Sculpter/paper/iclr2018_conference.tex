@@ -135,10 +135,10 @@ As discussed above, the heat sink optimization task is to find a set of fin heig
 
 After training our networks $P^{heat}_{net}$ and $S^{heat}_{net}$ we perform our proposed gradient optimization on the 15 fin heights to minimize the temperature at the source. In figure \ref{heat_sink_optimization} we see the optimized heat sink and see that the design resembles what our intuition tells us. We also not the extremely smooth optimization that occurs with only small bumps caused by the small addition of noise noted above. A natural question to ask is how this compares to other search techniques and how closely this optimized design resembles the true best design. In order to answer these questions we use simulated annealing to search designs and use the original heat diffusion solver to evaluate their performance. In figure blank we see that the heat optimized heat sink design produced by the neural network closely resembles that produces by a simulated annealing. There are some minute differences however the total effectiveness in cooling the system are almost identical. We also note the incredible speed difference between the two methods. The gradient decent approach required roughly 300 iterations to converge where as the simulated annealing approach needed 600. In real time the gradient decent required approach took 2.3 seconds on a Nvidia 1070 gtx GPU and the simulated annealing took 3600 seconds on a single thread of a 3.2 ghz CPU. While we did not test our simulation on the GPU, even given a 100 speed increase with a GPU diffusion implementation this still represents a significant speed increase and a successful first test of our method.
 
-\begin{figure}[!t]
+\begin{figure}[h]
 \begin{center}
-\subfigure{\includegraphics[scale=0.27]{../test/figs/heat_learn_gradient_decent.jpeg}}
-\subfigure{\includegraphics[scale=0.27]{../test/figs/heat_learn_comparison.jpeg}}
+\subfigure{\includegraphics[scale=0.27]{../test/figs/heat_learn_gradient_decent.pdf}}
+\subfigure{\includegraphics[scale=0.27]{../test/figs/heat_learn_comparison.pdf}}
 \end{center}
 \label{heat_sink_optimization}
 \caption{A comparison of our gradient decent based method and simulated annealing in optimizing the design of a heat sink. Several starting temperature for the simulated annealing algorithm are provided. Each optimization was performed 40 times from the same starting design and the bars show the standard deviation over these runs.}
@@ -158,8 +158,8 @@ The quantities of most interest in our predictions are the forces on the object.
 
 \begin{figure}[!t]
 \begin{center}
-\subfigure{\includegraphics[scale=0.25]{../test/figs/generated_flow_difference.jpeg}}
-\subfigure{\includegraphics[scale=0.095]{../test/figs/flow_accuracy_2d.jpeg}}
+\subfigure{\includegraphics[scale=0.25]{../test/figs/generated_flow_difference.pdf}}
+\subfigure{\includegraphics[scale=0.095]{../test/figs/flow_accuracy_2d.pdf}}
 \end{center}
 \caption{Comparison of steady state flow predicted by neural network and the lattice Boltzmann flow solver.}
 \label{flow_accuracy}
@@ -175,22 +175,23 @@ The quantities of most interest in our predictions are the forces on the object.
 
 \begin{figure}[h]
 \begin{center}
-\includegraphics[scale=0.27]{../test/figs/boundary_space_explore.jpeg}
+\includegraphics[scale=0.27]{../test/figs/boundary_space_explore.pdf}
 \end{center}
 \caption{A look at the design }
 \end{figure}
 
 \begin{figure}[h]
 \begin{center}
-\subfigure{\includegraphics[scale=0.27]{../test/figs/learn_gradient_descent.pdf}}
-\subfigure{\includegraphics[scale=0.27]{../test/figs/3d_wing_paraview.jpg}}
+\includegraphics[scale=0.27]{../test/figs/learn_gradient_descent.pdf}
 \end{center}
-\caption{Flow}
+\caption{A look at the design }
 \end{figure}
+
 
 \begin{figure}[h]
 \begin{center}
-\includegraphics[scale=0.20]{../test/figs/wing_3d.jpg}
+\subfigure{\includegraphics[scale=0.27]{../test/figs/learn_gradient_descent_3d.pdf}}
+\subfigure{\includegraphics[scale=0.27]{../test/figs/3d_wing_paraview.jpg}}
 \end{center}
 \caption{Flow}
 \end{figure}
@@ -238,7 +239,7 @@ This work was made possible through the \url{http://aigrant.org} created by Nat 
 
 \begin{figure}[h]
 \begin{center}
-\includegraphics[scale=0.15]{../test/figs/heat_accuracy.jpeg}
+\includegraphics[scale=0.15]{../test/figs/heat_accuracy.pdf}
 \end{center}
 \caption{Flow}
 \end{figure}

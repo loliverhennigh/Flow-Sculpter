@@ -99,7 +99,7 @@ def evaluate():
  
     #for run in filenames:
     #for i in tqdm(xrange(60)):
-    for i in tqdm(xrange(20)):
+    for i in tqdm(xrange(99)):
       # read in boundary
       batch_boundary, batch_flow = dataset.minibatch(train=False, batch_size=batch_size, signed_distance_function=FLAGS.sdf)
 
@@ -145,7 +145,7 @@ def evaluate():
     a = fig.add_subplot(2,2,3)
     plt.scatter(t_max_vel_data, p_max_vel_data)
     plt.plot(t_max_vel_data, t_max_vel_data, color="red")
-    plt.title("Max X Velocity", fontsize=38)
+    plt.title("Max Velocity", fontsize=38)
     plt.ylabel("Predicted", fontsize=26)
     plt.xlabel("True", fontsize=26)
     plt.savefig("./figs/flow_accuracy_2d.pdf")

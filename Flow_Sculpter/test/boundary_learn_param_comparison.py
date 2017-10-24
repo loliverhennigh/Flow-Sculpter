@@ -70,8 +70,8 @@ def evaluate():
   """
 
   num_angles = 9
-  max_angle =  0.2
-  min_angle = -0.15
+  max_angle =  0.30
+  min_angle = -0.10
   set_params          = np.array(num_angles*[FLAGS.nr_boundary_params*[0.0]])
   set_params[:,:]     = 0.0
   set_params_pos      = np.array(num_angles*[FLAGS.nr_boundary_params*[0.0]])
@@ -79,7 +79,7 @@ def evaluate():
 
   for i in xrange(num_angles):
     set_params[i,0]      = -i 
-  set_params[:,0] = ((max_angle - min_angle) * (set_params[:,0]/num_angles)) - min_angle
+  set_params[:,0] = ((max_angle - min_angle) * (set_params[:,0]/(num_angles-1))) - min_angle
 
   set_params[:,1]      = 0.5
   set_params[:,2]      = 1.0
@@ -96,8 +96,7 @@ def evaluate():
 
     # Make boundary
     boundary = flow_net.inference_boundary(batch_size*set_params.shape[0], FLAGS.dims*[FLAGS.obj_size], params_op, full_shape=shape)
-    boundary, _ = flow_net.inputs_heat(1, shape, FLAGS.dims) 
-    sharp_boundary = 
+    #sharp_boundary = 
 
     # predict steady flow on boundary
     predicted_flow = flow_net.inference_network(boundary)
@@ -151,10 +150,17 @@ def evaluate():
       sess.run(params_op_init, feed_dict={params_op_set: start_params_np})
       for i in tqdm(xrange(run_time)):
         l, _ = sess.run([loss, train_step], feed_dict={})
+        if i == run_time-1:
+          d_l_ratio = sess.run(drag_lift_ratio)
+          plt.scatter(-np.degrees(set_params[:,0]), d_l_ratio)
+          plt.show()
+          plt.imshow(sess.run(boundary)[2,:,:,0])
         plot_error_gradient_decent[sim, i] = np.sum(l)
 
+ 
     # simulated annealing
     plot_error_simulated_annealing = np.zeros((len(temps), num_runs, run_time))
+    """
     for t in tqdm(xrange(len(temps))):
       for sim in tqdm(xrange(num_runs)):
         sess.run(params_op_init, feed_dict={params_op_set: start_params_np})
@@ -169,8 +175,12 @@ def evaluate():
           param_old, fittness_old, temp = simulated_annealing_step(param_old, fittness_old, param_new, fittness_new, temp=temp)
           param_new = distort_param(param_old, std)
           plot_error_simulated_annealing[t, sim, i] = fittness_old
+    """
 
     x = np.arange(run_time)
+
+    fig = plt.figure()
+    fig.set_size_inches(5, 5)
 
     plot_error_gradient_decent_mean, plot_error_gradient_decent_std = calc_mean_and_std(plot_error_gradient_decent)
     plt.errorbar(x, plot_error_gradient_decent_mean, yerr=plot_error_gradient_decent_std, lw=1.0, label="Gradient Descent")
@@ -180,9 +190,9 @@ def evaluate():
       #plt.errorbar(x, plot_error_simulated_annealing_mean, yerr=plot_error_simulated_annealing_std, c='g', lw=1.0, label="Simulated Annealing temp = " + str(temps[t]))
       plt.errorbar(x, plot_error_simulated_annealing_mean, yerr=plot_error_simulated_annealing_std, lw=1.0, label="Simulated Annealing temp = " + str(temps[t]))
 
-    plt.xlabel('Step', fontsize="x-large")
-    plt.ylabel('Loss', fontsize="x-large")
-    plt.title("Optimization")
+    plt.xlabel('Step')
+    plt.ylabel('Loss')
+    plt.title("Optimization", fontsize=20)
     plt.legend(loc="upper_left")
     plt.savefig("./figs/learn_comparison.jpeg")
     plt.show()

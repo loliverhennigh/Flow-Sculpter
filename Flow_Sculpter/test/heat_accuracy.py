@@ -78,7 +78,7 @@ def evaluate():
     t_max_heat_data = []
  
     #for run in filenames:
-    for i in tqdm(xrange(60)):
+    for i in tqdm(xrange(99)):
       # read in boundary
       batch_boundary, batch_heat = dataset.minibatch(train=False, batch_size=batch_size)
 
@@ -92,8 +92,8 @@ def evaluate():
     t_max_heat_data = np.concatenate(t_max_heat_data, axis=0)
     fig = plt.figure(figsize = (5,5))
     a = fig.add_subplot(1,1,1)
-    plt.scatter(p_max_heat_data, t_max_heat_data)
-    plt.plot(t_max_heat_data, t_max_heat_data, color="red")
+    plt.scatter(p_max_heat_data, t_max_heat_data, color="blue", s=2.5)
+    plt.plot(t_max_heat_data, t_max_heat_data, color="red", linewidth=0.7)
     plt.xlabel("True")
     plt.ylabel("Predicted")
     plt.title("Temp at Source")

@@ -35,7 +35,7 @@ BOUNDARY_DIR = make_checkpoint_path(FLAGS.base_dir_boundary_flow, FLAGS, network
 shape = FLAGS.shape.split('x')
 shape = map(int, shape)
 batch_size=1
-fig_pos = 4
+fig_pos = 2
 
 def run_flow_solver(params, boundary, flow, sess, drag_lift_ratio_op):
   drag_lift_ratio = np.zeros(params.shape[0])
@@ -89,8 +89,8 @@ def evaluate():
   """
 
   num_angles = 9
-  max_angle =  0.20
-  min_angle = -0.20
+  max_angle =  0.30
+  min_angle = -0.10
   set_params          = np.array(num_angles*[FLAGS.nr_boundary_params*[0.0]])
   set_params[:,:]     = 0.0
   set_params_pos      = np.array(num_angles*[FLAGS.nr_boundary_params*[0.0]])
@@ -140,8 +140,8 @@ def evaluate():
     solver_drag_lift_ratio = -(solver_drag_y/solver_drag_x)
 
     # loss
-    #loss = -tf.reduce_sum(drag_lift_ratio)
-    loss = -drag_y + drag_x
+    loss = -tf.reduce_sum(drag_lift_ratio)
+    #loss = -drag_y + drag_x
     #loss = -tf.reduce_sum(drag_x)
     loss += squeeze_loss
 
@@ -188,7 +188,7 @@ def evaluate():
       plot_error[i] = np.sum(l)
       plot_drag_x[i] = np.sum(d_x[fig_pos])
       plot_drag_y[i] = np.sum(d_y[fig_pos])
-      if ((i+1) % 250 == 0) or i == run_time-1:
+      if ((i+1) % 100 == 0) or i == run_time-1:
         # make video with opencv
         s_params = sess.run(params_op)
         wing_boundary = []
@@ -207,18 +207,21 @@ def evaluate():
         p_pressure = p_flow[fig_pos,:,:,2]
         p_boundary = p_boundary[fig_pos,:,:,0]
         fig = plt.figure()
-        fig.set_size_inches(15.5, 7.5)
+        fig.set_size_inches(25, 5)
         a = fig.add_subplot(1,5,1)
         plt.imshow(p_pressure)
+        plt.title("Pressure", fontsize=16)
         a = fig.add_subplot(1,5,2)
         plt.imshow(p_boundary)
+        plt.title("Boundary", fontsize=16)
         a = fig.add_subplot(1,5,3)
         plt.plot(plot_error, label="Sum(Lift/Drag)")
         plt.xlabel("Step")
         plt.legend()
         a = fig.add_subplot(1,5,4)
-        plt.plot(plot_drag_x, label="Drag Angle 0")
+        plt.plot(-plot_drag_x, label="Drag Angle 0")
         plt.plot(plot_drag_y, label="Lift Angle 0")
+        plt.ylim(-1.0, np.max(plot_drag_y)+2.0)
         plt.xlabel("Step")
         plt.legend()
         a = fig.add_subplot(1,5,5)
@@ -229,15 +232,16 @@ def evaluate():
           plt.plot(-np.degrees(set_params[:,0]), solver_d_l_ratio, 'go', label="Lift/Drag Solver")
         plt.xlabel("Angle of Attack (Degrees)")
         plt.xlim(min(-np.degrees(set_params[:,0]))-3, max(-np.degrees(set_params[:,0]))+3)
+        plt.ylim(np.min(d_l_ratio)-1, np.max(d_l_ratio)+2)
         plt.legend()
-        plt.suptitle("2D Wing Optimization Using Gradient Descent")
+        plt.suptitle("2D Wing Optimization Using Gradient Descent", fontsize=20)
         plt.savefig("./figs/boundary_learn_image_store/plot_" + str(i).zfill(5) + ".png")
         if run_time - i <= 100:
-          plt.savefig("./figs/" + FLAGS.boundary_learn_loss + "_plot.png")
+          plt.savefig("./figs/" + FLAGS.boundary_learn_loss + "_plot.pdf")
         if i == run_time - 1:
-          plt.savefig("./figs/learn_gradient_descent.jpeg")
+          plt.savefig("./figs/learn_gradient_descent.pdf")
           plt.show()
-        plt.show()
+        #plt.show()
         plt.close(fig)
 
 

@@ -73,7 +73,7 @@ tf.app.flags.DEFINE_integer('nr_boundary_params', 46,
 # params boundary learn
 tf.app.flags.DEFINE_string('boundary_learn_loss', "drag_xy",
                             """ what to mimimize in the boundary learning stuff """)
-tf.app.flags.DEFINE_float('boundary_learn_lr', 0.05,
+tf.app.flags.DEFINE_float('boundary_learn_lr', 0.001,
                             """ learning rate when learning boundary """)
 tf.app.flags.DEFINE_integer('boundary_learn_steps', 500,
                             """ number of steps when learning boundary """)
