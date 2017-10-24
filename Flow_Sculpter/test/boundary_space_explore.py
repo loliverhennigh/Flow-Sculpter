@@ -136,7 +136,7 @@ def evaluate():
     plt.ylabel("Lift/Drag")
     plt.xlabel("Parameter Value")
     plt.title("Loss vs Parameter Value", fontsize=16)
-    plt.savefig("./figs/boundary_space_explore.jpeg")
+    plt.savefig("./figs/boundary_space_explore.pdf")
     plt.show() 
 
 

@@ -97,7 +97,7 @@ def evaluate():
     plt.xlabel("True")
     plt.ylabel("Predicted")
     plt.title("Temp at Source")
-    plt.savefig("./figs/heat_accuracy.jpeg")
+    plt.savefig("./figs/heat_accuracy.pdf")
     plt.show()
 
     # calc average error

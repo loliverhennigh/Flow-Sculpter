@@ -28,12 +28,10 @@ import matplotlib.pyplot as plt
 
 FLAGS = tf.app.flags.FLAGS
 
-FLOW_DIR = make_checkpoint_path(FLAGS.base_dir_flow, FLAGS, network="flow")
-BOUNDARY_DIR = make_checkpoint_path(FLAGS.base_dir_boundary, FLAGS, network="boundary")
 
 shape = FLAGS.shape.split('x')
 shape = map(int, shape)
-run_steps = 10
+run_steps = 30
 
 def evaluate():
   """Run Eval once.
@@ -47,7 +45,7 @@ def evaluate():
     boundary = flow_net.inference_boundary(FLAGS.batch_size, FLAGS.dims*[FLAGS.obj_size], params_op, full_shape=shape)
 
     # predict steady flow on boundary
-    predicted_flow = flow_net.inference_flow(boundary, 1.0)
+    predicted_flow = flow_net.inference_network(boundary)
 
     # quantities to optimize
     force = calc_force(boundary, predicted_flow[...,2:3])
@@ -76,6 +74,7 @@ def evaluate():
  
     sess.run(params_op_init, feed_dict={params_op_set: params_np})
 
+    sess.run(train_step, feed_dict={})
     t = time.time()
     for i in tqdm(xrange(run_steps)):
       sess.run(train_step, feed_dict={})

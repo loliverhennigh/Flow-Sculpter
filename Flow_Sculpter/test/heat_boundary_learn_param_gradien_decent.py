@@ -135,7 +135,7 @@ def evaluate():
         if run_time - i <= 100:
           plt.savefig("./figs/" + FLAGS.boundary_learn_loss + "_plot.png")
         if i == run_time - 1:
-          plt.savefig("./figs/heat_learn_gradient_decent.jpeg")
+          plt.savefig("./figs/heat_learn_gradient_decent.pdf")
           plt.show()
         plt.close(fig)
 

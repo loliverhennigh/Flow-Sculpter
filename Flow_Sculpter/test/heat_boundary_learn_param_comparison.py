@@ -243,7 +243,7 @@ def evaluate():
     plt.ylabel('Temp at Source')
     plt.suptitle("Gradient Descent vs Simulated Annealing", fontsize=20)
     plt.legend(loc="upper_left")
-    plt.savefig("./figs/heat_learn_comparison.jpeg")
+    plt.savefig("./figs/heat_learn_comparison.pdf")
     plt.show()
 
 

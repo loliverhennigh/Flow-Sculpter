@@ -26,11 +26,9 @@ from tqdm import *
 
 FLAGS = tf.app.flags.FLAGS
 
-FLOW_DIR = make_checkpoint_path(FLAGS.base_dir_flow, FLAGS, network="flow")
-
 shape = FLAGS.shape.split('x')
 shape = map(int, shape)
-run_steps = 10
+run_steps = 30
 
 def evaluate():
   """Run Eval once.
@@ -40,7 +38,7 @@ def evaluate():
     boundary, true_flow = flow_net.inputs_flow(batch_size=FLAGS.batch_size, shape=shape, dims=FLAGS.dims)
 
     # inference model.
-    predicted_flow = flow_net.inference_flow(boundary, 1.0)
+    predicted_flow = flow_net.inference_network(boundary)
 
     # Restore for eval
     init = tf.global_variables_initializer()
@@ -52,6 +50,7 @@ def evaluate():
     # make fake data
     batch_boundary = np.zeros([FLAGS.batch_size] + shape + [1])
 
+    sess.run(predicted_flow,feed_dict={boundary: batch_boundary})
     t = time.time()
     for i in tqdm(xrange(run_steps)):
       # calc flow 

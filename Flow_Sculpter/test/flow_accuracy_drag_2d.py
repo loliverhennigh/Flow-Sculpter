@@ -148,7 +148,7 @@ def evaluate():
     plt.title("Max X Velocity", fontsize=38)
     plt.ylabel("Predicted", fontsize=26)
     plt.xlabel("True", fontsize=26)
-    plt.savefig("./figs/flow_accuracy_2d.jpeg")
+    plt.savefig("./figs/flow_accuracy_2d.pdf")
     plt.show()
 
 def main(argv=None):  # pylint: disable=unused-argument
