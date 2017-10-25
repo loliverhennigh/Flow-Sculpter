@@ -105,7 +105,7 @@ def evaluate():
     params_np[0,0] = 0.0
     params_np[0,1] = 0.5
     params_np[0,2] = 1.0
-    params_np[0,3] = 0.0
+    params_np[0,4] = 0.0
 
     # make store vectors for values
     resolution = 320
@@ -117,7 +117,7 @@ def evaluate():
 
     # make store dir
     for i in tqdm(xrange(resolution)):
-      params_np[0,3] += (0.3)/resolution
+      params_np[0,4] += (0.3)/resolution
       velocity_norm_g = sess.run(drag_ratio,feed_dict={inputs_vector: np.concatenate(batch_size*[params_np], axis=0)})
       if i % store_freq == 0:
         boundary_frame_store.append(sess.run(boundary,feed_dict={inputs_vector: np.concatenate(batch_size*[params_np], axis=0)})[0,int(FLAGS.obj_size/2):int(3*FLAGS.obj_size/2),int(FLAGS.obj_size/2):int(3*FLAGS.obj_size/2),0])

@@ -130,7 +130,7 @@ def evaluate():
         plt.xlabel("Step")
         plt.ylabel("Temp")
         plt.legend()
-        plt.suptitle("Heat Sink Optimization Using Gradient Decent", fontsize=20)
+        plt.suptitle("Heat Sink Optimization Using Gradient Descent", fontsize=20)
         plt.savefig("./figs/boundary_learn_image_store/plot_" + str(i).zfill(5) + ".png")
         if run_time - i <= 100:
           plt.savefig("./figs/" + FLAGS.boundary_learn_loss + "_plot.png")

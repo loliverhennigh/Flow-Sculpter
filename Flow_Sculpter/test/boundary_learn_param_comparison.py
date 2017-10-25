@@ -35,7 +35,7 @@ batch_size=1
 num_runs = 1
 std = 0.05
 #temps=[.08, .02]
-temps=[0.01, 0.04, .08, .02]
+temps=[.08, .16, .32]
 
 # 2d or not
 def calc_mean_and_std(values):
@@ -152,15 +152,11 @@ def evaluate():
         l, _ = sess.run([loss, train_step], feed_dict={})
         if i == run_time-1:
           d_l_ratio = sess.run(drag_lift_ratio)
-          plt.scatter(-np.degrees(set_params[:,0]), d_l_ratio)
-          plt.show()
-          plt.imshow(sess.run(boundary)[2,:,:,0])
         plot_error_gradient_decent[sim, i] = np.sum(l)
 
  
     # simulated annealing
     plot_error_simulated_annealing = np.zeros((len(temps), num_runs, run_time))
-    """
     for t in tqdm(xrange(len(temps))):
       for sim in tqdm(xrange(num_runs)):
         sess.run(params_op_init, feed_dict={params_op_set: start_params_np})
@@ -175,7 +171,6 @@ def evaluate():
           param_old, fittness_old, temp = simulated_annealing_step(param_old, fittness_old, param_new, fittness_new, temp=temp)
           param_new = distort_param(param_old, std)
           plot_error_simulated_annealing[t, sim, i] = fittness_old
-    """
 
     x = np.arange(run_time)
 
@@ -194,7 +189,7 @@ def evaluate():
     plt.ylabel('Loss')
     plt.title("Optimization", fontsize=20)
     plt.legend(loc="upper_left")
-    plt.savefig("./figs/learn_comparison.jpeg")
+    plt.savefig("./figs/learn_comparison.pdf")
     plt.show()
 
 
