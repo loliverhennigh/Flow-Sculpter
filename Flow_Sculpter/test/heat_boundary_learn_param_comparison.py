@@ -202,7 +202,7 @@ def evaluate():
     for sim in tqdm(xrange(num_runs)):
       sess.run(params_op_init, feed_dict={params_op_set: start_params_np})
       for i in tqdm(xrange(run_time)):
-        plot_error_gradient_decent[sim, i] = run_heat_sink_simulation(sess.run(params_op) - 0.5)
+        plot_error_gradient_decent[sim, i] = run_heat_sink_simulation(np.minimum(np.maximum(sess.run(params_op) - 0.5, -.5), 0.5))
         sess.run(train_step, feed_dict={})
     gradient_descent_boundary = heat_sink_boundary_2d(sess.run(params_op)[0], [128,128])
 
