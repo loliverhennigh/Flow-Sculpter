@@ -1,9 +1,15 @@
-\begin{thebibliography}{20}
+\begin{thebibliography}{22}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
   \providecommand{\doi}[1]{doi: #1}\else
   \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Anderson \& Aftosmis(2015)Anderson and Aftosmis]{anderson2015adaptive}
+George~R Anderson and Michael~J Aftosmis.
+\newblock Adaptive shape parameterization for aerodynamic design.
+\newblock \emph{Nat. Aeronaut. Space Admin., Ames Res. Center, Moffett Field,
+  CA, USA, NAS Tech. Rep. NAS-2015-02}, 2015.
 
 \bibitem[Ando et~al.(2010)Ando, Takamura, and Saito]{ando2010automotive}
 Kenichi Ando, Akio Takamura, and Isao Saito.
@@ -71,6 +77,12 @@ Michal Januszewski and Marcin Kostur.
 Diederik Kingma and Jimmy Ba.
 \newblock Adam: A method for stochastic optimization.
 \newblock \emph{arXiv preprint arXiv:1412.6980}, 2014.
+
+\bibitem[Koziel \& Leifsson(2013)Koziel and Leifsson]{koziel2013multi}
+Slawomir Koziel and Leifur Leifsson.
+\newblock Multi-level cfd-based airfoil shape optimization with automated
+  low-fidelity model selection.
+\newblock \emph{Procedia Computer Science}, 18:\penalty0 889--898, 2013.
 
 \bibitem[Lane \& Marshall(2009)Lane and Marshall]{lane2009surface}
 Kevin~A Lane and David~D Marshall.
