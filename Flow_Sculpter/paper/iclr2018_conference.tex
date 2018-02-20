@@ -9,7 +9,7 @@
 
 
 %\title{Automated Aerodynamic Design using Neural Networks and Gradient Decent}
-\title{Automated Design using Neural Networks and Gradient Decent}
+\title{Automated Design using Neural Networks and Gradient Descent}
 
 % Authors must not appear in the submitted version. They should be hidden
 % as long as the \iclrfinalcopy macro remains commented out below.
@@ -47,20 +47,13 @@ We propose a novel method that makes use of deep neural networks and gradient de
 
 \section{Introduction}
 
-Automated Design is the process by which an object is designed by a computer to meet or maximize some measurable objective. This is typically performed by modeling the system and then exploring the space of designs to maximize some desired property whether that be an automotive car styling with low drag or power and cost efficient magnetic bearings \citep{ando2010automotive} \citep{dyck1996automated} . A notable historic example of this is the 2006 NASA ST5 spacecraft antenna designed by a evolutionary algorithm to create the best radiation pattern \citep{hornbyautomated}. More recently, an extremely compact broadband on-chip wavelength demultiplexer was design to split electromagnetic waves with different frequencies \citep{piggott2015inverse}. While there have been some significant successes in this field the dream of true automated is still far from realized. The main challenges present are heavy computational requirements for accurately modeling the physical system under investigation and often exponentially large search spaces. These two problems negatively complement each other making the computation requirements intractable for even simple problems.
+Automated Design is the process by which an object is designed by a computer to meet or maximize some measurable objective. This is typically performed by modeling the system and then exploring the space of designs to maximize some desired property whether that be an automotive car styling with low drag or power and cost efficient magnetic bearings \citep{ando2010automotive} \citep{dyck1996automated} . A notable historic example of this is the 2006 NASA ST5 spacecraft antenna designed by an evolutionary algorithm to create the best radiation pattern \citep{hornbyautomated}. More recently, an extremely compact broadband on-chip wavelength demultiplexer was design to split electromagnetic waves with different frequencies \citep{piggott2015inverse}. While there have been some significant successes in this field the dream of true automated is still far from realized. The main challenges present are heavy computational requirements for accurately modeling the physical system under investigation and often exponentially large search spaces. These two problems negatively complement each other making the computation requirements intractable for even simple problems.
 
 Our approach works to solve the current problems of automated design in two ways. First, we learn a computationally efficient representation of the physical system on a neural network. This trained network can be used to evaluate the quality or fitness of the design several orders of magnitude faster. Second, we use the differentiable nature of the trained network to get a gradient on the parameter space when performing optimization. This allows significantly more efficient optimization requiring far fewer iterations then other gradient free methods such as genetic algorithms or simulated annealing. These two strengths of our method overcome the present difficulties with automated design and greatly accelerate optimization.
 
 The first problem tackled in this work is designing a simple heat sink to maximize the cooling of a heat source. The setup of our simulation is meant to mimic the conditions seen with an aluminum heat sink on a computer processor. We keep this optimization problem relatively simple and use this only as a first test and introduction to the method. Our second test is on the significantly more difficult task of designing both 2D and 3D airfoils with high lift drag ratios under steady state flow conditions. This problem is of tremendous importance in many engineering areas such as aeronautical, aerospace and automotive engineering. Because this is a particularly challenging problem and often times unintuitive for designers, there has been considerable work using automated design to produce optimized designs. We center much of the discussion in this paper around this problem because of its difficulty and view this as a true test our method. While we only look at these two problems in this work, we emphasize that the ideas behind our method are applicable to a wide variety of automated design problems and present the method with this in mind.
 
 As we will go into more detail in later sections, in order to perform our airfoil optimization we need a network that predicts the steady state flow from an objects geometry. This problem has previously been tackled in \citet{guo2016convolutional} where they use a relatively simple network architecture. We found that better perform could be obtained using some of the modern network architecture developments and so, in addition to presenting our novel method of design optimization, we also present this superior network for predicting steady state fluid flow with a neural network.
-
-%This work has the following contributions.
-%\begin{itemize}
-%  \item We demonstrate a novel way to use neural networks to greatly accelerate automated design.
-%  \item We present this method in such a way that it can ready applied to many other automated design problems.
-%  \item We provide a new network architecture for predicting steady state fluid flow that vastly out performs previous models.
-%\end{itemize}
 
 \section{Related Work}
 
@@ -80,9 +73,7 @@ In order to perform automated design of airfoils one needs to parameterize the s
 
 \begin{figure}[h]
 \begin{center}
-%\framebox[4.0in]{$\;$}
 \includegraphics[scale=0.34]{./gradient_descent_optimization.pdf}
-%\fbox{\rule[-.5cm]{0cm}{4cm} \rule[-.5cm]{4cm}{0cm}}
 \label{gradient_descent_optimization}
 \end{center}
 \caption{Illustration of Proposed Gradient Descent Method}
@@ -133,8 +124,8 @@ After training our networks $P^{heat}_{net}$ and $S^{heat}_{net}$ we perform our
 
 \begin{figure}[h]
 \begin{center}
-\subfigure{\includegraphics[scale=0.25]{../test/figs/heat_learn_gradient_decent.pdf}}
-\subfigure{\includegraphics[scale=0.25]{../test/figs/heat_learn_comparison.pdf}}
+\subfigure{\includegraphics[scale=0.25]{heat_learn_gradient_decent.pdf}}
+\subfigure{\includegraphics[scale=0.25]{heat_learn_comparison.pdf}}
 \end{center}
 \label{heat_sink_optimization}
 \caption{The top plot shows the optimization process and final design using our gradient descent method. The bottom plot shows a comparison of our optimization method to simulated annealing and the differences in final designs. As we can see, the gradient descent method converges much faster and finds roughly the same design. }
@@ -148,14 +139,14 @@ After training our networks $P^{heat}_{net}$ and $S^{heat}_{net}$ we perform our
 
 \subsection{Flow Prediction Accuracy}
 
-Before we move to our final test of designing 2D and 3D airfoils it is important to know how accurately our model can predict steady state fluid flow. We can also verify our claim of a superior network architecture over previous works and show results indicating this. We omitted this discussion of accuracy from the heat sink problem however a figure showing the accuracy in predicting the heat at source can be found in figure \ref{heat_accuracy} in the appendix.
+Before we move to our final test of designing 2D and 3D airfoils it is important to know how accurately our model can predict steady state fluid flow. We can also verify our claim of a superior network architecture over previous work and show results indicating this. We omitted this discussion of accuracy from the heat sink problem however a figure showing the accuracy in predicting the heat at source can be found in figure \ref{heat_accuracy} in the appendix.
 
 The quantities of most interest in our predictions are the forces on the object. These are the values being optimized so being able to predict them accurately is of crucial importance. The forces are calculated from the pressure field by doing a surface integral over the airfoil. This can be done with any neural network library in a differentiable way by using a 3 by 3 transpose convolution on the boundary to determine the surface normals of the object. Then multiplying this with the pressure field and summing to produce the total force. Viscus forces are left out from this calculation as they are relatively small for thin airfoils. In figure \ref{flow_accuracy}, we see that our model is very accurate in predicting the forces. When comparing our network to the previous model we see a clear increase in accuracy. We also visually inspect the flow and see that the predicted flow is very sharp and doesn't have any rough or blurring artifacts.
 
 \begin{figure}[h]
 \begin{center}
-\subfigure{\includegraphics[scale=0.34]{../test/figs/generated_flow_difference.pdf}}
-\subfigure{\includegraphics[scale=0.13]{../test/figs/flow_accuracy_2d.pdf}}
+\subfigure{\includegraphics[scale=0.34]{generated_flow_difference.pdf}}
+\subfigure{\includegraphics[scale=0.13]{flow_accuracy_2d.pdf}}
 \end{center}
 \caption{Comparison of steady state flow predicted by neural network and the Lattice Boltzmann flow solver. The right plot compares our network architecture (blue dots) with \citet{guo2016convolutional} (green dots). As we can see, our network predicts forces and the max velocity more accurately then the other model. }
 \label{flow_accuracy}
@@ -166,7 +157,7 @@ The quantities of most interest in our predictions are the forces on the object.
 
 \begin{figure}[h]
 \begin{center}
-\includegraphics[scale=0.25]{../test/figs/learn_gradient_descent.pdf}
+\includegraphics[scale=0.25]{learn_gradient_descent.pdf}
 \end{center}
 \caption{A 2D airfoil designed by our gradient descent method. The airfoil works by producing a low pressure area above its surface.}
 \label{learn_gradient_descent}
@@ -174,14 +165,12 @@ The quantities of most interest in our predictions are the forces on the object.
 
 \begin{figure}[h]
 \begin{center}
-\subfigure{\includegraphics[scale=0.25]{../test/figs/learn_gradient_descent_3d.pdf}}
-\subfigure{\includegraphics[scale=0.21]{../test/figs/3d_wing_paraview.jpg}}
+\subfigure{\includegraphics[scale=0.25]{learn_gradient_descent_3d.pdf}}
+\subfigure{\includegraphics[scale=0.21]{3d_wing_paraview.jpg}}
 \end{center}
 \caption{A 3D airfoil designed by our gradient descent method. The cross section of the wing is very similar to that seen in the 2D airfoil.}
 \label{learn_gradient_descent_3d}
 \end{figure}
-
-
 
 A conventional airfoil works by using a curved upper surface to create a low pressure zone and produce lift. The most important quantity for an airfoil is its lift drag ratio which in effect tells its efficiency. At different angles with respect to the fluid flow (angles of attack) the airfoil will produce different lift drag ratios. Roughly speaking, an airfoil should have a increase in lift drag ratio as the angle of attack increases until a max value is reached. For our optimization task, we maximize this lift drag ratio for an airfoil at angles of attack ranging from -5 to 17.5 degrees. The gradient for the airfoil is calculated 9 times at angles in this range and then combined to produce one gradient update. This approach of multiple angle optimization is common and can be found in \citet{drela1998pros}. In figure \ref{learn_gradient_descent} and \ref{learn_gradient_descent_3d} we see the optimized designs produced for the 2D and 3D simulations. We see that our method produces the expected shape and characteristic curve of lift drag ratio versus angle of attack. We also simulated the optimized airfoil with the Lattice Boltzmann solver and found that it performed similarly confirming that optimized designs produced by our method translate well to the original simulation.
 
@@ -191,8 +180,8 @@ Similar to the heat sink problem, we compare our gradient decent method to simul
 
 \begin{figure}[h]
 \begin{center}
-\subfigure{\includegraphics[scale=0.25]{../test/figs/boundary_space_explore.pdf}}
-\subfigure{\includegraphics[scale=0.25]{../test/figs/learn_comparison.pdf}}
+\subfigure{\includegraphics[scale=0.25]{boundary_space_explore.pdf}}
+\subfigure{\includegraphics[scale=0.25]{learn_comparison.pdf}}
 \end{center}
 \label{boundary_space_explore}
 \caption{The left plot shows the change in lift drag ratio versus a change in a single design parameter. We note that while there are many local optima, the surface is very smooth and produces clean gradients. The right plot shows a comparison of the gradient decent optimization to simulated annealing in the 2D airfoil problem for a variety of starting temperatures.}
@@ -211,17 +200,31 @@ In this work we have presented a novel method for automated design and shown its
 
 \subsubsection*{Acknowledgments}
 
-This work was made possible through the \url{http://aigrant.org} created by Nat Friedman and Daniel Gross. This work would not have be possible without this very genourous support.
+This work was made possible through the \url{http://aigrant.org} created by Nat Friedman and Daniel Gross. This work would not have be possible without this very generous support.
 
 \bibliography{iclr2018_conference}
 \bibliographystyle{iclr2018_conference}
 
 \section{Appendix}
 
+\begin{figure}[!h]
+\begin{center}
+\includegraphics[scale=0.45]{appendix_flow_net.pdf}
+\end{center}
+\caption{Complete network architectures.}
+\label{network_architectures}
+\end{figure}
 
+\begin{figure}[!h]
+\begin{center}
+\includegraphics[scale=0.40]{heat_accuracy.pdf}
+\end{center}
+\caption{Difference between predicted heat at source of heat sink for our network and the original solver.}
+\label{heat_accuracy}
+\end{figure}
 
 \begin{table}[!h]
-\caption{Complete list of computation times for diffrent network evaluations with diffrent batch sizes.}
+\caption{Complete list of computation times for different network evaluations with different batch sizes.}
 \label{computation_table}
 \begin{center}
 \begin{tabular}{l|lllll}
@@ -236,21 +239,38 @@ Learn Step $144^3$ & 0.911 sec & 0.711 sec & Nan & Nan & Nan \\
 \end{center}
 \end{table}
 
-\begin{figure}[h]
+
+\subsection{Airfoil Parameterization}
+
+The equation that parameterizes the upper and lower surface of the 2D airfoil is
+
+\begin{equation}
+  S(x) = x^{n_1} (1-x)^{n_2} \sum_{i=0}^{N} A_i \frac{N}{i!(N-i)!} x^i (1-x)^{N-1} + hx
+\end{equation}
+
+The parameters present are $n_1$, $n_2$, $A_i$s, and $h$. We also add the parameter $\theta$ that determines the angle of attack. In this work we fixed $n_1$ to 0.5 and $n_2$ to 1.0 as this will produce a rounded head on the airfoil. We also fix $h$ to zero making the tail the same height as the head. Thus the trainable parameters are the 42 values corresponding to the $A_i$s for the upper and lower surface. A illustration showing the parameterization can be found in figure \ref{example_airfoil}. The 3D airfoil has similar parameterization.
+
+\begin{equation}
+  S(\phi, y) = \phi^{n_1} (1-\phi)^{n_2} \sum_{i=0}^{N_x} \sum_{j=0}^{N_y} A_i B_j \frac{N_x}{i!(N_x-i)!} \phi^i (1-\phi)^{N_x-1} \frac{N_y}{i!(N_y-i)!} y^i (1-y)^{N_y-1} + h \phi
+\end{equation}
+
+Where
+
+\begin{equation}
+  \phi = \frac{x - s y}{(l - 0.5) y + 0.5}
+\end{equation}
+
+This tells the height of the airfoil at a point $(x,y)$. The trainable parameters here are $n_1$, $n_2$, $A_i$s, $B_j$s, $h$, $s$, and $l$. Again, $n_1$, $n_2$, and $h$ are fixed to the values in the 2D case. We also have 2 parameters for the angle $\theta$ and $\psi$ that determine the rotation in the x and y direction. We keep $\psi$ at zero and only vary $\theta$ at the desired angles during the optimization. The parameters $s$ and $l$ correspond to the sweep present in the wing. This leaves the $A_i$s and $B_j$s for optimization. We split the remaining 39 parameters equally so that 13 values are used for $B_i$s and the remaining 26 are split between the $A_i$s for the upper and lower surface. For a much more in depth look at this parameterization, see \citet{lane2009surface}.
+
+\begin{figure}[!h]
 \begin{center}
-\includegraphics[scale=0.40]{../test/figs/heat_accuracy.pdf}
+\includegraphics[scale=0.45]{example_airfoil.pdf}
 \end{center}
-\caption{Diffrence between predicted heat at source of heat sink for our network and the original solver.}
-\label{heat_accuracy}
+\caption{Example of a 2D airfoil.}
+\label{example_airfoil}
 \end{figure}
 
 
-\begin{figure}[h]
-\begin{center}
-\includegraphics[scale=0.45]{./appendix_flow_net.pdf}
-\end{center}
-\caption{Complete network architectures.}
-\label{network_architectures}
-\end{figure}
+
 
 \end{document}

@@ -42,6 +42,8 @@ FLAGS = tf.app.flags.FLAGS
 
 FLOW_DIR = make_checkpoint_path(FLAGS.base_dir_heat, FLAGS, network="heat")
 BOUNDARY_DIR = make_checkpoint_path(FLAGS.base_dir_boundary_heat, FLAGS, network="boundary")
+print(FLOW_DIR)
+print(BOUNDARY_DIR)
 
 shape = FLAGS.shape.split('x')
 shape = map(int, shape)
@@ -103,15 +105,15 @@ def evaluate():
     run_time = FLAGS.boundary_learn_steps
 
     # make store vectors for values
-    plot_error = np.zeros((run_time))
+    plot_error = []
 
     # make store dir
     os.system("mkdir ./figs/boundary_learn_image_store")
     for i in tqdm(xrange(run_time)):
       l, _, = sess.run([loss, train_step], feed_dict={})
       print(l)
-      plot_error[i] = np.sum(l)
-      if ((i+1) % 100 == 0) or i == run_time-1:
+      plot_error.append(np.sum(l))
+      if ((i+1) % 1 == 0) or i == run_time-1:
         # make video with opencv
         p_heat, p_boundary = sess.run([predicted_heat, boundary])
     
@@ -126,7 +128,8 @@ def evaluate():
         plt.imshow(p_boundary[0,:,:,0])
         plt.title("Heat Sink Geometry", fontsize=16)
         a = fig.add_subplot(1,3,1)
-        plt.plot(plot_error, label="Temp at Source")
+        plt.plot(np.array(plot_error), label="Temp at Source")
+        plt.xlim(-10,510)
         plt.xlabel("Step")
         plt.ylabel("Temp")
         plt.legend()
@@ -141,8 +144,8 @@ def evaluate():
 
 
     # generate video of plots
-    os.system("rm ./figs/" + FLAGS.boundary_learn_loss + "_plot_video.mp4")
-    os.system("cat ./figs/boundary_learn_image_store/*.png | ffmpeg -f image2pipe -r 30 -vcodec png -i - -vcodec libx264 ./figs/" + FLAGS.boundary_learn_loss + "_plot_video.mp4")
+    os.system("rm ./figs/heat_learn_video.mp4")
+    os.system("cat ./figs/boundary_learn_image_store/*.png | ffmpeg -f image2pipe -r 30 -vcodec png -i - -vcodec libx264 ./figs/heat_learn_video.mp4")
     os.system("rm -r ./figs/boundary_learn_image_store")
 
      

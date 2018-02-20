@@ -20,31 +20,16 @@ from sailfish.geo import EqualSubdomainsGeometry3D
 from sailfish.subdomain import Subdomain3D
 from sailfish.controller import LBSimulationController
 from sailfish.lb_base import LBForcedSim
-from sailfish.lb_base import ForceObject
 from sailfish.lb_single import LBFluidSim
 from sailfish.node_type import NTFullBBWall, NTHalfBBWall
-
-D = 32
-H = D + D/2 
-W = H 
-L = 2*D
 
 class DuctSubdomain(Subdomain3D):
     max_v = 0.02
     wall_bc = NTHalfBBWall
 
     def boundary_conditions(self, hx, hy, hz):
-        print(self.config.vox_name)
         wall_map = (hx == 0) | (hx == self.gx - 1) | (hy == 0) | (hy == self.gy - 1)
         self.set_node(wall_map, self.wall_bc)
-
-        l = D/4
-        scale = 4
-
-        box = ((hx > scale*l) & (hx <= l/scale + D) &
-               (hy > scale*l) & (hy <= l/scale + D) &
-               (hz > scale*l) & (hz <= l/scale + D))
-        self.set_node(box, self.wall_bc)
 
     def initial_conditions(self, sim, hx, hy, hz):
         sim.rho[:] = 1.0
@@ -56,7 +41,6 @@ class DuctSubdomain(Subdomain3D):
 
     @classmethod
     def accel(cls, config):
-        print(config)
         # The maximum velocity is attained at the center of the channel,
         # i.e. x = y = 0.
         ii = np.arange(1, 100, 2)
@@ -89,25 +73,19 @@ class DuctSim(LBFluidSim, LBForcedSim):
     subdomain = DuctSubdomain
 
     @classmethod
-    def add_options(cls, group, defaults):
-        group.add_argument('--vox_name',
-                help='name of vox file to run ',
-                type=str, default="test.vox")
-
-    @classmethod
     def update_defaults(cls, defaults):
         defaults.update({
-            'lat_nx': H,
-            'lat_ny': W,
-            'lat_nz': L,
+            'lat_nx': 64,
+            'lat_ny': 64,
+            'lat_nz': 32,
             'grid': 'D3Q19',
-            'visc': 0.0164,
+            'visc': 0.0064,
             'max_iters': 500000,
-            'every': 5000,
-            #'periodic_z': True,
+            'every': 50000,
+            'periodic_z': True,
             'block_size': 64,
             # Double precision is required for convergence studies.
-            'precision': 'single'
+            'precision': 'double'
         })
 
     def __init__(self, config):
@@ -115,57 +93,34 @@ class DuctSim(LBFluidSim, LBForcedSim):
         # The flow is driven by a body force.
         self.add_body_force((0.0, 0.0, DuctSubdomain.accel(config)))
 
-        margin = 5
-        self.add_force_oject(ForceObject(
-            (0, 0, 0),
-            (H, W, W)))
-
         a = DuctSubdomain.width(config) / 2.0
         self.config.logger.info('Re = %.2f, width = %d' % (a * DuctSubdomain.max_v / config.visc, a))
 
-    def record_value(self, iteration, force, C_D, C_L):
-        print("iteration")
-        print(iteration)
-        print("force_x")
-        print(force[0])
-        print("force_y")
-        print(force[1])
-        print("force_z")
-        print(force[2])
-        print("c_d")
-        print(C_D)
-        print("c_l")
-        print(C_L)
-
-
-    prev_f = None
-    every = 500
+    _ref = None
+    _prev_l2 = 0.0
     def after_step(self, runner):
-        if self.iteration % self.every == 0:
-            runner.update_force_objects()
-            for fo in self.force_objects:
-                runner.backend.from_buf(fo.gpu_force_buf)
-                f = fo.force()
+        every = 1000
+        mod = self.iteration % every
 
-                # Compute drag and lift coefficients.
-                C_D = (2.0 * f[0] / (D ))
-                C_L = (2.0 * f[1] / (D ))
-                self.record_value(runner._sim.iteration, f, C_D, C_L)
+        if mod == every - 1:
+            self.need_sync_flag = True
+        elif mod == 0:
+            # Cache the reference solution.
+            if self._ref is None:
+                hx, hy, hz = runner._subdomain._get_mgrid()
+                self._ref = runner._subdomain.analytical(hx, hy)
 
-                if self.prev_f is None:
-                    self.prev_f = np.array(f)
-                else:
-                    f = np.array(f)
+            # Output data useful for monitoring the state of the simulation.
+            m = runner._output._fluid_map
+            l2 = (np.linalg.norm(self._ref[m] - runner._sim.vz[m]) /
+                  np.linalg.norm(self._ref[m]))
 
-                    # Terminate simulation when steady state has
-                    # been reached.
-                    diff = np.abs(f - self.prev_f) / np.abs(f)
-                    print("diff")
-                    print(diff)
+            self.config.logger.info('%d %e %e' % (self.iteration, l2, np.nanmax(runner._sim.vz)))
 
-                    if np.all(diff < 3e-4):
-                        runner._quit_event.set()
-                    self.prev_f = f
+            if (np.abs(self._prev_l2 - l2) / l2 < 1e-6):
+                runner._quit_event.set()
+
+            self._prev_l2 = l2
 
 if __name__ == '__main__':
     ctrl = LBSimulationController(DuctSim, EqualSubdomainsGeometry3D)

@@ -12,7 +12,13 @@ The results can be compared with:
     based on two different methods: lattice-Boltzmann and finite-volume
     Int. J. of Heat and Fluid Flow 21 (2000) 186-196.
 """
+
+
 from __future__ import print_function
+
+import sys
+sys.path.append('../sailfish/')
+
 
 import numpy as np
 from sailfish.subdomain import Subdomain2D
@@ -23,24 +29,25 @@ from sailfish.lb_single import LBFluidSim
 from sailfish.sym import S
 
 # Geometry set to match [1].
-H = 512
-L = 4*H
-D = H/2
+H = 256
+L = 512
+D = int(0.1 * L)
 
 # St = f D / u_max
 
 class BoxSubdomain(Subdomain2D):
     bc = NTHalfBBWall
-    max_v = 0.1
+    max_v = 0.04
 
     def boundary_conditions(self, hx, hy):
-        walls = (hy == 0) | (hy == self.gy - 1)
+        #walls = (hy == 0) | (hy == self.gy - 1)
+        walls = (hy == -2)
         self.set_node(walls, self.bc)
 
-        hhy = S.gy - self.bc.location
-        self.set_node((hx == 0) & np.logical_not(walls),
+        #hhy = S.gy - self.bc.location
+        self.set_node((hx == 0) &  np.logical_not(walls),
                       NTEquilibriumVelocity(
-                          DynamicValue(4.0 * self.max_v / H**2 * hhy * (H - hhy), 0.0)))
+                          (self.max_v, 0.0)))
         self.set_node((hx == self.gx - 1) & np.logical_not(walls),
                       NTEquilibriumDensity(1))
         l = L / 4
@@ -61,7 +68,7 @@ class BoxSubdomain(Subdomain2D):
         sim.vy[:] = 0.0
 
         hhy = hy - self.bc.location
-        sim.vx[:] = 4.0 * self.max_v / H**2 * hhy * (H - hhy)
+        sim.vx[:] = self.max_v
 
 
 class BoxSimulation(LBFluidSim):
@@ -72,13 +79,13 @@ class BoxSimulation(LBFluidSim):
         defaults.update({
             'lat_nx': L,
             'lat_ny': (H + 2 if BoxSubdomain.bc.location == 0.5 else H),
-            #'precision': 'double',
+            'precision': 'half',
+            #'periodic_y': True, 
+            #'periodic_x': True, 
             'max_iters': 1000000,
-            'visc': 0.100})
-
+            'visc': 0.007})
+    """
     def __init__(self, *args, **kwargs):
-        print(args)
-        print(kwargs)
         super(BoxSimulation, self).__init__(*args, **kwargs)
 
         margin = 5
@@ -88,46 +95,8 @@ class BoxSimulation(LBFluidSim):
 
         print('%d x %d | box: %d' % (L, H, D))
         print('Re = %2.f' % (BoxSubdomain.max_v * D / self.config.visc))
+    """
 
-    def record_value(self, iteration, force, C_D, C_L):
-        print("iteration")
-        print(iteration)
-        print("force_x")
-        print(force[0])
-        print("force_y")
-        print(force[1])
-        print("c_d")
-        print(C_D)
-        print("c_l")
-        print(C_L)
-
-    prev_f = None
-    every = 500
-    def after_step(self, runner):
-        if self.iteration % self.every == 0:
-            runner.update_force_objects()
-            for fo in self.force_objects:
-                runner.backend.from_buf(fo.gpu_force_buf)
-                f = fo.force()
-
-                # Compute drag and lift coefficients.
-                C_D = (2.0 * f[0] / (D * BoxSubdomain.max_v**2))
-                C_L = (2.0 * f[1] / (D * BoxSubdomain.max_v**2))
-                self.record_value(runner._sim.iteration, f, C_D, C_L)
-
-                if self.prev_f is None:
-                    self.prev_f = np.array(f)
-                else:
-                    f = np.array(f)
-
-                    # Terminate simulation when steady state has
-                    # been reached.
-                    diff = np.abs(f - self.prev_f) / np.abs(f)
-
-                    if np.all(diff < 1e-5):
-                        print(runner)
-                        runner._quit_event.set()
-                    self.prev_f = f
 
 
 if __name__ == '__main__':

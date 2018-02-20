@@ -188,7 +188,7 @@ def evaluate():
       plot_error[i] = np.sum(l)
       plot_drag_x[i] = np.sum(d_x[fig_pos])
       plot_drag_y[i] = np.sum(d_y[fig_pos])
-      if ((i+1) % 100 == 0) or i == run_time-1:
+      if ((i+1) % 1 == 0) or i == run_time-1:
         # make video with opencv
         s_params = sess.run(params_op)
         wing_boundary = []
@@ -207,29 +207,29 @@ def evaluate():
         p_pressure = p_flow[fig_pos,:,:,2]
         p_boundary = p_boundary[fig_pos,:,:,0]
         fig = plt.figure()
-        fig.set_size_inches(25, 5)
-        a = fig.add_subplot(1,5,1)
+        fig.set_size_inches(15, 10)
+        a = fig.add_subplot(2,3,1)
         plt.imshow(p_pressure)
         plt.title("Pressure", fontsize=16)
-        a = fig.add_subplot(1,5,2)
+        a = fig.add_subplot(2,3,2)
         plt.imshow(p_boundary)
         plt.title("Boundary", fontsize=16)
-        a = fig.add_subplot(1,5,3)
+        a = fig.add_subplot(2,3,3)
         plt.plot(plot_error, label="Sum(Lift/Drag)")
         plt.xlabel("Step")
         plt.legend()
-        a = fig.add_subplot(1,5,4)
+        a = fig.add_subplot(2,3,4)
         plt.plot(-plot_drag_x, label="Drag Angle 0")
         plt.plot(plot_drag_y, label="Lift Angle 0")
         plt.ylim(-1.0, np.max(plot_drag_y)+2.0)
         plt.xlabel("Step")
         plt.legend()
-        a = fig.add_subplot(1,5,5)
+        a = fig.add_subplot(2,3,5)
         plt.plot(-np.degrees(set_params[:,0]), d_l_ratio, 'bo', label="Lift/Drag Network")
-        plt.plot(-np.degrees(set_params[:,0]), sharp_d_l_ratio, 'ro', label="Lift/Drag Sharp")
-        if i == run_time-1:
-          solver_d_l_ratio = run_flow_solver(sess.run(params_op), solver_boundary, solver_flow, sess, solver_drag_lift_ratio)
-          plt.plot(-np.degrees(set_params[:,0]), solver_d_l_ratio, 'go', label="Lift/Drag Solver")
+        #plt.plot(-np.degrees(set_params[:,0]), sharp_d_l_ratio, 'ro', label="Lift/Drag Sharp")
+        #if i == run_time-1:
+        #  solver_d_l_ratio = run_flow_solver(sess.run(params_op), solver_boundary, solver_flow, sess, solver_drag_lift_ratio)
+        #  plt.plot(-np.degrees(set_params[:,0]), solver_d_l_ratio, 'go', label="Lift/Drag Solver")
         plt.xlabel("Angle of Attack (Degrees)")
         plt.xlim(min(-np.degrees(set_params[:,0]))-3, max(-np.degrees(set_params[:,0]))+3)
         plt.ylim(np.min(d_l_ratio)-1, np.max(d_l_ratio)+2)
@@ -246,9 +246,9 @@ def evaluate():
 
 
     # generate video of plots
-    #os.system("rm ./figs/" + FLAGS.boundary_learn_loss + "_plot_video.mp4")
-    #os.system("cat ./figs/boundary_learn_image_store/*.png | ffmpeg -f image2pipe -r 30 -vcodec png -i - -vcodec libx264 ./figs/" + FLAGS.boundary_learn_loss + "_plot_video.mp4")
-    #os.system("rm -r ./figs/boundary_learn_image_store")
+    os.system("rm ./figs/airfoil_2d_video.mp4")
+    os.system("cat ./figs/boundary_learn_image_store/*.png | ffmpeg -f image2pipe -r 30 -vcodec png -i - -vcodec libx264 ./figs/airfoil_2d_video.mp4")
+    os.system("rm -r ./figs/boundary_learn_image_store")
 
      
 
